@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 28
-  productGUID: 41b465a0170a96144920899318e6625f
+  productGUID: 6b41cc6beda8bb04b9e573047090bc54
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: SASA_Game_Project
+  productName: Our project_2
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -600,14 +600,14 @@ PlayerSettings:
   editorAssembliesCompatibilityLevel: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: SASA_Game_Project
+  metroPackageName: Our project_2
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: SASA_Game_Project
+  metroApplicationDescription: Our project_2
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -678,11 +678,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
-  cloudProjectId: 480d8dde-623e-4157-8eb2-0290652a8a52
+  cloudProjectId: 6a1bfaf1-37b7-45eb-a42e-18c8f635b483
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: SASA_Game_Project
-  organizationId: honk7608_unity
+  projectName: Our project_2
+  organizationId: shangchu
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
