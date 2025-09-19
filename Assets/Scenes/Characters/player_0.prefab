@@ -106,7 +106,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4a7e57f23414744ba10d74590c5334c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  moveSpeed: 51.2
+  moveDuration: 0.08
+  grid: {fileID: 0}
+  useGridCellSize: 1
+  cellSize: {x: 0.16, y: 0.16}
   collisitionOffset: 0.05
   movementFilter:
     useTriggers: 0
