@@ -18617,6 +18617,14 @@ PrefabInstance:
       propertyPath: grid
       value: 
       objectReference: {fileID: 1851701895}
+    - target: {fileID: 3639892503049449873, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
+      propertyPath: m_Size.y
+      value: 0.03347362
+      objectReference: {fileID: 0}
+    - target: {fileID: 3639892503049449873, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
+      propertyPath: m_Offset.y
+      value: -0.09
+      objectReference: {fileID: 0}
     - target: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_LocalScale.x
       value: 30
