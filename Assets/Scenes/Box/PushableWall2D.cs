@@ -39,13 +39,7 @@ public class PushableWall2D : MonoBehaviour
         Vector2 step = new Vector2(
             dir.x * Mathf.Abs(cellSize.x),
             dir.y * Mathf.Abs(cellSize.y)
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         );
 
         // 이동 목적지 충돌 검사
