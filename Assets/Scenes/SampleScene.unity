@@ -19515,9 +19515,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.002006689
-    width: 0.99928224
-    height: 0.9953178
+    y: 0.002008032
+    width: 0.99892354
+    height: 0.9959839
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
@@ -19689,7 +19689,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 5.12, y: 5.12}
+  m_Size: {x: 2.56, y: 2.56}
   m_EdgeRadius: 0
 --- !u!50 &848965386
 Rigidbody2D:
