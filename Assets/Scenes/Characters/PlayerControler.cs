@@ -159,8 +159,8 @@ public class PlayerController : MonoBehaviour
         if (animator != null)
         {
             animator.SetBool("isWalk", isMoving);
-            animator.SetFloat("DirecionX", lookDir.x);
-            animator.SetFloat("DirecionY", lookDir.y);
+            animator.SetFloat("DirectionX", lookDir.x);
+            animator.SetFloat("DirectionY", lookDir.y);
             // 필요하다면 Speed/Blend 파라미터도 추가 가능:
             // animator.SetFloat("Speed", isMoving ? 1f : 0f);
         }
