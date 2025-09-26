@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        if (sprite == null)   sprite   = GetComponentInChildren<SpriteRenderer>();
+        if (sprite == null) sprite = GetComponentInChildren<SpriteRenderer>();
         if (animator == null) animator = GetComponentInChildren<Animator>();
 
         // Grid가 있으면 cellSize 자동 설정
@@ -50,7 +50,7 @@ public class PlayerController : MonoBehaviour
         SnapToGrid();
 
         // 초기 애니메이터 상태 세팅
-        ApplyLook(lastMoveDir, isMoving:false);
+        ApplyLook(lastMoveDir, isMoving: false);
     }
 
     // 연속 이동은 사용하지 않음 (고의로 비워둠)
@@ -77,33 +77,63 @@ public class PlayerController : MonoBehaviour
         prevInputWasZero = (movementInput == Vector2.zero);
     }
 
-    IEnumerator MoveOneCell(Vector2 dir)
+       IEnumerator MoveOneCell(Vector2 dir)
     {
         isMoving = true;
 
-        // 정확히 한 칸
         Vector2 step = new Vector2(dir.x * cellSize.x, dir.y * cellSize.y);
 
-        // 충돌 체크: 셀 거리 + 오프셋만큼 캐스트
+        // 1) 내 앞이 막혔는지 캐스트
         castColisitions.Clear();
         float castDistance = step.magnitude + collisitionOffset;
 
-        int hitCount = rb.Cast(
-            dir.normalized,          // 이동 방향(정규화)
-            movementFilter,          // 필터
-            castColisitions,         // 결과 저장
-            castDistance             // 거리
-        );
+        int hitCount = rb.Cast(dir.normalized, movementFilter, castColisitions, castDistance);
 
+        // 2) 막혔다면, 밀 수 있는 벽이 있는지 확인해서 먼저 밀기
         if (hitCount > 0)
         {
-            // 막혀 있으면 이동/모션 취소 → 대기 모션으로 복귀
-            EndMoveLook();
-            isMoving = false;
-            yield break;
+            bool pushed = false;
+            PushableWall2D pushable = null;
+
+            // 여러 충돌 중 "가장 가까운" 대상부터 확인
+            float nearest = float.MaxValue;
+            foreach (var h in castColisitions)
+            {
+                if (h.collider == null) continue;
+                float d = h.distance;
+                var p = h.collider.GetComponentInParent<PushableWall2D>();
+                if (p != null && d < nearest)
+                {
+                    nearest = d;
+                    pushable = p;
+                }
+            }
+
+            if (pushable != null)
+            {
+                // 벽을 내 이동 방향으로 한 칸 밀어보기
+                pushed = pushable.TryPush(dir, moveDuration); // 같은 속도로 밀기
+                if (pushed)
+                {
+                    // 벽이 움직임이 끝날 때까지 대기
+                    yield return new WaitUntil(() => !pushable.IsMoving);
+
+                    // 벽이 빠졌으니 다시 한 번 캐스트로 길이 비었는지 확인
+                    castColisitions.Clear();
+                    hitCount = rb.Cast(dir.normalized, movementFilter, castColisitions, castDistance);
+                }
+            }
+
+            // 아직도 막혀 있으면 이동 포기
+            if (hitCount > 0)
+            {
+                EndMoveLook(); // 애니메이션/시선 복구
+                isMoving = false;
+                yield break;
+            }
         }
 
-        // 부드럽게 보간 이동 (물리 타이밍에 맞춤)
+        // 3) 이제 길이 뚫렸으니 내가 한 칸 이동
         Vector2 start = rb.position;
         Vector2 end = start + step;
         float t = 0f;
@@ -117,13 +147,11 @@ public class PlayerController : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
 
-        // 정확히 스냅
         rb.MovePosition(end);
-
-        // 이동 종료 → 대기 모션으로 전환(하지만 lastMoveDir 바라봄 유지)
         EndMoveLook();
         isMoving = false;
     }
+
 
     // 대각 입력이 들어와도 가로나 세로 중 더 큰 축으로만 1칸 이동
     Vector2 QuantizeToCardinal(Vector2 v)
@@ -168,7 +196,7 @@ public class PlayerController : MonoBehaviour
         // 좌우 반전(수평 입력 있을 때만 갱신, 수직 이동 중엔 기존 반전 유지)
         if (sprite != null)
         {
-            if      (lookDir.x > 0.01f) sprite.flipX = false; // 오른쪽
+            if (lookDir.x > 0.01f) sprite.flipX = false; // 오른쪽
             else if (lookDir.x < -0.01f) sprite.flipX = true; // 왼쪽
             // lookDir.x == 0 이면 flipX 유지 (수직 이동/대기에서 마지막 수평 방향 유지)
         }
@@ -191,4 +219,6 @@ public class PlayerController : MonoBehaviour
             rb.position = new Vector2(x, y);
         }
     }
+    
 }
+
