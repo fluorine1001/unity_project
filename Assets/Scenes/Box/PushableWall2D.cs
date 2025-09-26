@@ -40,7 +40,10 @@ public class PushableWall2D : MonoBehaviour
             dir.x * Mathf.Abs(cellSize.x),
             dir.y * Mathf.Abs(cellSize.y)
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         );
