@@ -37,8 +37,9 @@ public class PushableWall2D : MonoBehaviour
         if (dir == Vector2.zero) return false;
 
         Vector2 step = new Vector2(
-            Mathf.Sign(dir.x) * Mathf.Abs(cellSize.x),
-            Mathf.Sign(dir.y) * Mathf.Abs(cellSize.y)
+            dir.x * Mathf.Abs(cellSize.x),
+            dir.y * Mathf.Abs(cellSize.y)
+
         );
 
         // 이동 목적지 충돌 검사
