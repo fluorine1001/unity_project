@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Collider2D))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Move (one step per input)")]
@@ -22,6 +24,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Visual")]
     [SerializeField] private SpriteRenderer sprite; // 좌우 반전용 (비우면 자동 탐색)
+    [SerializeField] private Animator animator;     // 모션 전환용 (비우면 자동 탐색)
 
     // 내부 상태
     private Vector2 movementInput;
@@ -30,11 +33,14 @@ public class PlayerController : MonoBehaviour
     private bool isMoving = false;
     private bool prevInputWasZero = true;        // "누름 에지" 검출용
 
+    // 바라보는 방향/마지막 이동 방향
+    private Vector2 lastMoveDir = Vector2.down;  // 시작 기본 바라봄(아래)
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        if (sprite == null)
-            sprite = GetComponentInChildren<SpriteRenderer>();
+        if (sprite == null)   sprite   = GetComponentInChildren<SpriteRenderer>();
+        if (animator == null) animator = GetComponentInChildren<Animator>();
 
         // Grid가 있으면 cellSize 자동 설정
         if (useGridCellSize && grid != null)
@@ -42,6 +48,9 @@ public class PlayerController : MonoBehaviour
 
         // 시작 위치를 격자에 스냅
         SnapToGrid();
+
+        // 초기 애니메이터 상태 세팅
+        ApplyLook(lastMoveDir, isMoving:false);
     }
 
     // 연속 이동은 사용하지 않음 (고의로 비워둠)
@@ -58,7 +67,8 @@ public class PlayerController : MonoBehaviour
             Vector2 dir = QuantizeToCardinal(movementInput); // 대각 → 가로나 세로
             if (dir != Vector2.zero)
             {
-                UpdateFacing(dir); // 좌우 반전 갱신
+                // 이동 시작 전에 시선/모션 갱신
+                BeginMoveLook(dir);
                 StartCoroutine(MoveOneCell(dir));
             }
         }
@@ -87,7 +97,8 @@ public class PlayerController : MonoBehaviour
 
         if (hitCount > 0)
         {
-            // 막혀 있으면 이동하지 않음
+            // 막혀 있으면 이동/모션 취소 → 대기 모션으로 복귀
+            EndMoveLook();
             isMoving = false;
             yield break;
         }
@@ -108,6 +119,9 @@ public class PlayerController : MonoBehaviour
 
         // 정확히 스냅
         rb.MovePosition(end);
+
+        // 이동 종료 → 대기 모션으로 전환(하지만 lastMoveDir 바라봄 유지)
+        EndMoveLook();
         isMoving = false;
     }
 
@@ -123,14 +137,41 @@ public class PlayerController : MonoBehaviour
             return new Vector2(0f, Mathf.Sign(v.y));
     }
 
-    // 좌우 이동 시 스프라이트 반전
-    void UpdateFacing(Vector2 dir)
-    {
-        if (sprite == null) return;
+    // === 애니메이션 & 바라보는 방향 처리 ===
 
-        if (dir.x > 0.01f)       sprite.flipX = false; // 오른쪽
-        else if (dir.x < -0.01f) sprite.flipX = true;  // 왼쪽
-        // 수직 이동만 있을 땐 유지
+    // 이동 시작 시: 애니메이션을 "이동"으로, 시선 갱신
+    void BeginMoveLook(Vector2 dir)
+    {
+        lastMoveDir = dir;                 // 마지막 이동 방향 저장
+        ApplyLook(lastMoveDir, true);      // 이동 중
+    }
+
+    // 이동 종료 시: 애니메이션을 "대기"로, 마지막 방향 유지
+    void EndMoveLook()
+    {
+        ApplyLook(lastMoveDir, false);     // 대기(Idle)지만 lastMoveDir을 바라봄
+    }
+
+    // 스프라이트 반전 + 애니메이터 파라미터 세팅
+    void ApplyLook(Vector2 lookDir, bool isMoving)
+    {
+        // Animator 파라미터 반영
+        if (animator != null)
+        {
+            animator.SetBool("isWalk", isMoving);
+            animator.SetFloat("DirecionX", lookDir.x);
+            animator.SetFloat("DirecionY", lookDir.y);
+            // 필요하다면 Speed/Blend 파라미터도 추가 가능:
+            // animator.SetFloat("Speed", isMoving ? 1f : 0f);
+        }
+
+        // 좌우 반전(수평 입력 있을 때만 갱신, 수직 이동 중엔 기존 반전 유지)
+        if (sprite != null)
+        {
+            if      (lookDir.x > 0.01f) sprite.flipX = false; // 오른쪽
+            else if (lookDir.x < -0.01f) sprite.flipX = true; // 왼쪽
+            // lookDir.x == 0 이면 flipX 유지 (수직 이동/대기에서 마지막 수평 방향 유지)
+        }
     }
 
     // 시작/배치 시 그리드 중앙에 정렬
