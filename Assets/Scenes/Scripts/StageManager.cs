@@ -7,7 +7,7 @@ public class StageManager : MonoBehaviour
 
     [Header("Stage Control")]
     public int currentStage = 0;
-    public List<Vector3> cameraPositions;  // °¢ ½ºÅ×ÀÌÁöÀÇ Ä«¸Ş¶ó À§Ä¡
+    public List<Vector3> cameraPositions;  // ê° ìŠ¤í…Œì´ì§€ì˜ ì¹´ë©”ë¼ ìœ„ì¹˜
     public float cameraMoveSpeed = 2f;
 
     private Vector3 clearTilePos;
@@ -66,7 +66,7 @@ public class StageManager : MonoBehaviour
             Time.deltaTime * cameraMoveSpeed
         );
 
-        // µµÂø ÆÇÁ¤
+        // ë„ì°© íŒì •
         if (Vector3.Distance(mainCam.transform.position, targetPos) < 0.05f)
         {
             mainCam.transform.position = targetPos;
@@ -74,9 +74,10 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    // ³ªÁß¿¡ ´Ù¸¥ ½Ã½ºÅÛ¿¡¼­ ºÒ·¯¼­ ¾µ ¼ö ÀÖµµ·Ï
+    // ë‚˜ì¤‘ì— ë‹¤ë¥¸ ì‹œìŠ¤í…œì—ì„œ ë¶ˆëŸ¬ì„œ ì“¸ ìˆ˜ ìˆë„ë¡
     public bool IsClearTile(Vector3 playerPos)
     {
         return Vector3.Distance(playerPos, clearTilePos) < 0.1f;
     }
 }
+    
