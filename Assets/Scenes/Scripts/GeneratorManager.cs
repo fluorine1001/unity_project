@@ -26,9 +26,7 @@ public class GeneratorManager : MonoBehaviour
             if (tile == null) continue;
 
             string tileName = tile.sprite.name;
-
             Vector3 worldPos = generatorTilemap.GetCellCenterWorld(pos);
-            print(tileName + " at " + worldPos);
 
             switch (tileName)
             {
@@ -41,8 +39,11 @@ public class GeneratorManager : MonoBehaviour
                     break;
 
                 case "txture_spawn_0":
-                    // ?�리???�???�치 ?�??(StageManager?�서 참조?????�도�?
                     StageManager.Instance.RegisterClearTile(worldPos);
+                    break;
+
+                case "txture_default":
+                    StageManager.Instance.RegisterSpawnTile(worldPos);
                     break;
 
                 default:
@@ -50,7 +51,7 @@ public class GeneratorManager : MonoBehaviour
             }
         }
 
-        // 게임 중에??Generator ?�?�맵 ?��?
+        // 게임 중에는 Generator 타일맵 숨김
         generatorTilemap.gameObject.SetActive(false);
     }
 }
