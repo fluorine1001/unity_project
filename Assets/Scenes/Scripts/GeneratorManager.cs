@@ -27,7 +27,7 @@ public class GeneratorManager : MonoBehaviour
 
             string tileName = tile.sprite.name;
 
-            Vector3 worldPos = generatorTilemap.CellToWorld(pos) + generatorTilemap.tileAnchor;
+            Vector3 worldPos = generatorTilemap.GetCellCenterWorld(pos);
             print(tileName + " at " + worldPos);
 
             switch (tileName)
@@ -41,7 +41,7 @@ public class GeneratorManager : MonoBehaviour
                     break;
 
                 case "txture_spawn_0":
-                    // Å¬¸®¾î Å¸ÀÏ À§Ä¡ ÀúÀå (StageManager¿¡¼­ ÂüÁ¶ÇÒ ¼ö ÀÖµµ·Ï)
+                    // ?ï¿½ë¦¬???ï¿½???ï¿½ì¹˜ ?ï¿½??(StageManager?ï¿½ì„œ ì°¸ì¡°?????ï¿½ë„ï¿½?
                     StageManager.Instance.RegisterClearTile(worldPos);
                     break;
 
@@ -50,7 +50,8 @@ public class GeneratorManager : MonoBehaviour
             }
         }
 
-        // °ÔÀÓ Áß¿¡´Â Generator Å¸ÀÏ¸Ê ¼û±è
+        // ê²Œì„ ì¤‘ì—??Generator ?ï¿½?ï¿½ë§µ ?ï¿½ï¿½?
         generatorTilemap.gameObject.SetActive(false);
     }
 }
+
