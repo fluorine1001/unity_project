@@ -125,6 +125,8 @@ MonoBehaviour:
     maxDepth: 0
     minNormalAngle: 0
     maxNormalAngle: 0
+  sprite: {fileID: 0}
+  animator: {fileID: 0}
 --- !u!114 &2088993954923409479
 MonoBehaviour:
   m_ObjectHideFlags: 0

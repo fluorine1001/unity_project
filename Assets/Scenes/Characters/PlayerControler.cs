@@ -77,7 +77,7 @@ public class PlayerController : MonoBehaviour
         prevInputWasZero = (movementInput == Vector2.zero);
     }
 
-       IEnumerator MoveOneCell(Vector2 dir)
+    IEnumerator MoveOneCell(Vector2 dir)
     {
         isMoving = true;
 
@@ -150,8 +150,30 @@ public class PlayerController : MonoBehaviour
         rb.MovePosition(end);
         EndMoveLook();
         isMoving = false;
+
+        CheckClearTile();
+        CheckSpawnTile();
     }
 
+    void CheckClearTile()
+    {
+        if (StageManager.Instance == null) return;
+
+        if (StageManager.Instance.IsClearTile(transform.position))
+        {
+            StageManager.Instance.OnPlayerStepOnClearTile();
+        }
+    }
+
+    void CheckSpawnTile()
+    {
+        if (StageManager.Instance == null) return;
+
+        if (StageManager.Instance.IsSpawnTile(transform.position))
+        {
+            StageManager.Instance.OnPlayerStepOnSpawnTile();
+        }
+    }
 
     // 대각 입력이 들어와도 가로나 세로 중 더 큰 축으로만 1칸 이동
     Vector2 QuantizeToCardinal(Vector2 v)
