@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3627240557205576821}
   - component: {fileID: 5884320518633491671}
   m_Layer: 0
-  m_Name: txture_iron_0
+  m_Name: Box_Iron
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

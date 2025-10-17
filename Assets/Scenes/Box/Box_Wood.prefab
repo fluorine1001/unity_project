@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1330046238866862640}
   - component: {fileID: 6892614565479058650}
   m_Layer: 0
-  m_Name: txture_wood_0
+  m_Name: Box_Wood
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
