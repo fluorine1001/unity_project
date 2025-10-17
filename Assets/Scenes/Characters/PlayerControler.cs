@@ -42,6 +42,9 @@ public class PlayerController : MonoBehaviour
         if (sprite == null) sprite = GetComponentInChildren<SpriteRenderer>();
         if (animator == null) animator = GetComponentInChildren<Animator>();
 
+        // 다른 스크립트가 초기 바라보는 방향을 참조할 수 있도록 기본값 보장
+        lastMoveDir = lastMoveDir == Vector2.zero ? Vector2.down : lastMoveDir;
+
         // Grid가 있으면 cellSize 자동 설정
         if (useGridCellSize && grid != null)
             cellSize = grid.cellSize;
@@ -219,6 +222,9 @@ public class PlayerController : MonoBehaviour
             rb.position = new Vector2(x, y);
         }
     }
+
+    // 외부에서 현재 바라보는 방향을 안전하게 조회할 수 있도록 공개
+    public Vector2 LastMoveDirection => lastMoveDir;
     
 }
 
