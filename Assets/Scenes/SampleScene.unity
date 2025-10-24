@@ -20348,7 +20348,7 @@ MonoBehaviour:
   followOffset: {x: 0.18, y: 0, z: 0}
   followLerpSpeed: 40
   bulletProjectilePrefab: {fileID: 2062564633}
-  projectileSpeed: 6
+  projectileSpeed: 60
   projectileLifetime: 4
   wallLayers:
     serializedVersion: 2
