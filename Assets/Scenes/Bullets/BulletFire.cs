@@ -258,19 +258,19 @@ public class BulletFire : MonoBehaviour
         HandleHit(other);
     }
 
+   // 필드 기본값 변경
+
+    // HandleHit 내부 수정
     private void HandleHit(Collider2D collider)
     {
         if (!isProjectile || collider == null) return;
 
-        if (player != null && collider.transform.IsChildOf(player.transform))
-        {
-            return;
-        }
+        if (player != null && collider.transform.IsChildOf(player.transform)) return;
 
-        PushableWall2D pushable = collider.GetComponentInParent<PushableWall2D>();
-        if (pushable != null && destroyPushableWalls)
+        // PushableWall2D는 여기서 건드리지 않음. 박스 스스로 처리.
+        if (collider.GetComponentInParent<PushableWall2D>() != null)
         {
-            Destroy(pushable.gameObject);
+            // 관통 여부를 원하면 주석 처리. 보통은 총알 소멸.
             Destroy(gameObject);
             return;
         }
@@ -280,6 +280,7 @@ public class BulletFire : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
 
     private bool IsWall(GameObject target)
     {
