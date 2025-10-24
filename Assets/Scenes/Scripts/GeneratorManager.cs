@@ -8,7 +8,8 @@ public class GeneratorManager : MonoBehaviour
 
     [Header("Prefabs")]
     public GameObject boxPrefab;
-    public GameObject enemyPrefab;
+    public GameObject speedUpTilePrefab;
+    public GameObject speedDownTilePrefab;
 
     [Header("Parent for spawned objects")]
     public Transform spawnParent;
@@ -34,10 +35,6 @@ public class GeneratorManager : MonoBehaviour
                     Instantiate(boxPrefab, worldPos, Quaternion.identity, spawnParent);
                     break;
 
-                case "EnemyGenerator":
-                    Instantiate(enemyPrefab, worldPos, Quaternion.identity, spawnParent);
-                    break;
-
                 case "txture_spawn_0":
                     StageManager.Instance.RegisterClearTile(worldPos);
                     break;
@@ -45,6 +42,15 @@ public class GeneratorManager : MonoBehaviour
                 case "txture_default":
                     StageManager.Instance.RegisterSpawnTile(worldPos);
                     break;
+
+                case "tileTemp_inspeed_0":
+                    Instantiate(speedUpTilePrefab, worldPos, Quaternion.identity, spawnParent);
+                    break;
+
+                case "tileTemp_despeed_0":
+                    Instantiate(speedDownTilePrefab, worldPos, Quaternion.identity, spawnParent);
+                    break;
+
 
                 default:
                     break;
