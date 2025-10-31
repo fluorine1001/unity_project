@@ -117,12 +117,10 @@ public class BulletFire : MonoBehaviour
     private bool IsFirePressed()
     {
 #if ENABLE_INPUT_SYSTEM
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            return true;
-        }
+        return Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+#else
+    return Input.GetMouseButtonDown(0);
 #endif
-        return Input.GetMouseButtonDown(0);
     }
 
     private void ConfigureProjectile(Vector2 direction)
@@ -258,19 +256,26 @@ public class BulletFire : MonoBehaviour
         HandleHit(other);
     }
 
-   // 필드 기본값 변경
+    // 필드 기본값 변경
 
     // HandleHit 내부 수정
     private void HandleHit(Collider2D collider)
     {
         if (!isProjectile || collider == null) return;
 
-        if (player != null && collider.transform.IsChildOf(player.transform)) return;
-
-        // PushableWall2D는 여기서 건드리지 않음. 박스 스스로 처리.
-        if (collider.GetComponentInParent<PushableWall2D>() != null)
+        // 🚨 FunctionalTile 계열이면 Destroy하지 않음
+        if (collider.GetComponent<FunctionalTile>() != null)
         {
-            // 관통 여부를 원하면 주석 처리. 보통은 총알 소멸.
+            return;
+        }
+
+        if (player != null && collider.transform.IsChildOf(player.transform))
+            return;
+
+        PushableWall2D pushable = collider.GetComponentInParent<PushableWall2D>();
+        if (pushable != null && destroyPushableWalls)
+        {
+            Destroy(pushable.gameObject);
             Destroy(gameObject);
             return;
         }
@@ -280,6 +285,7 @@ public class BulletFire : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
 
 
     private bool IsWall(GameObject target)
