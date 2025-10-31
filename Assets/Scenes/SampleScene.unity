@@ -20309,6 +20309,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6172780182932208082, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
+      propertyPath: speedDelta
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 7825602511852947053, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
       propertyPath: m_Name
       value: Speed_Up
@@ -20480,7 +20484,7 @@ MonoBehaviour:
   followOffset: {x: 0.18, y: 0, z: 0}
   followLerpSpeed: 40
   bulletProjectilePrefab: {fileID: 2062564633}
-  projectileSpeed: 60
+  projectileSpeed: 30
   projectileLifetime: 4
   wallLayers:
     serializedVersion: 2
