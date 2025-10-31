@@ -956,7 +956,7 @@ GameObject:
   - component: {fileID: 351883546}
   m_Layer: 6
   m_Name: tile_temp_collision
-  m_TagString: Untagged
+  m_TagString: wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -19846,14 +19846,14 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0
-    width: 0.99849623
-    height: 0.9987515
+    y: 0.002006689
+    width: 0.99928224
+    height: 0.9953178
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 20
+  orthographic size: 24.8
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -20027,6 +20027,10 @@ MonoBehaviour:
     maxDepth: 0
     minNormalAngle: 0
     maxNormalAngle: 0
+  breakSpeed: 10
+  pushSpeed: 4
+  baseCellsAtPushSpeed: 1
+  allowAnyRigidbodyAsBullet: 1
 --- !u!61 &848965385
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -20175,6 +20179,10 @@ MonoBehaviour:
     maxDepth: 0
     minNormalAngle: 0
     maxNormalAngle: 0
+  breakSpeed: 10
+  pushSpeed: 4
+  baseCellsAtPushSpeed: 1
+  allowAnyRigidbodyAsBullet: 1
 --- !u!50 &1198785668
 Rigidbody2D:
   serializedVersion: 5
@@ -20476,7 +20484,7 @@ MonoBehaviour:
   wallLayers:
     serializedVersion: 2
     m_Bits: 1
-  wallTag: Wall
+  wallTag: wall
   destroyPushableWalls: 1
 --- !u!61 &2062564637
 BoxCollider2D:
