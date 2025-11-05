@@ -19970,17 +19970,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageManager
   currentStage: 0
-  cameraPositions:
-  - {x: 0, y: 0, z: 0}
-  - {x: 104.96, y: 0, z: 0}
-  - {x: 212.4799, y: 0, z: 0}
-  - {x: 319.9998, y: 0, z: 0}
-  - {x: 427.5197, y: 0, z: 0}
-  - {x: 535.0397, y: 0, z: 0}
-  - {x: 642.5596, y: 0, z: 0}
-  - {x: 750.0795, y: 0, z: 0}
-  - {x: 857.5994, y: 5.119999, z: 0}
-  - {x: 0, y: 0, z: 0}
+  cameraPositions: []
   cameraMoveSpeed: 1
 --- !u!4 &548608554
 Transform:
