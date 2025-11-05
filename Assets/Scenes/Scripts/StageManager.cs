@@ -31,7 +31,11 @@ public class StageManager : MonoBehaviour
         {
             cameraPositions = new List<Vector3>
             {
+<<<<<<< HEAD
                 new Vector3(0f, 0f, 0f),
+=======
+                new Vector3(0f, 0f,0f),
+>>>>>>> 5a92486e50d4ebaf815f445ba406faec7329bce8
                 new Vector3(104.96f, 0f, 0f),
                 new Vector3(212.48f, 0f, 0f),
                 new Vector3(319.99f, 0f, 0f),
@@ -40,7 +44,11 @@ public class StageManager : MonoBehaviour
                 new Vector3(642.56f, 0f, 0f),
                 new Vector3(750.08f, 0f, 0f),
                 new Vector3(857.60f, 5.12f, 0f),
+<<<<<<< HEAD
                 new Vector3(0f, 0f, 0f)
+=======
+                new Vector3(0f, 0f, 0f) // 마지막: 루프 복귀용
+>>>>>>> 5a92486e50d4ebaf815f445ba406faec7329bce8
             };
         }
     }
