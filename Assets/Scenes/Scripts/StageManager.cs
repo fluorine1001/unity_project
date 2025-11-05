@@ -25,6 +25,30 @@ public class StageManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // ✅ 기본 카메라 위치 자동 추가
+        if (cameraPositions == null || cameraPositions.Count == 0)
+        {
+            cameraPositions = new List<Vector3>
+            {
+                new Vector3(0f, 0f, -10f),
+                new Vector3(104.96f, 0f, -10f),
+                new Vector3(212.48f, 0f, -10f),
+                new Vector3(319.99f, 0f, -10f),
+                new Vector3(427.52f, 0f, -10f),
+                new Vector3(535.04f, 0f, -10f),
+                new Vector3(642.56f, 0f, -10f),
+                new Vector3(750.08f, 0f, -10f),
+                new Vector3(857.60f, 5.12f, -10f),
+                new Vector3(0f, 0f, -10f) // 마지막: 루프 복귀용
+            };
+        }
+    }
+
+    private void Update()
+    {
+        if (cameraMoving)
+            MoveCameraToTarget();
     }
 
     // === GeneratorManager에서 등록 ===
@@ -38,12 +62,6 @@ public class StageManager : MonoBehaviour
         spawnTilePositions.Add(pos);
     }
 
-    private void Update()
-    {
-        if (cameraMoving)
-            MoveCameraToTarget();
-    }
-
     // === 플레이어가 클리어 타일 밟았을 때 ===
     public void OnPlayerStepOnClearTile()
     {
@@ -52,6 +70,11 @@ public class StageManager : MonoBehaviour
         stageSpawned = false;
 
         currentStage++;
+
+        // 마지막 스테이지 넘어가면 다시 처음으로
+        if (currentStage >= cameraPositions.Count)
+            currentStage = 0;
+
         MoveCameraToNextStage();
         print(currentStage);
     }
@@ -83,6 +106,8 @@ public class StageManager : MonoBehaviour
     private void MoveCameraToTarget()
     {
         Camera mainCam = Camera.main;
+        if (mainCam == null || currentStage >= cameraPositions.Count) return;
+
         Vector3 targetPos = cameraPositions[currentStage];
         targetPos.z = mainCam.transform.position.z;
 
