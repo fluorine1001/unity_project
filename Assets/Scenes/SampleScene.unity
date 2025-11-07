@@ -19913,10 +19913,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.0011223345
-    y: 0.002008032
-    width: 0.99663305
-    height: 0.9959839
+    x: 0.0010768127
+    y: 0
+    width: 0.7580762
+    height: 2.7692308
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
@@ -20421,6 +20421,7 @@ MonoBehaviour:
   speedUpTilePrefab: {fileID: 7825602511852947053, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
   speedDownTilePrefab: {fileID: 0}
   spawnParent: {fileID: 955317704}
+  spawnOrderInLayer: -2
 --- !u!4 &1830932779
 Transform:
   m_ObjectHideFlags: 0
@@ -20507,6 +20508,7 @@ MonoBehaviour:
     m_Bits: 1
   wallTag: wall
   destroyPushableWalls: 1
+  spriteAngleOffset: 0
 --- !u!61 &2062564637
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -20760,11 +20762,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_LocalScale.x
-      value: 25
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_LocalScale.y
-      value: 25
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_LocalScale.z
