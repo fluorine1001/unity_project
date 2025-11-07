@@ -19870,10 +19870,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.002006689
-    width: 0.99928224
-    height: 0.9953178
+    x: 0.0012468828
+    y: 0.0026455026
+    width: 0.99750626
+    height: 0.99470896
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
@@ -19903,7 +19903,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -17.92, y: 2.56, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -19997,6 +19997,8 @@ MonoBehaviour:
   currentStage: 0
   cameraPositions: []
   cameraMoveSpeed: 1
+  player: {fileID: 1823501760}
+  startPosition: {x: -17.92, y: 2.56, z: 0}
 --- !u!4 &548608554
 Transform:
   m_ObjectHideFlags: 0
@@ -20286,6 +20288,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4a7e57f23414744ba10d74590c5334c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+--- !u!4 &1823501760 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
+  m_PrefabInstance: {fileID: 785100694943133532}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1830932777
 GameObject:
   m_ObjectHideFlags: 0
@@ -20659,11 +20666,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_LocalScale.x
-      value: 25
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_LocalScale.y
-      value: 25
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_LocalScale.z
@@ -20675,7 +20682,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.01
+      value: 2.56
       objectReference: {fileID: 0}
     - target: {fileID: 5446390995502064736, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_LocalPosition.z
