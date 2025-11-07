@@ -1,38 +1,54 @@
 using UnityEngine;
 
-/// <summary>
-/// 총알의 충돌에만 반응하여 Grid 칸 단위로 밀리거나 파괴되는 상자.
-/// </summary>
-[RequireComponent(typeof(BoxCollider2D))]
-public class PushableBox2D : MonoBehaviour
+public class PushableBox2D : FunctionalTile
 {
-    [Header("Behavior Settings")]
-    [SerializeField] private float breakSpeedThreshold = 8f; // 파괴 기준 속도
-    [SerializeField] private float decayPerHit = 0.5f;       // 감속 상수
-    [SerializeField] private float cellSize = 1f;            // Grid 한 칸 크기
-    [SerializeField] private Vector2 gridOrigin = Vector2.zero; // 그리드 원점 오프셋
+    [Header("물리 반응 설정")]
+    [SerializeField] private float breakSpeedThreshold = 8f;
+    [SerializeField] private float decayPerHit = 0.5f;
+    [SerializeField] private float cellSize = 1f;
+    [SerializeField] private Vector2 gridOrigin = Vector2.zero;
     [SerializeField] private LayerMask blockingMask;
 
-    [Header("Options")]
+    [Header("세부 옵션")]
     [SerializeField] private bool consumeBulletOnPush = true;
     [SerializeField] private bool destroyBulletOnBreak = true;
     [SerializeField] private bool axisAlignedPush = true;
     [SerializeField] private float hitCooldown = 0.05f;
 
     private float _lastHitTime = -999f;
+    private Rigidbody2D _rb2d;
 
-    public void OnBulletHit(BulletFire bullet)
+    protected override void Awake()
     {
-        if (!CanAcceptHit()) return;
+        var col = GetComponent<Collider2D>();
+        if (col != null) col.isTrigger = false;
 
-        var rb = bullet != null ? bullet.GetComponent<Rigidbody2D>() : null;
+        _rb2d = GetComponent<Rigidbody2D>() ?? gameObject.AddComponent<Rigidbody2D>();
+        _rb2d.bodyType = RigidbodyType2D.Kinematic;
+        _rb2d.simulated = true;
+        _rb2d.useFullKinematicContacts = true;
+    }
+
+    protected override void OnBulletHit(BulletFire bullet)
+    {
+        if (!CanAcceptHit() || bullet == null) return;
+
+        var rb = bullet.GetComponent<Rigidbody2D>();
         if (rb == null) return;
 
-        Vector2 v = rb.linearVelocity;
-        float speed = v.magnitude;
-        Vector2 dir = v.sqrMagnitude > 1e-6f ? v.normalized : Vector2.zero;
+        // ✅ 총알의 "진행방향"을 그대로 사용 (반전 금지)
+        Vector2 dir = rb.linearVelocity.normalized;
+        float logicalSpeed = rb.linearVelocity.magnitude / GameConfig.SpeedScale;
 
-        HandleHit(dir, speed, bullet != null ? bullet.gameObject : null);
+        Debug.Log($"[PushBox] 총알 감지 → 속도 {logicalSpeed:F2}, 방향 {dir}");
+
+        HandleHit(dir, logicalSpeed, bullet.gameObject);
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        var bullet = collision.collider.GetComponent<BulletFire>();
+        if (bullet != null) OnBulletHit(bullet);
     }
 
     private bool CanAcceptHit()
@@ -46,20 +62,21 @@ public class PushableBox2D : MonoBehaviour
     {
         if (speed >= breakSpeedThreshold)
         {
+            Debug.Log($"[PushBox] 💥 파괴됨! (속도 {speed:F2})");
             if (destroyBulletOnBreak && bulletGO != null) Destroy(bulletGO);
             Destroy(gameObject);
             return;
         }
 
-        // 밀릴 칸 수 계산
         int steps = Mathf.FloorToInt(Mathf.Max(0f, speed - decayPerHit));
         if (steps <= 0)
         {
+            Debug.Log($"[PushBox] 📎 속도 {speed:F2} → 밀리지 않음");
             if (consumeBulletOnPush && bulletGO != null) Destroy(bulletGO);
             return;
         }
 
-        // 축 정렬 방향
+        // ✅ 축 정렬 (정방향 유지)
         if (axisAlignedPush)
         {
             if (Mathf.Abs(dir.x) >= Mathf.Abs(dir.y))
@@ -68,39 +85,42 @@ public class PushableBox2D : MonoBehaviour
                 dir = new Vector2(0f, Mathf.Sign(dir.y));
         }
 
-        // 현재 그리드 기준 위치 계산
         Vector2 startGridPos = WorldToGrid(transform.position);
         Vector2Int gridCoord = new Vector2Int(Mathf.RoundToInt(startGridPos.x), Mathf.RoundToInt(startGridPos.y));
-
         Vector2 halfExtents = GetHalfExtents();
 
-        // 칸 단위 이동
+        int actualSteps = 0;
         for (int i = 0; i < steps; i++)
         {
             Vector2Int nextCoord = gridCoord + new Vector2Int((int)Mathf.Round(dir.x), (int)Mathf.Round(dir.y));
             Vector3 nextWorld = GridToWorld(nextCoord);
 
-            // 충돌 체크
             Collider2D hit = Physics2D.OverlapBox(nextWorld, halfExtents * 2f, 0f, blockingMask);
-            if (hit != null)
+
+            // ✅ 자기 자신은 무시
+            if (hit != null && hit.gameObject != this.gameObject)
             {
-                break; // 막히면 중단
+                Debug.Log($"[PushBox] 이동 차단됨 → {hit.gameObject.name}");
+                break;
             }
 
             gridCoord = nextCoord;
+            actualSteps++;
         }
 
         Vector3 snappedPos = GridToWorld(gridCoord);
         MoveTo(snappedPos);
+
+        Debug.Log($"[PushBox] 📦 밀림 완료 → {actualSteps}칸 이동 (방향 {dir})");
+
 
         if (consumeBulletOnPush && bulletGO != null) Destroy(bulletGO);
     }
 
     private void MoveTo(Vector3 targetPos)
     {
-        var rb2d = GetComponent<Rigidbody2D>();
-        if (rb2d != null && rb2d.bodyType == RigidbodyType2D.Kinematic)
-            rb2d.MovePosition(targetPos);
+        if (_rb2d != null && _rb2d.bodyType == RigidbodyType2D.Kinematic)
+            _rb2d.MovePosition(targetPos);
         else
             transform.position = targetPos;
     }
@@ -108,35 +128,25 @@ public class PushableBox2D : MonoBehaviour
     private Vector2 GetHalfExtents()
     {
         var box = GetComponent<BoxCollider2D>();
-        if (box != null)
-            return box.size * 0.5f * AbsVec2(transform.lossyScale);
-        return Vector2.one * (cellSize * 0.49f);
+        return box ? box.size * 0.5f * AbsVec2(transform.lossyScale) : Vector2.one * (cellSize * 0.49f);
     }
 
     private static Vector2 AbsVec2(Vector3 v) => new Vector2(Mathf.Abs(v.x), Mathf.Abs(v.y));
 
-    // --- Grid 변환 함수들 ---
+    // ✅ 중심 정렬 보정된 Grid 변환
     private Vector2 WorldToGrid(Vector2 worldPos)
     {
-        Vector2 offsetPos = worldPos - gridOrigin;
-        return offsetPos / cellSize;
+        Vector2 offset = worldPos - gridOrigin - Vector2.one * (cellSize / 2f);
+        return offset / cellSize;
     }
 
     private Vector3 GridToWorld(Vector2Int gridCoord)
     {
+        // ✅ 셀의 중심으로 변환 (0.5f * cellSize 보정)
         return new Vector3(
-            gridOrigin.x + gridCoord.x * cellSize,
-            gridOrigin.y + gridCoord.y * cellSize,
+            gridOrigin.x + (gridCoord.x + 0.5f) * cellSize,
+            gridOrigin.y + (gridCoord.y + 0.5f) * cellSize,
             transform.position.z
         );
-    }
-
-    // Inspector에서 파라미터 세팅 함수 (선택)
-    public void SetParams(float breakThreshold, float decay, float tileSize, Vector2 origin)
-    {
-        breakSpeedThreshold = breakThreshold;
-        decayPerHit = decay;
-        cellSize = tileSize;
-        gridOrigin = origin;
     }
 }

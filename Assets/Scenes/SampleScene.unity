@@ -19806,6 +19806,13 @@ MonoBehaviour:
       Data3: -1780244862
       Data4: 361523909
     Path: event:/BulletLaunch
+  <PlayerDash>k__BackingField:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
 --- !u!4 &436452113
 Transform:
   m_ObjectHideFlags: 0
@@ -19913,15 +19920,15 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.0011223345
-    y: 0.002008032
-    width: 0.99663305
-    height: 0.9959839
+    x: 0.0010309279
+    y: 0
+    width: 0.99793816
+    height: 0.9987515
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 24.8
+  orthographic size: 20
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -20097,8 +20104,7 @@ Transform:
   m_LocalPosition: {x: -5.11682, y: -9.63927, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1373625882}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1198785664
@@ -20243,68 +20249,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1373625881
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 955317704}
-    m_Modifications:
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -2.6975203
-      objectReference: {fileID: 0}
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 13.038469
-      objectReference: {fileID: 0}
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7825602511852947053, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-      propertyPath: m_Name
-      value: Speed_Up
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
---- !u!4 &1373625882 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1330046238866862640, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-  m_PrefabInstance: {fileID: 1373625881}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1550419110
 GameObject:
   m_ObjectHideFlags: 0
@@ -20421,6 +20365,7 @@ MonoBehaviour:
   speedUpTilePrefab: {fileID: 7825602511852947053, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
   speedDownTilePrefab: {fileID: 0}
   spawnParent: {fileID: 955317704}
+  spawnOrderInLayer: -2
 --- !u!4 &1830932779
 Transform:
   m_ObjectHideFlags: 0
@@ -20500,13 +20445,14 @@ MonoBehaviour:
   followOffset: {x: 0.18, y: 0, z: 0}
   followLerpSpeed: 40
   bulletProjectilePrefab: {fileID: 0}
-  projectileSpeed: 60
+  projectileSpeed: 1
   projectileLifetime: 4
   wallLayers:
     serializedVersion: 2
     m_Bits: 1
   wallTag: wall
   destroyPushableWalls: 1
+  spriteAngleOffset: 0
 --- !u!61 &2062564637
 BoxCollider2D:
   m_ObjectHideFlags: 0
