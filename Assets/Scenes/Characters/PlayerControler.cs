@@ -137,6 +137,8 @@ public class PlayerController : MonoBehaviour
         }
 
         // 3) 이제 길이 뚫렸으니 내가 한 칸 이동
+        AudioManager.instance.PlayOneShot(FMODEvents.instance.PlayerDash, this.transform.position);
+        
         Vector2 start = rb.position;
         Vector2 end = start + step;
         float t = 0f;
