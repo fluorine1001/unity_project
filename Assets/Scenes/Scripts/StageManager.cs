@@ -7,15 +7,17 @@ public class StageManager : MonoBehaviour
 
     [Header("Stage Control")]
     public int currentStage = 0;
-    public List<Vector3> cameraPositions;     // 스테이지별 카메라 위치
-    public float cameraMoveSpeed = 2f;        // 카메라 이동 속도
+    public List<Vector3> cameraPositions;
+    public float cameraMoveSpeed = 2f;
+    public Transform player;
+    public Vector3 startPosition = new Vector3(-17.92f, 2.56f, 0f);
 
-    private List<Vector3> clearTilePositions = new List<Vector3>(); // 클리어 타일 좌표들
-    private List<Vector3> spawnTilePositions = new List<Vector3>(); // 스폰 타일 좌표들
+    private List<Vector3> clearTilePositions = new List<Vector3>();
+    private List<Vector3> spawnTilePositions = new List<Vector3>();
 
     private bool cameraMoving = false;
     private bool stageCleared = false;
-    private bool stageSpawned = false; // 새 스테이지 진입 완료 여부
+    private bool stageSpawned = false;
 
     private void Awake()
     {
@@ -26,7 +28,6 @@ public class StageManager : MonoBehaviour
         }
         Instance = this;
 
-        // ✅ 기본 카메라 위치 자동 추가
         if (cameraPositions == null || cameraPositions.Count == 0)
         {
             cameraPositions = new List<Vector3>
@@ -51,56 +52,42 @@ public class StageManager : MonoBehaviour
             MoveCameraToTarget();
     }
 
-    // === GeneratorManager에서 등록 ===
-    public void RegisterClearTile(Vector3 pos)
-    {
-        clearTilePositions.Add(pos);
-    }
+    public void RegisterClearTile(Vector3 pos) => clearTilePositions.Add(pos);
+    public void RegisterSpawnTile(Vector3 pos) => spawnTilePositions.Add(pos);
 
-    public void RegisterSpawnTile(Vector3 pos)
-    {
-        spawnTilePositions.Add(pos);
-    }
-
-    // === 플레이어가 클리어 타일 밟았을 때 ===
     public void OnPlayerStepOnClearTile()
     {
-        if (stageCleared) return; // 중복 방지
+        if (stageCleared) return;
         stageCleared = true;
         stageSpawned = false;
-
         currentStage++;
 
-        // 마지막 스테이지 넘어가면 다시 처음으로
-        if (currentStage >= cameraPositions.Count)
-            currentStage = 0;
+        if (currentStage == 9)
+        {
+            ResetStageSystem(); // ✅ 전체 초기화 함수 호출
+        }
+        else
+        {
+            MoveCameraToNextStage();
+        }
 
-        MoveCameraToNextStage();
         print(currentStage);
     }
 
-    // === 플레이어가 스폰 타일 밟았을 때 ===
     public void OnPlayerStepOnSpawnTile()
     {
-        if (stageSpawned) return; // 중복 방지
+        if (stageSpawned) return;
         stageSpawned = true;
-
-        // ✅ 스테이지 클리어 상태 해제 → 다시 클리어 가능
         stageCleared = false;
         Debug.Log($"Stage {currentStage} 시작 위치 진입 완료");
     }
 
-    // === 카메라 이동 ===
     private void MoveCameraToNextStage()
     {
         if (currentStage < cameraPositions.Count)
-        {
             cameraMoving = true;
-        }
         else
-        {
             Debug.Log("No more stages!");
-        }
     }
 
     private void MoveCameraToTarget()
@@ -117,7 +104,6 @@ public class StageManager : MonoBehaviour
             Time.deltaTime * cameraMoveSpeed
         );
 
-        // 도착 판정
         if (Vector3.Distance(mainCam.transform.position, targetPos) < 0.05f)
         {
             mainCam.transform.position = targetPos;
@@ -125,26 +111,55 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    // === 타일 판정 ===
     public bool IsClearTile(Vector3 playerPos)
     {
-        if (stageCleared) return false; // 클리어 중에는 무시
+        if (stageCleared) return false;
         foreach (var pos in clearTilePositions)
-        {
             if (Vector3.Distance(playerPos, pos) < 0.1f)
                 return true;
-        }
         return false;
     }
 
     public bool IsSpawnTile(Vector3 playerPos)
     {
-        if (stageSpawned) return false; // 이미 스폰 완료한 스테이지면 무시
+        if (stageSpawned) return false;
         foreach (var pos in spawnTilePositions)
-        {
             if (Vector3.Distance(playerPos, pos) < 0.1f)
                 return true;
-        }
         return false;
+    }
+
+    // === ✅ 전체 시스템 초기화 함수 ===
+    private void ResetStageSystem()
+    {
+        currentStage = 0;
+        stageCleared = false;
+        stageSpawned = false;
+        cameraMoving = false;
+
+        clearTilePositions.Clear();
+        spawnTilePositions.Clear();
+
+        if (player != null)
+        {
+            Rigidbody rb = player.GetComponent<Rigidbody>();
+            if (rb != null)
+                rb.position = startPosition;
+            else
+                player.position = startPosition;
+        }
+
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            Vector3 resetPos = cameraPositions[0];
+            resetPos.z = mainCam.transform.position.z;
+            mainCam.transform.position = resetPos;
+        }
+
+        Debug.Log("=== 전체 스테이지 및 상태 초기화 완료 ===");
+
+        // ✅ 초기 스테이지 강제 재시작
+        OnPlayerStepOnSpawnTile();
     }
 }
