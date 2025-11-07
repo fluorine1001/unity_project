@@ -19920,10 +19920,17 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
+<<<<<<< Updated upstream
     x: 0.0012468828
     y: 0.0026455026
     width: 0.99750626
     height: 0.99470896
+=======
+    x: 0.0011223345
+    y: 0.002008032
+    width: 0.99663305
+    height: 0.9959839
+>>>>>>> Stashed changes
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
@@ -20242,6 +20249,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< Updated upstream
   m_GameObject: {fileID: 1198785664}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -20252,6 +20260,9 @@ Transform:
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1550419110
+=======
+--- !u!1 &1785734770
+>>>>>>> Stashed changes
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20259,8 +20270,13 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+<<<<<<< Updated upstream
   - component: {fileID: 1550419112}
   - component: {fileID: 1550419111}
+=======
+  - component: {fileID: 1785734772}
+  - component: {fileID: 1785734771}
+>>>>>>> Stashed changes
   m_Layer: 0
   m_Name: AudioManager
   m_TagString: Untagged
@@ -20268,12 +20284,17 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+<<<<<<< Updated upstream
 --- !u!114 &1550419111
+=======
+--- !u!114 &1785734771
+>>>>>>> Stashed changes
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< Updated upstream
   m_GameObject: {fileID: 1550419110}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -20281,18 +20302,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
 --- !u!4 &1550419112
+=======
+  m_GameObject: {fileID: 1785734770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afd3712a47a029241b5c3872b09f88b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioManager
+--- !u!4 &1785734772
+>>>>>>> Stashed changes
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< Updated upstream
   m_GameObject: {fileID: 1550419110}
+=======
+  m_GameObject: {fileID: 1785734770}
+>>>>>>> Stashed changes
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
+<<<<<<< Updated upstream
   m_Children: []
+=======
+  m_Children:
+  - {fileID: 1925245097}
+>>>>>>> Stashed changes
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1823501744 stripped
@@ -20436,6 +20475,65 @@ Transform:
   - {fileID: 120105618}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+<<<<<<< Updated upstream
+=======
+--- !u!1 &1925245096
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1925245097}
+  - component: {fileID: 1925245098}
+  m_Layer: 0
+  m_Name: FMODEvents
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1925245097
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1925245096}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1785734772}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1925245098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1925245096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8daf96c963b13e241bad5f2d188436fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FMODEvents
+  <BulletLaunched>k__BackingField:
+    Guid:
+      Data1: -112667321
+      Data2: 1226274162
+      Data3: 1944194239
+      Data4: -265093168
+    Path: event:/LaunchBullet
+--- !u!1 &2062564633 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5235172570017649691, guid: fed65e891432cef468b8a2c160786550, type: 3}
+  m_PrefabInstance: {fileID: 5987922937970138375}
+  m_PrefabAsset: {fileID: 0}
+>>>>>>> Stashed changes
 --- !u!114 &2062564634
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20871,5 +20969,9 @@ SceneRoots:
   - {fileID: 1851701896}
   - {fileID: 955317704}
   - {fileID: 5987922937970138375}
+<<<<<<< Updated upstream
   - {fileID: 1550419112}
   - {fileID: 436452113}
+=======
+  - {fileID: 1785734772}
+>>>>>>> Stashed changes
