@@ -19806,6 +19806,13 @@ MonoBehaviour:
       Data3: -1780244862
       Data4: 361523909
     Path: event:/BulletLaunch
+  <PlayerDash>k__BackingField:
+    Guid:
+      Data1: 641199214
+      Data2: 1241989109
+      Data3: -1437564766
+      Data4: 2136176087
+    Path: event:/Dash
 --- !u!4 &436452113
 Transform:
   m_ObjectHideFlags: 0
@@ -20421,6 +20428,7 @@ MonoBehaviour:
   speedUpTilePrefab: {fileID: 7825602511852947053, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
   speedDownTilePrefab: {fileID: 0}
   spawnParent: {fileID: 955317704}
+  spawnOrderInLayer: -2
 --- !u!4 &1830932779
 Transform:
   m_ObjectHideFlags: 0
@@ -20507,6 +20515,7 @@ MonoBehaviour:
     m_Bits: 1
   wallTag: wall
   destroyPushableWalls: 1
+  spriteAngleOffset: 0
 --- !u!61 &2062564637
 BoxCollider2D:
   m_ObjectHideFlags: 0
