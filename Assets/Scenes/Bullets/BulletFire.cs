@@ -103,7 +103,7 @@ public class BulletFire : MonoBehaviour
         GameObject prefab = bulletProjectilePrefab != null ? bulletProjectilePrefab : gameObject;
         GameObject clone = Instantiate(prefab, transform.position, Quaternion.identity);
 
-        BulletFire bullet = clone.GetComponent<BulletFire>(); 
+        BulletFire bullet = clone.GetComponent<BulletFire>();
         if (bullet != null)
         {
             bullet.CopyProjectileSettingsFrom(this);
