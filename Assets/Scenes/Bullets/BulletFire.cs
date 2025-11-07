@@ -100,6 +100,8 @@ public class BulletFire : MonoBehaviour
 
     private void SpawnProjectile(Vector2 direction)
     {
+        AudioManager.instance.PlayOneShot(FMODEvents.instance.BulletLaunched, this.transform.position);
+
         GameObject prefab = bulletProjectilePrefab != null ? bulletProjectilePrefab : gameObject;
         GameObject clone = Instantiate(prefab, transform.position, Quaternion.identity);
 
