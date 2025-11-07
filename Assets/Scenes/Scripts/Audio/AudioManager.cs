@@ -3,10 +3,6 @@ using FMODUnity;
 
 public class AudioManager : MonoBehaviour
 {
-<<<<<<< Updated upstream
-=======
-    
->>>>>>> Stashed changes
     public static AudioManager instance {get; private set;}
 
     private void Awake()
