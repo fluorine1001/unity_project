@@ -20836,6 +20836,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5032913531302474012, guid: fed65e891432cef468b8a2c160786550, type: 3}
+      propertyPath: m_SortingOrder
+      value: -1
+      objectReference: {fileID: 0}
     - target: {fileID: 5235172570017649691, guid: fed65e891432cef468b8a2c160786550, type: 3}
       propertyPath: m_Name
       value: bullet_temp
