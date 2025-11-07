@@ -21,6 +21,10 @@ public class BulletFire : MonoBehaviour
 
     [Header("Interaction")]
     [SerializeField] private bool destroyPushableWalls = true;
+    
+    [Header("Visual")]
+    [SerializeField] private float spriteAngleOffset = 0f; // 스프라이트의 기본 바라보는 방향 보정값(도)
+
 
     private Rigidbody2D rb;
     private Collider2D col;
@@ -42,6 +46,7 @@ public class BulletFire : MonoBehaviour
             col.isTrigger = true;
         }
     }
+
 
     void Start()
     {
@@ -196,8 +201,10 @@ public class BulletFire : MonoBehaviour
         if (lookDir == Vector2.zero) return;
 
         float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
+        // 기존: angle - 90f
+        transform.rotation = Quaternion.Euler(0f, 0f, angle + spriteAngleOffset);
     }
+
 
     private void SnapToPlayer()
     {
