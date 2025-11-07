@@ -19808,19 +19808,11 @@ MonoBehaviour:
     Path: event:/BulletLaunch
   <PlayerDash>k__BackingField:
     Guid:
-<<<<<<< HEAD
       Data1: 0
       Data2: 0
       Data3: 0
       Data4: 0
     Path: 
-=======
-      Data1: 641199214
-      Data2: 1241989109
-      Data3: -1437564766
-      Data4: 2136176087
-    Path: event:/Dash
->>>>>>> 5e8616801df99c8f75a150d2875ae2e5a8b91851
 --- !u!4 &436452113
 Transform:
   m_ObjectHideFlags: 0
@@ -19936,7 +19928,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 24.8
+  orthographic size: 20
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -20453,7 +20445,7 @@ MonoBehaviour:
   followOffset: {x: 0.18, y: 0, z: 0}
   followLerpSpeed: 40
   bulletProjectilePrefab: {fileID: 0}
-  projectileSpeed: 60
+  projectileSpeed: 1
   projectileLifetime: 4
   wallLayers:
     serializedVersion: 2

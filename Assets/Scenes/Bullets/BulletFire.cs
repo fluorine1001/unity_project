@@ -14,17 +14,16 @@ public class BulletFire : MonoBehaviour
 
     [Header("Projectile Settings")]
     [SerializeField] private GameObject bulletProjectilePrefab;
-    [SerializeField] private float projectileSpeed = 6f;
+    [SerializeField] private float projectileSpeed = 6f;          // ⚙️ 논리 단위 속도 (GameConfig.SpeedScale이 곱해짐)
     [SerializeField] private float projectileLifetime = 4f;
     [SerializeField] private LayerMask wallLayers;
     [SerializeField] private string wallTag = "Wall";
 
     [Header("Interaction")]
     [SerializeField] private bool destroyPushableWalls = true;
-    
-    [Header("Visual")]
-    [SerializeField] private float spriteAngleOffset = 0f; // 스프라이트의 기본 바라보는 방향 보정값(도)
 
+    [Header("Visual")]
+    [SerializeField] private float spriteAngleOffset = 0f;
 
     private Rigidbody2D rb;
     private Collider2D col;
@@ -46,7 +45,6 @@ public class BulletFire : MonoBehaviour
             col.isTrigger = true;
         }
     }
-
 
     void Start()
     {
@@ -116,7 +114,8 @@ public class BulletFire : MonoBehaviour
             Rigidbody2D cloneRb = clone.GetComponent<Rigidbody2D>();
             if (cloneRb != null)
             {
-                cloneRb.linearVelocity = direction * projectileSpeed;
+                // ✅ 전역 속도 스케일 적용
+                cloneRb.linearVelocity = direction * projectileSpeed * GameConfig.SpeedScale;
             }
         }
     }
@@ -126,7 +125,7 @@ public class BulletFire : MonoBehaviour
 #if ENABLE_INPUT_SYSTEM
         return Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
 #else
-    return Input.GetMouseButtonDown(0);
+        return Input.GetMouseButtonDown(0);
 #endif
     }
 
@@ -146,7 +145,9 @@ public class BulletFire : MonoBehaviour
 
         rb.isKinematic = false;
         rb.simulated = true;
-        rb.linearVelocity = currentDirection * projectileSpeed;
+
+        // ✅ 전역 스케일 적용
+        rb.linearVelocity = currentDirection * projectileSpeed * GameConfig.SpeedScale;
 
         if (col != null)
         {
@@ -201,10 +202,8 @@ public class BulletFire : MonoBehaviour
         if (lookDir == Vector2.zero) return;
 
         float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg;
-        // 기존: angle - 90f
         transform.rotation = Quaternion.Euler(0f, 0f, angle + spriteAngleOffset);
     }
-
 
     private void SnapToPlayer()
     {
@@ -265,14 +264,11 @@ public class BulletFire : MonoBehaviour
         HandleHit(other);
     }
 
-    // 필드 기본값 변경
-
-    // HandleHit 내부 수정
     private void HandleHit(Collider2D collider)
     {
         if (!isProjectile || collider == null) return;
 
-        // 🚨 FunctionalTile 계열이면 Destroy하지 않음
+        // FunctionalTile 계열이면 Destroy하지 않음
         if (collider.GetComponent<FunctionalTile>() != null)
         {
             return;
@@ -294,8 +290,6 @@ public class BulletFire : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
-
 
     private bool IsWall(GameObject target)
     {
