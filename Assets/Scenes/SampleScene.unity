@@ -19808,11 +19808,11 @@ MonoBehaviour:
     Path: event:/BulletLaunch
   <PlayerDash>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 641199214
+      Data2: 1241989109
+      Data3: -1437564766
+      Data4: 2136176087
+    Path: event:/Dash
 --- !u!4 &436452113
 Transform:
   m_ObjectHideFlags: 0
@@ -19920,10 +19920,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.0012468828
-    y: 0.0026455026
-    width: 0.99750626
-    height: 0.99470896
+    x: 0.0011227545
+    y: 0.002006689
+    width: 0.997006
+    height: 0.9953178
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
