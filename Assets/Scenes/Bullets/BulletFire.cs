@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -8,6 +9,7 @@ using UnityEngine.InputSystem;
 public class BulletFire : MonoBehaviour
 {
     [Header("Follow Settings")]
+    [SerializeField] private UIManager uIManager;
     [SerializeField] private PlayerController player;
     [SerializeField] private Vector3 followOffset = new Vector3(0.18f, 0f, 0f);
     [SerializeField] private float followLerpSpeed = 20f;
@@ -122,6 +124,14 @@ public class BulletFire : MonoBehaviour
 
     private bool IsFirePressed()
     {
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return false;
+        }
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return false;
+        }
 #if ENABLE_INPUT_SYSTEM
         return Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
 #else
