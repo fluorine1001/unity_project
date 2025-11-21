@@ -14,7 +14,7 @@ public class BulletFire : MonoBehaviour
 
     [Header("Projectile Settings")]
     [SerializeField] private GameObject bulletProjectilePrefab;
-    [SerializeField] private float projectileSpeed = 6f;          // ⚙️ 논리 단위 속도 (GameConfig.SpeedScale이 곱해짐)
+    [SerializeField] private float projectileSpeed = 6f;          
     [SerializeField] private float projectileLifetime = 4f;
     [SerializeField] private LayerMask wallLayers;
     [SerializeField] private string wallTag = "Wall";
@@ -24,6 +24,10 @@ public class BulletFire : MonoBehaviour
 
     [Header("Visual")]
     [SerializeField] private float spriteAngleOffset = 0f;
+
+    [Header("Fire Cooldown")]
+    [SerializeField] private float fireCooldown = 2f; // ⏳ 발사 후 재장전 시간
+    private float fireCooldownTimer = 0f;
 
     private Rigidbody2D rb;
     private Collider2D col;
@@ -41,9 +45,7 @@ public class BulletFire : MonoBehaviour
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
         if (col != null)
-        {
             col.isTrigger = true;
-        }
     }
 
     void Start()
@@ -66,11 +68,13 @@ public class BulletFire : MonoBehaviour
         {
             lifeTimer += Time.deltaTime;
             if (lifeTimer >= projectileLifetime)
-            {
                 Destroy(gameObject);
-            }
             return;
         }
+
+        // 🔥 쿨다운 감소
+        if (fireCooldownTimer > 0f)
+            fireCooldownTimer -= Time.deltaTime;
 
         EnsurePlayerReference();
         if (playerTransform == null) return;
@@ -80,19 +84,14 @@ public class BulletFire : MonoBehaviour
         UpdateOrientation(currentDirection);
 
         Vector3 targetPos = playerTransform.position + CalculateFollowOffset(currentDirection);
-        if (followLerpSpeed <= 0f)
-        {
-            transform.position = targetPos;
-        }
-        else
-        {
-            float lerpT = 1f - Mathf.Exp(-followLerpSpeed * Time.deltaTime);
-            transform.position = Vector3.Lerp(transform.position, targetPos, lerpT);
-        }
+        float lerpT = 1f - Mathf.Exp(-followLerpSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, targetPos, lerpT);
 
-        if (lookDir != Vector2.zero && IsFirePressed())
+        // 🔥 발사 (쿨다운 체크 포함)
+        if (lookDir != Vector2.zero && IsFirePressed() && fireCooldownTimer <= 0f)
         {
             SpawnProjectile(lookDir.normalized);
+            fireCooldownTimer = fireCooldown; // ⏳ 재장전 시작
         }
     }
 
@@ -113,10 +112,7 @@ public class BulletFire : MonoBehaviour
         {
             Rigidbody2D cloneRb = clone.GetComponent<Rigidbody2D>();
             if (cloneRb != null)
-            {
-                // ✅ 전역 속도 스케일 적용
                 cloneRb.linearVelocity = direction * projectileSpeed * GameConfig.SpeedScale;
-            }
         }
     }
 
@@ -145,8 +141,6 @@ public class BulletFire : MonoBehaviour
 
         rb.isKinematic = false;
         rb.simulated = true;
-
-        // ✅ 전역 스케일 적용
         rb.linearVelocity = currentDirection * projectileSpeed * GameConfig.SpeedScale;
 
         if (col != null)
@@ -166,33 +160,26 @@ public class BulletFire : MonoBehaviour
         }
 
         if (col != null)
-        {
             col.enabled = false;
-        }
     }
 
     private void EnsurePlayerReference()
     {
         if (player == null)
-        {
             player = FindObjectOfType<PlayerController>();
-        }
 
         if (player != null && playerTransform == null)
-        {
             playerTransform = player.transform;
-        }
     }
 
     private Vector2 ResolveLookDirection()
     {
-        if (player == null) return currentDirection == Vector2.zero ? Vector2.down : currentDirection;
+        if (player == null)
+            return currentDirection == Vector2.zero ? Vector2.down : currentDirection;
 
         Vector2 lookDir = player.LastMoveDirection;
         if (lookDir == Vector2.zero)
-        {
             lookDir = currentDirection == Vector2.zero ? Vector2.down : currentDirection;
-        }
 
         return lookDir;
     }
@@ -231,9 +218,7 @@ public class BulletFire : MonoBehaviour
     private Vector3 CalculateFollowOffset(Vector2 lookDir)
     {
         if (lookDir == Vector2.zero)
-        {
             return followOffset;
-        }
 
         Vector2 forward = lookDir.normalized;
         Vector2 perpendicular = new Vector2(-forward.y, forward.x);
@@ -268,11 +253,8 @@ public class BulletFire : MonoBehaviour
     {
         if (!isProjectile || collider == null) return;
 
-        // FunctionalTile 계열이면 Destroy하지 않음
         if (collider.GetComponent<FunctionalTile>() != null)
-        {
             return;
-        }
 
         if (player != null && collider.transform.IsChildOf(player.transform))
             return;
@@ -286,9 +268,7 @@ public class BulletFire : MonoBehaviour
         }
 
         if (IsWall(collider.gameObject))
-        {
             Destroy(gameObject);
-        }
     }
 
     private bool IsWall(GameObject target)
@@ -296,14 +276,10 @@ public class BulletFire : MonoBehaviour
         if (target == null) return false;
 
         if (!string.IsNullOrEmpty(wallTag) && target.CompareTag(wallTag))
-        {
             return true;
-        }
 
         if (wallLayers.value != 0 && (wallLayers.value & (1 << target.layer)) != 0)
-        {
             return true;
-        }
 
         return false;
     }
