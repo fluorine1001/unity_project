@@ -479,6 +479,7 @@ MonoBehaviour:
   MasterBanks:
   - Master
   Banks:
+  - Scene1
   - SFX
   BanksToLoad: []
   LiveUpdatePort: 9264
