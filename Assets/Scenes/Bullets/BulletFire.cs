@@ -28,7 +28,7 @@ public class BulletFire : MonoBehaviour
     [SerializeField] private float spriteAngleOffset = 0f;
 
     [Header("Fire Cooldown")]
-    [SerializeField] private float fireCooldown = 2f; // ⏳ 발사 후 재장전 시간
+    [SerializeField] private float fireCooldown = 1f; // ⏳ 발사 후 재장전 시간
     private float fireCooldownTimer = 0f;
 
     private Rigidbody2D rb;
