@@ -19,8 +19,6 @@ public class StageManager : MonoBehaviour
     private bool stageCleared = false;
     private bool stageSpawned = false;
 
-    private float leftBoundaryX = float.NegativeInfinity;
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -52,20 +50,6 @@ public class StageManager : MonoBehaviour
     {
         if (cameraMoving)
             MoveCameraToTarget();
-        ClampPlayerToLeftBoundary();
-    }
-
-    private void ClampPlayerToLeftBoundary()
-    {
-        if (player == null) return;
-        if (float.IsNegativeInfinity(leftBoundaryX)) return; // 아직 경계가 설정 안 됐으면 패스
-
-        Vector3 pos = player.position;
-        if (pos.x < leftBoundaryX)
-        {
-            pos.x = leftBoundaryX;
-            player.position = pos;
-        }
     }
 
     public void RegisterClearTile(Vector3 pos) => clearTilePositions.Add(pos);
@@ -78,33 +62,16 @@ public class StageManager : MonoBehaviour
         stageSpawned = false;
         currentStage++;
 
-        int previousStage = currentStage; // ⬅ 지금 스테이지 기억
-        currentStage++;
-
         if (currentStage == 9)
         {
             ResetStageSystem(); // ✅ 전체 초기화 함수 호출
         }
         else
         {
-            UpdateLeftBoundary(previousStage, currentStage);
             MoveCameraToNextStage();
         }
 
         print(currentStage);
-    }
-
-    private void UpdateLeftBoundary(int prevStage, int newStage)
-    {
-        if (cameraPositions == null) return;
-        if (prevStage < 0 || newStage >= cameraPositions.Count) return;
-
-        float prevX = cameraPositions[prevStage].x;
-        float newX = cameraPositions[newStage].x;
-
-        // 두 카메라 중앙 사이의 중간 지점을 경계선으로 사용
-        leftBoundaryX = 0.5f * (prevX + newX);
-        // Debug.Log($"왼쪽 경계 업데이트: {leftBoundaryX}");
     }
 
     public void OnPlayerStepOnSpawnTile()
@@ -170,8 +137,6 @@ public class StageManager : MonoBehaviour
         stageSpawned = false;
         cameraMoving = false;
 
-        leftBoundaryX = float.NegativeInfinity;
-        
         clearTilePositions.Clear();
         spawnTilePositions.Clear();
 
