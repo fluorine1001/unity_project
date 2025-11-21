@@ -19920,20 +19920,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 457f706ebd2b19840a9a34158d6dad1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FMODEvents
+  <Scene1Music>k__BackingField:
+    Guid:
+      Data1: -1052987271
+      Data2: 1193323514
+      Data3: 1951888022
+      Data4: 234400623
+    Path: event:/Music/Scene1BGM
   <BulletLaunched>k__BackingField:
     Guid:
       Data1: -474843890
       Data2: 1148797901
       Data3: -1780244862
       Data4: 361523909
-    Path: event:/BulletLaunch
+    Path: event:/SFX/BulletLaunch
   <PlayerDash>k__BackingField:
     Guid:
       Data1: 641199214
       Data2: 1241989109
       Data3: -1437564766
       Data4: 2136176087
-    Path: event:/Dash
+    Path: event:/SFX/Dash
 --- !u!4 &436452113
 Transform:
   m_ObjectHideFlags: 0
@@ -20041,15 +20048,15 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0.725
-    height: 0.51666665
+    x: 0.0012468828
+    y: 0.0026455026
+    width: 0.99750626
+    height: 0.99470896
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 18
+  orthographic size: 18.8
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -21950,6 +21957,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de5226fca1afb441a0bd052e4138fc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  uIManager: {fileID: 0}
   player: {fileID: 1823501755}
   followOffset: {x: 0.18, y: 0, z: 0}
   followLerpSpeed: 40
@@ -21962,6 +21970,7 @@ MonoBehaviour:
   wallTag: wall
   destroyPushableWalls: 1
   spriteAngleOffset: 0
+  fireCooldown: 0.5
 --- !u!61 &2062564637
 BoxCollider2D:
   m_ObjectHideFlags: 0
