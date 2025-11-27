@@ -4,7 +4,8 @@ public class ResetButton:MonoBehaviour
 {
     public void ResetScene()
     {
-        SceneManager
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        
     }
     
 }
