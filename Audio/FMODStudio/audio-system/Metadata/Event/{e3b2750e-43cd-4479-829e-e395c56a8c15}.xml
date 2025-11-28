@@ -8,7 +8,7 @@
 			<value>0</value>
 		</property>
 		<relationship name="folder">
-			<destination>{c98fc520-193b-4a9b-b31f-9de074efda1c}</destination>
+			<destination>{ade1fed6-8a59-45fa-b334-42047aa20115}</destination>
 		</relationship>
 		<relationship name="mixer">
 			<destination>{c846cc68-c37b-48f5-a2da-5aca869fcc61}</destination>
@@ -95,7 +95,6 @@
 		<property name="timelockedOffset">
 			<value>0.20000000000000001</value>
 		</property>
-		<property name="name" />
 		<relationship name="audioFile">
 			<destination>{2f9f7fbc-52c4-4d32-a984-606f4e6626f7}</destination>
 		</relationship>
