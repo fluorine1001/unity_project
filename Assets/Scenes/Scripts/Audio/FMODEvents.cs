@@ -3,22 +3,66 @@ using FMODUnity;
 
 public class FMODEvents : MonoBehaviour
 {
+    // =======================
+    // 1. 이벤트 경로 문자열
+    // =======================
+    [Header("Music")]
+    [EventRef]
+    [SerializeField] 
+    private string scene1MusicPath = "event:/Music/Scene1BGM";
 
-    [field: Header("Music")]
-    [field: SerializeField] public EventReference Scene1Music {get; private set;}
+    [Header("SFX")]
+    [EventRef]
+    [SerializeField] 
+    private string bulletLaunchedPath = "event:/SFX/BulletLaunch";
 
-    [field: Header("SFX")]
-    [field: SerializeField] public EventReference BulletLaunched {get; private set;}
-    [field: SerializeField] public EventReference PlayerDash {get; private set;}
+    [EventRef]
+    [SerializeField] 
+    private string boxPushedPath = "event:/SFX/BoxPush";
 
-    public static FMODEvents instance {get; private set;}
+    [EventRef]
+    [SerializeField] 
+    private string playerDashPath = "event:/SFX/Dash";
+
+    // =======================
+    // 2. 외부에 공개되는 EventReference
+    // =======================
+    public EventReference Scene1Music    { get; private set; }
+    public EventReference BulletLaunched { get; private set; }
+    public EventReference BoxPushed      { get; private set; }
+    public EventReference PlayerDash     { get; private set; }
+
+    // =======================
+    // 3. 싱글턴 인스턴스
+    // =======================
+    public static FMODEvents instance { get; private set; }
 
     private void Awake()
     {
-        if(instance != null)
+        if (instance != null && instance != this)
         {
             Debug.LogError("Found more than one FMOD Events instance in the scene.");
+            return;
         }
+
         instance = this;
+
+        // 경로 문자열 → EventReference 변환
+        InitEventReferences();
+    }
+
+    private void InitEventReferences()
+    {
+        if (!string.IsNullOrEmpty(scene1MusicPath))
+            Scene1Music = RuntimeManager.PathToEventReference(scene1MusicPath);
+
+        if (!string.IsNullOrEmpty(bulletLaunchedPath))
+            BulletLaunched = RuntimeManager.PathToEventReference(bulletLaunchedPath);
+
+        if (!string.IsNullOrEmpty(boxPushedPath))
+            BoxPushed = RuntimeManager.PathToEventReference(boxPushedPath);
+
+        if (!string.IsNullOrEmpty(playerDashPath))
+            PlayerDash = RuntimeManager.PathToEventReference(playerDashPath);
     }
 }
