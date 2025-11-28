@@ -19934,6 +19934,13 @@ MonoBehaviour:
       Data3: -1780244862
       Data4: 361523909
     Path: event:/SFX/BulletLaunch
+  <BoxPushed>k__BackingField:
+    Guid:
+      Data1: -12929244
+      Data2: 1208265649
+      Data3: -425896277
+      Data4: 753293232
+    Path: event:/SFX/BoxPush
   <PlayerDash>k__BackingField:
     Guid:
       Data1: 641199214
@@ -20048,10 +20055,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.0014641288
+    x: 0
     y: 0
-    width: 0.9956076
-    height: 1.0012903
+    width: 1
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34

@@ -111,7 +111,7 @@ MonoBehaviour:
   gridOrigin: {x: 0, y: 0}
   blockingMask:
     serializedVersion: 2
-    m_Bits: 704
+    m_Bits: 192
   consumeBulletOnPush: 1
   destroyBulletOnBreak: 1
   axisAlignedPush: 1
