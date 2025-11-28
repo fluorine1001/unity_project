@@ -95,18 +95,38 @@ public class PushableBox2D : FunctionalTile
             Vector2Int nextCoord = gridCoord + new Vector2Int((int)Mathf.Round(dir.x), (int)Mathf.Round(dir.y));
             Vector3 nextWorld = GridToWorld(nextCoord);
 
-            Collider2D hit = Physics2D.OverlapBox(nextWorld, halfExtents * 2f, 0f, blockingMask);
+            // ✔ (1) 먼저 구멍 검사
+            Collider2D holeCol = Physics2D.OverlapPoint(nextWorld);
+            if (holeCol != null)
+            {
+                HoleTile hole = holeCol.GetComponent<HoleTile>();
+                if (hole != null && hole.IsEmpty())
+                {
+                    Debug.Log("[PushBox] 🕳 구멍 감지 → 상자 빠짐!");
 
-            // ✅ 자기 자신은 무시
+                    hole.FillHole();            // 구멍 채우기
+                    Destroy(gameObject);        // 박스 삭제
+
+                    if (consumeBulletOnPush && bulletGO != null)
+                        Destroy(bulletGO);
+
+                    return; // 이동 종료
+                }
+            }
+
+            // ✔ (2) 일반 장애물 체크는 그 다음
+            Collider2D hit = Physics2D.OverlapBox(nextWorld, halfExtents * 2f, 0f, blockingMask);
             if (hit != null && hit.gameObject != this.gameObject)
             {
                 Debug.Log($"[PushBox] 이동 차단됨 → {hit.gameObject.name}");
                 break;
             }
 
+            // ✔ (3) 이동 가능하므로 좌표 갱신
             gridCoord = nextCoord;
             actualSteps++;
         }
+
 
         if(actualSteps != 0){
             AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxPushed, this.transform.position);

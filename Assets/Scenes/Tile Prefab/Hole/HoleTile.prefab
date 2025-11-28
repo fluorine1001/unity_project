@@ -10,11 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 1330046238866862640}
   - component: {fileID: 6892614565479058650}
-  - component: {fileID: -4202958323147834250}
+  - component: {fileID: -753599974395859997}
   - component: {fileID: -8676957472188021264}
   - component: {fileID: -5321688108796139523}
   m_Layer: 7
-  m_Name: Push_Stone
+  m_Name: HoleTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 1423634373611511836, guid: 83205528e22a6b247a7402e788693b8f, type: 3}
+  m_Sprite: {fileID: -7393141318487765744, guid: 2f4384dad77de394d83ecc0a48b2d7c4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -93,7 +93,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &-4202958323147834250
+--- !u!114 &-753599974395859997
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -102,20 +102,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 7825602511852947053}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c59424c9ea51f9a42b31e0ae7622fabf, type: 3}
+  m_Script: {fileID: 11500000, guid: 4aca5184e7927994c981cee1706792fb, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PushableBox2D
-  breakSpeedThreshold: 4
-  decayPerHit: 1
-  cellSize: 5.12
-  gridOrigin: {x: 0, y: 0}
-  blockingMask:
-    serializedVersion: 2
-    m_Bits: 704
-  consumeBulletOnPush: 1
-  destroyBulletOnBreak: 1
-  axisAlignedPush: 1
-  hitCooldown: 0
+  m_EditorClassIdentifier: Assembly-CSharp::HoleTile
+  state: 0
+  emptySprite: {fileID: -7393141318487765744, guid: 2f4384dad77de394d83ecc0a48b2d7c4, type: 3}
+  filledSprite: {fileID: -8312577309795678175, guid: 97e1d82a9602e6e468beb554f61dc45f, type: 3}
 --- !u!61 &-8676957472188021264
 BoxCollider2D:
   m_ObjectHideFlags: 0
