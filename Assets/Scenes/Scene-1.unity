@@ -19944,6 +19944,13 @@ MonoBehaviour:
       Data3: -1780244862
       Data4: 361523909
     Path: event:/SFX/BulletLaunch
+  <BoxPushed>k__BackingField:
+    Guid:
+      Data1: -12929244
+      Data2: 1208265649
+      Data3: -425896277
+      Data4: 753293232
+    Path: event:/SFX/BoxPush
   <PlayerDash>k__BackingField:
     Guid:
       Data1: 641199214

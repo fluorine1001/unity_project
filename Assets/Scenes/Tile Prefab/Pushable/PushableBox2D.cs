@@ -108,6 +108,10 @@ public class PushableBox2D : FunctionalTile
             actualSteps++;
         }
 
+        if(actualSteps != 0){
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxPushed, this.transform.position);
+        }
+
         Vector3 snappedPos = GridToWorld(gridCoord);
         MoveTo(snappedPos);
 
