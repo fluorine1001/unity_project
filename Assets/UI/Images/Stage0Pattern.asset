@@ -17,9 +17,7 @@ MonoBehaviour:
   - offset: {x: 0, y: 0}
     kind: 1
   - offset: {x: 1, y: 0}
-    kind: 0
+    kind: 1
   - offset: {x: 2, y: 0}
-    kind: 0
-  - offset: {x: 2, y: 0}
-    kind: 0
+    kind: 1
   size: {x: 3, y: 1}

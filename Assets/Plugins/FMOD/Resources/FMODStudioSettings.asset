@@ -481,6 +481,7 @@ MonoBehaviour:
   Banks:
   - Scene1
   - SFX
+  - UI
   BanksToLoad: []
   LiveUpdatePort: 9264
   EnableMemoryTracking: 0

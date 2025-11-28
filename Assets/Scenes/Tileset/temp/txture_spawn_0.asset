@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: txture_spawn_0
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
-  m_Sprite: {fileID: 1037268868389064885, guid: d251598ea842524459c4a3c605058063, type: 3}
+  m_Sprite: {fileID: -4848329244456854130, guid: 048da77e20b7ffa4ea705bace0443bef, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
