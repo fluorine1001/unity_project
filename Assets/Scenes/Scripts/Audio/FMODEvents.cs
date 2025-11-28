@@ -3,10 +3,12 @@ using FMODUnity;
 
 public class FMODEvents : MonoBehaviour
 {
-    [field: Header("Bullet Launch SFX")]
-    [field: SerializeField] public EventReference BulletLaunched {get; private set;}
 
-    [field: Header("Dash SFX")]
+    [field: Header("Music")]
+    [field: SerializeField] public EventReference Scene1Music {get; private set;}
+
+    [field: Header("SFX")]
+    [field: SerializeField] public EventReference BulletLaunched {get; private set;}
     [field: SerializeField] public EventReference PlayerDash {get; private set;}
 
     public static FMODEvents instance {get; private set;}

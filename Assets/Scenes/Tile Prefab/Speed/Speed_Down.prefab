@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6172780182932208082}
   - component: {fileID: 225802418570719517}
   m_Layer: 9
-  m_Name: Speed_Up
+  m_Name: Speed_Down
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -1
-  m_Sprite: {fileID: 3684855710554109061, guid: c870afde9f53d674db29716911c5bebb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a43cff5160f7ca043b888a6d3178b32f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -151,7 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d5c23fda08b194fa288a4aff020255, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpeedTile
-  speedDelta: 1
+  speedDelta: -1
 --- !u!50 &225802418570719517
 Rigidbody2D:
   serializedVersion: 5

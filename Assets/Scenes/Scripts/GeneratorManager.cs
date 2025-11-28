@@ -1,26 +1,69 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using System.Collections.Generic;
+
+[System.Serializable]
+public class TilePrefabMapping
+{
+    [Tooltip("타일 sprite.name 과 동일해야 합니다.")]
+    public string tileName;
+    public GameObject prefab;
+}
 
 public class GeneratorManager : MonoBehaviour
 {
     [Header("Tilemaps")]
     public Tilemap generatorTilemap;
 
-    [Header("Prefabs")]
-    public GameObject boxPrefab;
-    public GameObject speedUpTilePrefab;
-    public GameObject speedDownTilePrefab;
+    [Header("Prefab Mappings (TileName → Prefab)")]
+    [Tooltip("타일 이름과 대응되는 프리팹 리스트")]
+    public List<TilePrefabMapping> prefabMappings = new();
+
+    [Header("Spawn / Clear Tile Names")]
+    [Tooltip("StageManager.RegisterSpawnTile() 에 등록될 타일 sprite 이름 목록")]
+    public List<string> spawnTileNames = new();
+
+    [Tooltip("StageManager.RegisterClearTile() 에 등록될 타일 sprite 이름 목록")]
+    public List<string> clearTileNames = new();
 
     [Header("Parent for spawned objects")]
     public Transform spawnParent;
 
     [Header("Rendering")]
-    [Tooltip("생성된 프리팹들의 SpriteRenderer Order in Layer 값")]
+    [Tooltip("생성된 모든 프리팹의 SpriteRenderer.sortingOrder")]
     [SerializeField] private int spawnOrderInLayer = -2;
+
+    /// <summary>
+    /// tileName → prefab 캐시용 딕셔너리
+    /// </summary>
+    private Dictionary<string, GameObject> prefabDict;
 
     private void Start()
     {
+        BuildPrefabDictionary();
         GenerateObjectsFromTilemap();
+    }
+
+    /// <summary>
+    /// Inspector에서 받은 prefabMappings를 딕셔너리(prefabDict)로 변환
+    /// </summary>
+    private void BuildPrefabDictionary()
+    {
+        prefabDict = new Dictionary<string, GameObject>();
+
+        foreach (var mapping in prefabMappings)
+        {
+            if (mapping == null || mapping.prefab == null || string.IsNullOrEmpty(mapping.tileName))
+            {
+                Debug.LogWarning("[Generator] 잘못된 TilePrefabMapping이 있습니다.");
+                continue;
+            }
+
+            if (!prefabDict.ContainsKey(mapping.tileName))
+                prefabDict.Add(mapping.tileName, mapping.prefab);
+            else
+                Debug.LogWarning($"[Generator] 중복된 tileName 감지: {mapping.tileName}");
+        }
     }
 
     private void GenerateObjectsFromTilemap()
@@ -30,57 +73,42 @@ public class GeneratorManager : MonoBehaviour
             Tile tile = generatorTilemap.GetTile(pos) as Tile;
             if (tile == null) continue;
 
-            string tileName = tile.sprite.name;
+            string tileName = tile.sprite != null ? tile.sprite.name : "";
             Vector3 worldPos = generatorTilemap.GetCellCenterWorld(pos);
 
-            switch (tileName)
+            // 1) Spawn Tile
+            if (spawnTileNames.Contains(tileName))
             {
-                case "txture_wood_0":
-                {
-                    var go = Instantiate(boxPrefab, worldPos, Quaternion.identity, spawnParent);
-                    ApplyOrderInLayer(go, spawnOrderInLayer);
-                    break;
-                }
+                StageManager.Instance.RegisterSpawnTile(worldPos);
+                continue;
+            }
 
-                case "txture_spawn_0":
-                    StageManager.Instance.RegisterClearTile(worldPos);
-                    break;
+            // 2) Clear Tile
+            if (clearTileNames.Contains(tileName))
+            {
+                StageManager.Instance.RegisterClearTile(worldPos);
+                continue;
+            }
 
-                case "txture_default":
-                    StageManager.Instance.RegisterSpawnTile(worldPos);
-                    break;
-
-                case "tileTemp_inspeed_0":
-                {
-                    var go = Instantiate(speedUpTilePrefab, worldPos, Quaternion.identity, spawnParent);
-                    ApplyOrderInLayer(go, spawnOrderInLayer);
-                    break;
-                }
-
-                case "tileTemp_despeed_0":
-                {
-                    var go = Instantiate(speedDownTilePrefab, worldPos, Quaternion.identity, spawnParent);
-                    ApplyOrderInLayer(go, spawnOrderInLayer);
-                    break;
-                }
-
-                default:
-                    break;
+            // 3) Prefab 매핑 Tile
+            if (prefabDict.TryGetValue(tileName, out GameObject prefab))
+            {
+                var go = Instantiate(prefab, worldPos, Quaternion.identity, spawnParent);
+                ApplyOrderInLayer(go, spawnOrderInLayer);
             }
         }
 
-        // 게임 중에는 Generator 타일맵 숨김
+        // 게임 시작 후 generator tilemap 숨김
         generatorTilemap.gameObject.SetActive(false);
     }
 
     /// <summary>
-    /// 전달한 GameObject 및 모든 자식의 SpriteRenderer.order를 지정값으로 세팅
+    /// 전달한 오브젝트 및 자식 오브젝트의 SpriteRenderer.sortingOrder를 통일해 설정
     /// </summary>
     private void ApplyOrderInLayer(GameObject go, int order)
     {
         if (go == null) return;
 
-        // 본인 포함 전체 계층
         var renderers = go.GetComponentsInChildren<SpriteRenderer>(includeInactive: true);
         foreach (var r in renderers)
         {
