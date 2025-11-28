@@ -20,6 +20,8 @@ public class UIManager:MonoBehaviour
     {
         if (Panel != null)
         {
+            if(!IsPanelOpen) AudioManager.instance.PlayOneShot(FMODEvents.instance.MenuPressed, this.transform.position);
+            else AudioManager.instance.PlayOneShot(FMODEvents.instance.MenuClosed, this.transform.position);
             Panel.SetActive(newState);
         }
         IsPanelOpen = newState;

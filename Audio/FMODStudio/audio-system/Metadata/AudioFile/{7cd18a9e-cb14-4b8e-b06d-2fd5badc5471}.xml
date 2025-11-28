@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects serializationModel="Studio.02.03.00">
-	<object class="AudioFile" id="{875d28ea-3ce0-42e7-8b73-0e17b3dc1302}">
+	<object class="AudioFile" id="{7cd18a9e-cb14-4b8e-b06d-2fd5badc5471}">
 		<property name="assetPath">
-			<value>sfx/BoxPushed.mp3</value>
+			<value>sfx/UI/MenuPressed.mp3</value>
 		</property>
 		<property name="frequencyInKHz">
 			<value>48</value>
@@ -11,7 +11,7 @@
 			<value>2</value>
 		</property>
 		<property name="length">
-			<value>1.248</value>
+			<value>8.0399999999999991</value>
 		</property>
 		<relationship name="masterAssetFolder">
 			<destination>{67fbdc89-ab35-4f28-8118-b7432dac1311}</destination>

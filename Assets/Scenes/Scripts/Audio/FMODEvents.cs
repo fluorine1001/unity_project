@@ -12,17 +12,32 @@ public class FMODEvents : MonoBehaviour
     private string scene1MusicPath = "event:/Music/Scene1BGM";
 
     [Header("SFX")]
+
+    [Header("Player")]
+    
     [EventRef]
     [SerializeField] 
-    private string bulletLaunchedPath = "event:/SFX/BulletLaunch";
+    private string bulletLaunchedPath = "event:/SFX/Player/BulletLaunch";
 
     [EventRef]
     [SerializeField] 
-    private string boxPushedPath = "event:/SFX/BoxPush";
+    private string playerDashPath = "event:/SFX/Player/Dash";
+
+    [Header("Objects")]
 
     [EventRef]
     [SerializeField] 
-    private string playerDashPath = "event:/SFX/Dash";
+    private string boxPushedPath = "event:/SFX/Objects/BoxPush";
+
+    [Header("UI")]
+
+    [EventRef]
+    [SerializeField] 
+    private string menuPressedPath = "event:/SFX/UI/MenuPress";
+
+    [EventRef]
+    [SerializeField] 
+    private string menuClosedPath = "event:/SFX/UI/MenuClose";
 
     // =======================
     // 2. 외부에 공개되는 EventReference
@@ -31,6 +46,8 @@ public class FMODEvents : MonoBehaviour
     public EventReference BulletLaunched { get; private set; }
     public EventReference BoxPushed      { get; private set; }
     public EventReference PlayerDash     { get; private set; }
+    public EventReference MenuPressed    { get; private set; }
+    public EventReference MenuClosed     { get; private set; }
 
     // =======================
     // 3. 싱글턴 인스턴스
@@ -64,5 +81,11 @@ public class FMODEvents : MonoBehaviour
 
         if (!string.IsNullOrEmpty(playerDashPath))
             PlayerDash = RuntimeManager.PathToEventReference(playerDashPath);
+
+        if (!string.IsNullOrEmpty(menuPressedPath))
+            MenuPressed = RuntimeManager.PathToEventReference(menuPressedPath);
+
+        if (!string.IsNullOrEmpty(menuClosedPath))
+            MenuClosed = RuntimeManager.PathToEventReference(menuClosedPath);
     }
 }
