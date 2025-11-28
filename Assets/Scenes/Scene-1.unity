@@ -236,6 +236,16 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
+  - first: {x: 0, y: -2, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 1
+      m_TileSpriteIndex: 1
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
   - first: {x: 2, y: -2, z: 0}
     second:
       serializedVersion: 2
@@ -679,8 +689,8 @@ Tilemap:
   - first: {x: 2, y: 1, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 0
-      m_TileSpriteIndex: 0
+      m_TileIndex: 1
+      m_TileSpriteIndex: 1
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -808,9 +818,9 @@ Tilemap:
       m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
   m_TileAssetArray:
-  - m_RefCount: 5
+  - m_RefCount: 4
     m_Data: {fileID: 11400000, guid: a45470e7c6dcb2f4b9aed1d5d4163f48, type: 2}
-  - m_RefCount: 1
+  - m_RefCount: 3
     m_Data: {fileID: 11400000, guid: c4b9bb4c07feaf5429ae134c7b919638, type: 2}
   - m_RefCount: 11
     m_Data: {fileID: 11400000, guid: f4c6069c6b103344597fd71a6b7e1d2c, type: 2}
@@ -821,9 +831,9 @@ Tilemap:
   - m_RefCount: 8
     m_Data: {fileID: 11400000, guid: 0c18133cfc6c55e43ae9c514e0c34611, type: 2}
   m_TileSpriteArray:
-  - m_RefCount: 5
+  - m_RefCount: 4
     m_Data: {fileID: 2420560019926471277, guid: 20c8388a0dfcbc04baf8a2e983e5ccdc, type: 3}
-  - m_RefCount: 1
+  - m_RefCount: 3
     m_Data: {fileID: 1423634373611511836, guid: 83205528e22a6b247a7402e788693b8f, type: 3}
   - m_RefCount: 11
     m_Data: {fileID: -8312577309795678175, guid: 97e1d82a9602e6e468beb554f61dc45f, type: 3}
@@ -834,7 +844,7 @@ Tilemap:
   - m_RefCount: 8
     m_Data: {fileID: 3684855710554109061, guid: c870afde9f53d674db29716911c5bebb, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 59
+  - m_RefCount: 60
     m_Data:
       e00: 1
       e01: 0
@@ -853,7 +863,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 59
+  - m_RefCount: 60
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -19804,9 +19814,9 @@ RectTransform:
   - {fileID: 1763126657}
   m_Father: {fileID: 691840354}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -80}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &429214906
@@ -20063,7 +20073,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 19.4
+  orthographic size: 18
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -20608,7 +20618,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: setting
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -20721,9 +20731,9 @@ RectTransform:
   - {fileID: 590443309}
   m_Father: {fileID: 691840354}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -145}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &882261949
@@ -20842,9 +20852,9 @@ RectTransform:
   - {fileID: 823518390}
   m_Father: {fileID: 691840354}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -15}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &888897229
@@ -20979,7 +20989,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1031676382
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21009,10 +21019,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1500, y: 600}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -21509,9 +21519,9 @@ RectTransform:
   - {fileID: 601866338}
   m_Father: {fileID: 691840354}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -210}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1635925510
@@ -21884,9 +21894,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GeneratorManager
   generatorTilemap: {fileID: 120105620}
-  boxPrefab: {fileID: 7825602511852947053, guid: 5a56add9719354d4198cbb9eae9475ca, type: 3}
-  speedUpTilePrefab: {fileID: 7825602511852947053, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
-  speedDownTilePrefab: {fileID: 0}
+  prefabMappings:
+  - tileName: txture_wood_0
+    prefab: {fileID: 7825602511852947053, guid: 5a56add9719354d4198cbb9eae9475ca, type: 3}
+  - tileName: txture_iron_0
+    prefab: {fileID: 7825602511852947053, guid: 32fa14dac5009c04c89fabac604f5733, type: 3}
+  - tileName: txture_base_0
+    prefab: {fileID: 7825602511852947053, guid: 7e8a5890985ae07439854d4c829bedd7, type: 3}
+  - tileName: tileTemp_inspeed_0
+    prefab: {fileID: 7825602511852947053, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
+  - tileName: tileTemp_despeed_0
+    prefab: {fileID: 7825602511852947053, guid: f1e7959a9014f554c89207d0154594a0, type: 3}
+  spawnTileNames:
+  - txture_default
+  clearTileNames:
+  - txture_spawn_0
   spawnParent: {fileID: 955317704}
   spawnOrderInLayer: -2
 --- !u!4 &1830932779
@@ -21977,7 +21999,7 @@ MonoBehaviour:
   wallTag: wall
   destroyPushableWalls: 1
   spriteAngleOffset: 0
-  fireCooldown: 2
+  fireCooldown: 0.5
 --- !u!61 &2062564637
 BoxCollider2D:
   m_ObjectHideFlags: 0
