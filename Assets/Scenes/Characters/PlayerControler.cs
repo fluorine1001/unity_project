@@ -92,48 +92,11 @@ public class PlayerController : MonoBehaviour
 
         int hitCount = rb.Cast(dir.normalized, movementFilter, castColisitions, castDistance);
 
-        // 2) 막혔다면, 밀 수 있는 벽이 있는지 확인해서 먼저 밀기
         if (hitCount > 0)
         {
-            bool pushed = false;
-            PushableWall2D pushable = null;
-
-            // 여러 충돌 중 "가장 가까운" 대상부터 확인
-            float nearest = float.MaxValue;
-            foreach (var h in castColisitions)
-            {
-                if (h.collider == null) continue;
-                float d = h.distance;
-                var p = h.collider.GetComponentInParent<PushableWall2D>();
-                if (p != null && d < nearest)
-                {
-                    nearest = d;
-                    pushable = p;
-                }
-            }
-
-            if (pushable != null)
-            {
-                // 벽을 내 이동 방향으로 한 칸 밀어보기
-                pushed = pushable.TryPush(dir, moveDuration); // 같은 속도로 밀기
-                if (pushed)
-                {
-                    // 벽이 움직임이 끝날 때까지 대기
-                    yield return new WaitUntil(() => !pushable.IsMoving);
-
-                    // 벽이 빠졌으니 다시 한 번 캐스트로 길이 비었는지 확인
-                    castColisitions.Clear();
-                    hitCount = rb.Cast(dir.normalized, movementFilter, castColisitions, castDistance);
-                }
-            }
-
-            // 아직도 막혀 있으면 이동 포기
-            if (hitCount > 0)
-            {
-                EndMoveLook(); // 애니메이션/시선 복구
-                isMoving = false;
-                yield break;
-            }
+            EndMoveLook(); // 애니메이션/시선 복구
+            isMoving = false;
+            yield break;
         }
 
         // 3) 이제 길이 뚫렸으니 내가 한 칸 이동
