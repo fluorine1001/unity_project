@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: -4202958323147834250}
   - component: {fileID: -8676957472188021264}
   - component: {fileID: -5321688108796139523}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Push_Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -111,7 +111,7 @@ MonoBehaviour:
   gridOrigin: {x: 0, y: 0}
   blockingMask:
     serializedVersion: 2
-    m_Bits: 192
+    m_Bits: 384
   consumeBulletOnPush: 1
   destroyBulletOnBreak: 1
   axisAlignedPush: 1

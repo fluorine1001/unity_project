@@ -592,7 +592,27 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
-  - first: {x: -2, y: 0, z: 0}
+  - first: {x: -3, y: 0, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 0
+      m_TileSpriteIndex: 3
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
+  - first: {x: -1, y: 0, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 0
+      m_TileSpriteIndex: 3
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
+  - first: {x: 0, y: 0, z: 0}
     second:
       serializedVersion: 2
       m_TileIndex: 6
@@ -984,7 +1004,7 @@ Tilemap:
       m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
   m_TileAssetArray:
-  - m_RefCount: 4
+  - m_RefCount: 6
     m_Data: {fileID: 11400000, guid: a45470e7c6dcb2f4b9aed1d5d4163f48, type: 2}
   - m_RefCount: 3
     m_Data: {fileID: 11400000, guid: c4b9bb4c07feaf5429ae134c7b919638, type: 2}
@@ -1005,7 +1025,7 @@ Tilemap:
     m_Data: {fileID: -7393141318487765744, guid: 2f4384dad77de394d83ecc0a48b2d7c4, type: 3}
   - m_RefCount: 3
     m_Data: {fileID: 1423634373611511836, guid: 83205528e22a6b247a7402e788693b8f, type: 3}
-  - m_RefCount: 4
+  - m_RefCount: 6
     m_Data: {fileID: 2420560019926471277, guid: 20c8388a0dfcbc04baf8a2e983e5ccdc, type: 3}
   - m_RefCount: 18
     m_Data: {fileID: -4848329244456854130, guid: 048da77e20b7ffa4ea705bace0443bef, type: 3}
@@ -1014,7 +1034,7 @@ Tilemap:
   - m_RefCount: 8
     m_Data: {fileID: 1631790434440380611, guid: 607935a834d09694cada7e584596f2f8, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 63
+  - m_RefCount: 65
     m_Data:
       e00: 1
       e01: 0
@@ -1033,7 +1053,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 63
+  - m_RefCount: 65
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -1568,7 +1588,7 @@ GameObject:
   - component: {fileID: 351883548}
   - component: {fileID: 351883547}
   - component: {fileID: 351883546}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: tile_temp_collision
   m_TagString: wall
   m_Icon: {fileID: 0}
@@ -21352,7 +21372,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1031676382
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23235,6 +23255,10 @@ PrefabInstance:
     - target: {fileID: -7307052666941489245, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: movementFilter.useTriggers
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7307052666941489245, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
+      propertyPath: movementFilter.layerMask.m_Bits
+      value: 192
       objectReference: {fileID: 0}
     - target: {fileID: 3639892503049449873, guid: 9fb8405c58a3b8842ab9a28d85e34c9c, type: 3}
       propertyPath: m_Size.x
