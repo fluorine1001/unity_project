@@ -1,36 +1,33 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using System.Collections;
 
 public class UIStatusToast : MonoBehaviour
 {
-    public GameObject statusRoot;
-    public TextMeshProUGUI statusText;
+    public TMP_Text text;
     public float showSeconds = 2f;
+    Coroutine co;
 
     void Awake()
     {
-        HideImmediate();
+        if (text != null) text.gameObject.SetActive(false);
     }
 
     public void Show(string msg)
     {
-        if (statusRoot == null || statusText == null) return;
+        if (text == null) return;
 
-        statusText.text = msg;
-        statusRoot.SetActive(true);
+        text.text = msg;
+        text.gameObject.SetActive(true);
 
-        CancelInvoke(nameof(Hide));
-        Invoke(nameof(Hide), showSeconds);
+        if (co != null) StopCoroutine(co);
+        co = StartCoroutine(HideAfter());
     }
 
-    void Hide()
+    IEnumerator HideAfter()
     {
-        if (statusRoot == null) return;
-        statusRoot.SetActive(false);
-    }
-
-    public void HideImmediate()
-    {
-        if (statusRoot != null) statusRoot.SetActive(false);
+        yield return new WaitForSecondsRealtime(showSeconds);
+        if (text != null) text.gameObject.SetActive(false);
+        co = null;
     }
 }
