@@ -54,6 +54,9 @@ public class PlayerController : MonoBehaviour
 
         // 초기 애니메이터 상태 세팅
         ApplyLook(lastMoveDir, isMoving: false);
+
+        movementFilter.useLayerMask = true;
+        movementFilter.useTriggers = true;
     }
 
     // 연속 이동은 사용하지 않음 (고의로 비워둠)
@@ -90,7 +93,17 @@ public class PlayerController : MonoBehaviour
         castColisitions.Clear();
         float castDistance = step.magnitude + collisitionOffset;
 
+        Debug.Log($"[PlayerCast] dir={dir}, castDistance={castDistance}");
+        Debug.Log($"[PlayerCast] movementFilter.mask={movementFilter.layerMask.value}");
+        Debug.Log($"[PlayerCast] PlayerCollider size={GetComponent<Collider2D>().bounds.size}");
+
         int hitCount = rb.Cast(dir.normalized, movementFilter, castColisitions, castDistance);
+
+        Debug.Log($"[PlayerCast] hitCount={hitCount}");
+        for (int i = 0; i < hitCount; i++)
+        {
+            Debug.Log($"[PlayerCast] Hit {i}: {castColisitions[i].collider.gameObject.name}, layer={castColisitions[i].collider.gameObject.layer}");
+        }
 
         if (hitCount > 0)
         {
@@ -121,6 +134,18 @@ public class PlayerController : MonoBehaviour
 
         CheckClearTile();
         CheckSpawnTile();
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!Application.isPlaying) return;
+
+        Vector3 start = transform.position;
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(start, start + (Vector3)(lastMoveDir * (cellSize.magnitude + collisitionOffset)));
+        Collider2D col = GetComponent<Collider2D>();
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(col.bounds.center, col.bounds.size);
     }
 
     void CheckClearTile()
