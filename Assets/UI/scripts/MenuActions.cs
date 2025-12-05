@@ -9,6 +9,6 @@ public class MenuActions : MonoBehaviour
         if (SaveSystem.Instance == null) return;
 
         SaveSystem.Instance.Save(0);
-        if (toast != null) toast.Show("저장 완료");
+        if (toast != null) toast.Show("Saved complete");
     }
 }
