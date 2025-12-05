@@ -62,6 +62,7 @@ public class PushableBox2D : FunctionalTile
     {
         if (speed >= breakSpeedThreshold)
         {
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxBroken, this.transform.position);
             Debug.Log($"[PushBox] 💥 파괴됨! (속도 {speed:F2})");
             if (destroyBulletOnBreak && bulletGO != null) Destroy(bulletGO);
             Destroy(gameObject);

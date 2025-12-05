@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{e3b2750e-43cd-4479-829e-e395c56a8c15}">
 		<property name="name">
-			<value>BulletLaunch</value>
+			<value>BulletLaunched</value>
 		</property>
 		<property name="outputFormat">
 			<value>0</value>

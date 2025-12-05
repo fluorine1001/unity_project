@@ -17,7 +17,15 @@ public class FMODEvents : MonoBehaviour
     
     [EventRef]
     [SerializeField] 
-    private string bulletLaunchedPath = "event:/SFX/Player/BulletLaunch";
+    private string bulletLaunchedPath = "event:/SFX/Player/BulletLaunched";
+
+    [EventRef]
+    [SerializeField] 
+    private string bulletAcceleratedPath = "event:/SFX/Player/BulletAccelerated";
+
+    [EventRef]
+    [SerializeField] 
+    private string bulletDeceleratedPath = "event:/SFX/Player/BulletDecelerated";
 
     [EventRef]
     [SerializeField] 
@@ -27,27 +35,40 @@ public class FMODEvents : MonoBehaviour
 
     [EventRef]
     [SerializeField] 
-    private string boxPushedPath = "event:/SFX/Objects/BoxPush";
+    private string boxPushedPath = "event:/SFX/Objects/BoxPushed";
+
+    [EventRef]
+    [SerializeField] 
+    private string boxBrokenPath = "event:/SFX/Objects/BoxBroken";
+
+    [EventRef]
+    [SerializeField] 
+    private string holeFilledPath = "event:/SFX/Objects/HoleFilled";
+
 
     [Header("UI")]
 
     [EventRef]
     [SerializeField] 
-    private string menuPressedPath = "event:/SFX/UI/MenuPress";
+    private string menuPressedPath = "event:/SFX/UI/MenuPressed";
 
     [EventRef]
     [SerializeField] 
-    private string menuClosedPath = "event:/SFX/UI/MenuClose";
+    private string menuClosedPath = "event:/SFX/UI/MenuClosed";
 
     // =======================
     // 2. 외부에 공개되는 EventReference
     // =======================
     public EventReference Scene1Music    { get; private set; }
     public EventReference BulletLaunched { get; private set; }
+    public EventReference BulletAccelerated     { get; private set; }
+    public EventReference BulletDecelerated     { get; private set; }
     public EventReference BoxPushed      { get; private set; }
+    public EventReference BoxBroken      { get; private set; }
     public EventReference PlayerDash     { get; private set; }
     public EventReference MenuPressed    { get; private set; }
     public EventReference MenuClosed     { get; private set; }
+    public EventReference HoleFilled     { get; private set; }
 
     // =======================
     // 3. 싱글턴 인스턴스
@@ -75,9 +96,18 @@ public class FMODEvents : MonoBehaviour
 
         if (!string.IsNullOrEmpty(bulletLaunchedPath))
             BulletLaunched = RuntimeManager.PathToEventReference(bulletLaunchedPath);
+        
+        if (!string.IsNullOrEmpty(bulletAcceleratedPath))
+            BulletAccelerated = RuntimeManager.PathToEventReference(bulletAcceleratedPath);
+
+        if (!string.IsNullOrEmpty(bulletDeceleratedPath))
+            BulletDecelerated = RuntimeManager.PathToEventReference(bulletDeceleratedPath);
 
         if (!string.IsNullOrEmpty(boxPushedPath))
             BoxPushed = RuntimeManager.PathToEventReference(boxPushedPath);
+        
+        if (!string.IsNullOrEmpty(boxBrokenPath))
+            BoxBroken = RuntimeManager.PathToEventReference(boxBrokenPath);
 
         if (!string.IsNullOrEmpty(playerDashPath))
             PlayerDash = RuntimeManager.PathToEventReference(playerDashPath);
@@ -87,5 +117,8 @@ public class FMODEvents : MonoBehaviour
 
         if (!string.IsNullOrEmpty(menuClosedPath))
             MenuClosed = RuntimeManager.PathToEventReference(menuClosedPath);
+        
+        if (!string.IsNullOrEmpty(holeFilledPath))
+            HoleFilled = RuntimeManager.PathToEventReference(holeFilledPath);
     }
 }

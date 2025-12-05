@@ -31,6 +31,13 @@ public class SpeedTile : FunctionalTile
         // ✅ 다시 물리 단위로 환산 (한 번만 곱)
         rb.linearVelocity = dir * (newLogicalSpeed * GameConfig.SpeedScale);
 
+        if(newLogicalSpeed - logicalSpeed > 0){
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.BulletAccelerated, this.transform.position);
+        }
+        else if(newLogicalSpeed - logicalSpeed < 0){
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.BulletDecelerated, this.transform.position);
+        }
+
         Debug.Log($"[SpeedTile] 속도 변경: {logicalSpeed:F2} → {newLogicalSpeed:F2} (실제 {rb.linearVelocity.magnitude:F2})");
     }
 }

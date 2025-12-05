@@ -23,6 +23,7 @@ public class HoleTile : MonoBehaviour
     // 외부에서 호출할 함수: 상자가 빠지고 채운 상태로 변경
     public void FillHole()
     {
+        AudioManager.instance.PlayOneShot(FMODEvents.instance.HoleFilled, this.transform.position);
         state = HoleState.Filled;
         ApplyState();
     }
