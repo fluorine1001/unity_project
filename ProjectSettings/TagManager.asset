@@ -13,8 +13,8 @@ TagManager:
   - Player
   - Water
   - UI
-  - HoleTile
-  - SolidTile
+  - PlayerPass
+  - PlayerBlocker
   - Box
   - 
   - 
