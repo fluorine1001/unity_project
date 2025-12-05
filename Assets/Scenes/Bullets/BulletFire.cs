@@ -269,14 +269,6 @@ public class BulletFire : MonoBehaviour
         if (player != null && collider.transform.IsChildOf(player.transform))
             return;
 
-        PushableWall2D pushable = collider.GetComponentInParent<PushableWall2D>();
-        if (pushable != null && destroyPushableWalls)
-        {
-            Destroy(pushable.gameObject);
-            Destroy(gameObject);
-            return;
-        }
-
         if (IsWall(collider.gameObject))
             Destroy(gameObject);
     }
