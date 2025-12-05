@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: -753599974395859997}
   - component: {fileID: -8676957472188021264}
   - component: {fileID: -5321688108796139523}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: HoleTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
