@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: -4202958323147834250}
   - component: {fileID: -8676957472188021264}
   - component: {fileID: -5321688108796139523}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Push_Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 1423634373611511836, guid: 83205528e22a6b247a7402e788693b8f, type: 3}
+  m_Sprite: {fileID: 225902741014768298, guid: 811935a308bfe2848b668eb79b217d29, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -92,7 +92,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
-  m_SpriteSortPoint: 0
+  m_SpriteSortPoint: 1
 --- !u!114 &-4202958323147834250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,7 +111,7 @@ MonoBehaviour:
   gridOrigin: {x: 0, y: 0}
   blockingMask:
     serializedVersion: 2
-    m_Bits: 192
+    m_Bits: 384
   consumeBulletOnPush: 1
   destroyBulletOnBreak: 1
   axisAlignedPush: 1
@@ -153,8 +153,8 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5.12, y: 5.12}
+    pivot: {x: 0.5, y: 0.34065935}
+    oldSize: {x: 5.12, y: 7.28}
     newSize: {x: 5.12, y: 5.12}
     adaptiveTilingThreshold: 0.5
     drawMode: 0

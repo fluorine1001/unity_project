@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5509938623355523184}
   - component: {fileID: 6172780182932208082}
   - component: {fileID: 225802418570719517}
-  m_Layer: 9
+  m_Layer: 7
   m_Name: Speed_Up
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -123,7 +123,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0

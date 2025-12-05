@@ -8,6 +8,8 @@ public class HoleTile : MonoBehaviour
     [Header("Hole Sprites")]
     [SerializeField] private Sprite emptySprite;
     [SerializeField] private Sprite filledSprite;
+    [SerializeField] private string emptyLayer = "PlayerBlocker";
+    [SerializeField] private string filledLayer = "PlayerPass";
 
     private SpriteRenderer _sr;
     private Collider2D _col;
@@ -37,10 +39,12 @@ public class HoleTile : MonoBehaviour
 
         if (_col != null)
         {
-            // Empty: 플레이어/상자 충돌해야 함 (벽)
-            // Filled: 모두 통과 가능
             _col.isTrigger = (state == HoleState.Filled);
         }
+
+        gameObject.layer = LayerMask.NameToLayer(
+            state == HoleState.Empty ? emptyLayer : filledLayer
+        );
     }
 
     public bool IsEmpty() => state == HoleState.Empty;
