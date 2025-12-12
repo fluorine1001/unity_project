@@ -16,7 +16,7 @@ public class GeneratorManager : MonoBehaviour
     public Tilemap generatorTilemap;
 
     [Header("Prefab Mappings (TileName → Prefab)")]
-    [Tooltip("타일 이름과 대응되는 프리팹 리스트")]
+    [Tooltip("타일 이름과 대응되는 프리팹 리스트")] 
     public List<TilePrefabMapping> prefabMappings = new();
 
     [Header("Spawn / Clear Tile Names")]
@@ -68,7 +68,8 @@ public class GeneratorManager : MonoBehaviour
             Tile tile = generatorTilemap.GetTile(pos) as Tile;
             if (tile == null) continue;
 
-            string tileName = tile.sprite != null ? tile.sprite.name : "";
+            // 프로젝트 창에 보이는 '타일 파일(Asset)'의 이름을 가져옴 (편함!)
+            string tileName = tile.name;
             Vector3 worldPos = generatorTilemap.GetCellCenterWorld(pos);
             if (spawnTileNames.Contains(tileName))
             {
