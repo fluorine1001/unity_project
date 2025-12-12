@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -753599974395859997}
   - component: {fileID: -8676957472188021264}
   - component: {fileID: -5321688108796139523}
+  - component: {fileID: 6433267218406321875}
   m_Layer: 6
   m_Name: HoleTile
   m_TagString: Untagged
@@ -108,6 +109,8 @@ MonoBehaviour:
   state: 0
   emptySprite: {fileID: -7393141318487765744, guid: 2f4384dad77de394d83ecc0a48b2d7c4, type: 3}
   filledSprite: {fileID: -8312577309795678175, guid: 97e1d82a9602e6e468beb554f61dc45f, type: 3}
+  emptyLayer: PlayerBlocker
+  filledLayer: PlayerPass
 --- !u!61 &-8676957472188021264
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -146,7 +149,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.64, y: 0.64}
+    oldSize: {x: 5.12, y: 5.12}
     newSize: {x: 5.12, y: 5.12}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -181,3 +184,16 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &6433267218406321875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7825602511852947053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8507ad4c41885f4691d8473850f269f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DynamicYDepthSort
+  baseSortingOrder: 29999

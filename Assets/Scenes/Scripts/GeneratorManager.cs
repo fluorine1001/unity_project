@@ -23,6 +23,7 @@ public class GeneratorManager : MonoBehaviour
     [Tooltip("StageManager.RegisterSpawnTile() 에 등록될 타일 sprite 이름 목록")]
     public List<string> spawnTileNames = new();
 
+    [Header("Spawn / Clear Tile Names")]
     [Tooltip("StageManager.RegisterClearTile() 에 등록될 타일 sprite 이름 목록")]
     public List<string> clearTileNames = new();
 
@@ -30,12 +31,9 @@ public class GeneratorManager : MonoBehaviour
     public Transform spawnParent;
 
     [Header("Rendering")]
-    [Tooltip("생성된 모든 프리팹의 SpriteRenderer.sortingOrder")]
-    [SerializeField] private int spawnOrderInLayer = -2;
+    [Tooltip("DynamicYDepthSort의 Base Sorting Order와 동일하게 설정해야 합니다. (3만 제한 내에서 최대)")]
+    [SerializeField] public int spawnOrderInLayer = 29999; // <--- 2. public으로 변경, 29999로 설정
 
-    /// <summary>
-    /// tileName → prefab 캐시용 딕셔너리
-    /// </summary>
     private Dictionary<string, GameObject> prefabDict;
 
     private void Start()
@@ -44,9 +42,6 @@ public class GeneratorManager : MonoBehaviour
         GenerateObjectsFromTilemap();
     }
 
-    /// <summary>
-    /// Inspector에서 받은 prefabMappings를 딕셔너리(prefabDict)로 변환
-    /// </summary>
     private void BuildPrefabDictionary()
     {
         prefabDict = new Dictionary<string, GameObject>();
@@ -75,36 +70,21 @@ public class GeneratorManager : MonoBehaviour
 
             string tileName = tile.sprite != null ? tile.sprite.name : "";
             Vector3 worldPos = generatorTilemap.GetCellCenterWorld(pos);
-
-            // 1) Spawn Tile
             if (spawnTileNames.Contains(tileName))
             {
-                StageManager.Instance.RegisterSpawnTile(worldPos);
                 continue;
             }
-
-            // 2) Clear Tile
             if (clearTileNames.Contains(tileName))
             {
-                StageManager.Instance.RegisterClearTile(worldPos);
                 continue;
             }
-
-            // 3) Prefab 매핑 Tile
             if (prefabDict.TryGetValue(tileName, out GameObject prefab))
             {
                 var go = Instantiate(prefab, worldPos, Quaternion.identity, spawnParent);
-                ApplyOrderInLayer(go, spawnOrderInLayer);
             }
         }
-
-        // 게임 시작 후 generator tilemap 숨김
         generatorTilemap.gameObject.SetActive(false);
     }
-
-    /// <summary>
-    /// 전달한 오브젝트 및 자식 오브젝트의 SpriteRenderer.sortingOrder를 통일해 설정
-    /// </summary>
     private void ApplyOrderInLayer(GameObject go, int order)
     {
         if (go == null) return;
