@@ -1,78 +1,41 @@
+// Assets/Scripts/FMODEvents.cs
 using UnityEngine;
 using FMODUnity;
 
 public class FMODEvents : MonoBehaviour
 {
-    // =======================
-    // 1. 이벤트 경로 문자열
-    // =======================
-    [Header("Music")]
-    [EventRef]
-    [SerializeField] 
-    private string scene1MusicPath = "event:/Music/Scene1BGM";
-
-    [Header("SFX")]
+    [Header("BGM")]
+    [EventRef] [SerializeField] private string scene1MusicPath = Defaults.Scene1Music;
+    [EventRef] [SerializeField] private string scene2MusicPath = Defaults.Scene2Music;
 
     [Header("Player")]
-    
-    [EventRef]
-    [SerializeField] 
-    private string bulletLaunchedPath = "event:/SFX/Player/BulletLaunched";
-
-    [EventRef]
-    [SerializeField] 
-    private string bulletAcceleratedPath = "event:/SFX/Player/BulletAccelerated";
-
-    [EventRef]
-    [SerializeField] 
-    private string bulletDeceleratedPath = "event:/SFX/Player/BulletDecelerated";
-
-    [EventRef]
-    [SerializeField] 
-    private string playerDashPath = "event:/SFX/Player/Dash";
+    [EventRef] [SerializeField] private string bulletLaunchedPath = Defaults.BulletLaunched;
+    [EventRef] [SerializeField] private string bulletAcceleratedPath = Defaults.BulletAccelerated;
+    [EventRef] [SerializeField] private string bulletDeceleratedPath = Defaults.BulletDecelerated;
+    [EventRef] [SerializeField] private string playerDashPath = Defaults.PlayerDash;
 
     [Header("Objects")]
-
-    [EventRef]
-    [SerializeField] 
-    private string boxPushedPath = "event:/SFX/Objects/BoxPushed";
-
-    [EventRef]
-    [SerializeField] 
-    private string boxBrokenPath = "event:/SFX/Objects/BoxBroken";
-
-    [EventRef]
-    [SerializeField] 
-    private string holeFilledPath = "event:/SFX/Objects/HoleFilled";
-
+    [EventRef] [SerializeField] private string boxPushedPath  = Defaults.BoxPushed;
+    [EventRef] [SerializeField] private string boxBrokenPath  = Defaults.BoxBroken;
+    [EventRef] [SerializeField] private string holeFilledPath = Defaults.HoleFilled;
 
     [Header("UI")]
+    [EventRef] [SerializeField] private string menuPressedPath = Defaults.MenuPressed;
+    [EventRef] [SerializeField] private string menuClosedPath  = Defaults.MenuClosed;
 
-    [EventRef]
-    [SerializeField] 
-    private string menuPressedPath = "event:/SFX/UI/MenuPressed";
-
-    [EventRef]
-    [SerializeField] 
-    private string menuClosedPath = "event:/SFX/UI/MenuClosed";
-
-    // =======================
-    // 2. 외부에 공개되는 EventReference
-    // =======================
-    public EventReference Scene1Music    { get; private set; }
+    // EventReference 프로퍼티들...
+    public EventReference Scene1Music { get; private set; }
+    public EventReference Scene2Music { get; private set; }
     public EventReference BulletLaunched { get; private set; }
-    public EventReference BulletAccelerated     { get; private set; }
-    public EventReference BulletDecelerated     { get; private set; }
-    public EventReference BoxPushed      { get; private set; }
-    public EventReference BoxBroken      { get; private set; }
-    public EventReference PlayerDash     { get; private set; }
-    public EventReference MenuPressed    { get; private set; }
-    public EventReference MenuClosed     { get; private set; }
-    public EventReference HoleFilled     { get; private set; }
+    public EventReference BulletAccelerated { get; private set; }
+    public EventReference BulletDecelerated { get; private set; }
+    public EventReference BoxPushed { get; private set; }
+    public EventReference BoxBroken { get; private set; }
+    public EventReference PlayerDash { get; private set; }
+    public EventReference MenuPressed { get; private set; }
+    public EventReference MenuClosed { get; private set; }
+    public EventReference HoleFilled { get; private set; }
 
-    // =======================
-    // 3. 싱글턴 인스턴스
-    // =======================
     public static FMODEvents instance { get; private set; }
 
     private void Awake()
@@ -84,41 +47,40 @@ public class FMODEvents : MonoBehaviour
         }
 
         instance = this;
-
-        // 경로 문자열 → EventReference 변환
         InitEventReferences();
     }
 
     private void InitEventReferences()
     {
-        if (!string.IsNullOrEmpty(scene1MusicPath))
-            Scene1Music = RuntimeManager.PathToEventReference(scene1MusicPath);
+        Scene1Music = RuntimeManager.PathToEventReference(scene1MusicPath);
+        Scene2Music = RuntimeManager.PathToEventReference(scene2MusicPath);
+        BulletLaunched = RuntimeManager.PathToEventReference(bulletLaunchedPath);
+        BulletAccelerated = RuntimeManager.PathToEventReference(bulletAcceleratedPath);
+        BulletDecelerated = RuntimeManager.PathToEventReference(bulletDeceleratedPath);
+        BoxPushed = RuntimeManager.PathToEventReference(boxPushedPath);
+        BoxBroken = RuntimeManager.PathToEventReference(boxBrokenPath);
+        PlayerDash = RuntimeManager.PathToEventReference(playerDashPath);
+        MenuPressed = RuntimeManager.PathToEventReference(menuPressedPath);
+        MenuClosed = RuntimeManager.PathToEventReference(menuClosedPath);
+        HoleFilled = RuntimeManager.PathToEventReference(holeFilledPath);
+    }
 
-        if (!string.IsNullOrEmpty(bulletLaunchedPath))
-            BulletLaunched = RuntimeManager.PathToEventReference(bulletLaunchedPath);
-        
-        if (!string.IsNullOrEmpty(bulletAcceleratedPath))
-            BulletAccelerated = RuntimeManager.PathToEventReference(bulletAcceleratedPath);
+    // 중앙 기본값: 코드에서 이 값만 수정하면 에디터 자동 동기화가 그 값을 반영함
+    public static class Defaults
+    {
+        public const string Scene1Music = "event:/BGM/Scene1BGM";
+        public const string Scene2Music = "event:/BGM/Scene2BGM";
 
-        if (!string.IsNullOrEmpty(bulletDeceleratedPath))
-            BulletDecelerated = RuntimeManager.PathToEventReference(bulletDeceleratedPath);
+        public const string BulletLaunched = "event:/SFX/Player/BulletLaunched";
+        public const string BulletAccelerated = "event:/SFX/Player/BulletAccelerated";
+        public const string BulletDecelerated = "event:/SFX/Player/BulletDecelerated";
+        public const string PlayerDash = "event:/SFX/Player/Dash";
 
-        if (!string.IsNullOrEmpty(boxPushedPath))
-            BoxPushed = RuntimeManager.PathToEventReference(boxPushedPath);
-        
-        if (!string.IsNullOrEmpty(boxBrokenPath))
-            BoxBroken = RuntimeManager.PathToEventReference(boxBrokenPath);
+        public const string BoxPushed  = "event:/SFX/Objects/BoxPushed";
+        public const string BoxBroken  = "event:/SFX/Objects/BoxBroken";
+        public const string HoleFilled = "event:/SFX/Objects/HoleFilled";
 
-        if (!string.IsNullOrEmpty(playerDashPath))
-            PlayerDash = RuntimeManager.PathToEventReference(playerDashPath);
-
-        if (!string.IsNullOrEmpty(menuPressedPath))
-            MenuPressed = RuntimeManager.PathToEventReference(menuPressedPath);
-
-        if (!string.IsNullOrEmpty(menuClosedPath))
-            MenuClosed = RuntimeManager.PathToEventReference(menuClosedPath);
-        
-        if (!string.IsNullOrEmpty(holeFilledPath))
-            HoleFilled = RuntimeManager.PathToEventReference(holeFilledPath);
+        public const string MenuPressed = "event:/SFX/UI/MenuPressed";
+        public const string MenuClosed  = "event:/SFX/UI/MenuClosed";
     }
 }
