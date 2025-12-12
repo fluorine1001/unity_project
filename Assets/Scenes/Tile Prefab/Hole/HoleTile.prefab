@@ -108,7 +108,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HoleTile
   state: 0
   emptySprite: {fileID: -7955819631750886615, guid: 520dd670fec2ac34594f933953aa7a84, type: 3}
-  filledSprite: {fileID: -8312577309795678175, guid: 97e1d82a9602e6e468beb554f61dc45f, type: 3}
+  filledSprite: {fileID: -2420332907873486969, guid: 6dd02ff6a01af75488cbe88f37b24388, type: 3}
   emptyLayer: PlayerBlocker
   filledLayer: PlayerPass
 --- !u!61 &-8676957472188021264
@@ -191,7 +191,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7825602511852947053}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c8507ad4c41885f4691d8473850f269f, type: 3}
   m_Name: 
