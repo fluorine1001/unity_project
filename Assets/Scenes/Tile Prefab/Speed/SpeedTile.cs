@@ -37,17 +37,5 @@ public class SpeedTile : FunctionalTile
         else if(newLogicalSpeed - logicalSpeed < 0){
             AudioManager.instance.PlayOneShot(FMODEvents.instance.BulletDecelerated, this.transform.position);
         }
-
-        Debug.Log($"[SpeedTile] 속도 변경: {logicalSpeed:F2} → {newLogicalSpeed:F2} (실제 {rb.linearVelocity.magnitude:F2})");
-    }
-
-    void OnDrawGizmos()
-    {
-        Collider2D col = GetComponent<Collider2D>();
-        if (col != null)
-        {
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireCube(col.bounds.center, col.bounds.size);
-        }
     }
 }
