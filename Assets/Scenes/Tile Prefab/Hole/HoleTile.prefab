@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -753599974395859997}
   - component: {fileID: -8676957472188021264}
   - component: {fileID: -5321688108796139523}
+  - component: {fileID: 6433267218406321875}
   m_Layer: 6
   m_Name: HoleTile
   m_TagString: Untagged
@@ -183,3 +184,16 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &6433267218406321875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7825602511852947053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8507ad4c41885f4691d8473850f269f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DynamicYDepthSort
+  baseSortingOrder: 29999
