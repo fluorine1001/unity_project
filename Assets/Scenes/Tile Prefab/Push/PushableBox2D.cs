@@ -40,8 +40,6 @@ public class PushableBox2D : FunctionalTile
         Vector2 dir = rb.linearVelocity.normalized;
         float logicalSpeed = rb.linearVelocity.magnitude / GameConfig.SpeedScale;
 
-        Debug.Log($"[PushBox] 총알 감지 → 속도 {logicalSpeed:F2}, 방향 {dir}");
-
         HandleHit(dir, logicalSpeed, bullet.gameObject);
     }
 
@@ -63,7 +61,6 @@ public class PushableBox2D : FunctionalTile
         if (speed >= breakSpeedThreshold)
         {
             AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxBroken, this.transform.position);
-            Debug.Log($"[PushBox] 💥 파괴됨! (속도 {speed:F2})");
             if (destroyBulletOnBreak && bulletGO != null) Destroy(bulletGO);
             Destroy(gameObject);
             return;
@@ -72,7 +69,6 @@ public class PushableBox2D : FunctionalTile
         int steps = Mathf.FloorToInt(Mathf.Max(0f, speed - decayPerHit));
         if (steps <= 0)
         {
-            Debug.Log($"[PushBox] 📎 속도 {speed:F2} → 밀리지 않음");
             if (consumeBulletOnPush && bulletGO != null) Destroy(bulletGO);
             return;
         }
@@ -103,8 +99,6 @@ public class PushableBox2D : FunctionalTile
                 HoleTile hole = holeCol.GetComponent<HoleTile>();
                 if (hole != null && hole.IsEmpty())
                 {
-                    Debug.Log("[PushBox] 🕳 구멍 감지 → 상자 빠짐!");
-
                     hole.FillHole();            // 구멍 채우기
                     Destroy(gameObject);        // 박스 삭제
 
@@ -119,7 +113,6 @@ public class PushableBox2D : FunctionalTile
             Collider2D hit = Physics2D.OverlapBox(nextWorld, halfExtents * 2f, 0f, blockingMask);
             if (hit != null && hit.gameObject != this.gameObject)
             {
-                Debug.Log($"[PushBox] 이동 차단됨 → {hit.gameObject.name}");
                 break;
             }
 
@@ -135,9 +128,6 @@ public class PushableBox2D : FunctionalTile
 
         Vector3 snappedPos = GridToWorld(gridCoord);
         MoveTo(snappedPos);
-
-        Debug.Log($"[PushBox] 📦 밀림 완료 → {actualSteps}칸 이동 (방향 {dir})");
-
 
         if (consumeBulletOnPush && bulletGO != null) Destroy(bulletGO);
     }
