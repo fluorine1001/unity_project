@@ -12,6 +12,8 @@ public class StageManager : MonoBehaviour
     public Transform player;
     public Vector3 startPosition = new Vector3(-17.92f, 2.56f, 0f);
 
+
+
     private List<Vector3> clearTilePositions = new List<Vector3>();
     private List<Vector3> spawnTilePositions = new List<Vector3>();
 
@@ -80,6 +82,7 @@ public class StageManager : MonoBehaviour
         stageSpawned = true;
         stageCleared = false;
         Debug.Log($"Stage {currentStage} 시작 위치 진입 완료");
+
     }
 
     private void MoveCameraToNextStage()
@@ -156,6 +159,7 @@ public class StageManager : MonoBehaviour
             resetPos.z = mainCam.transform.position.z;
             mainCam.transform.position = resetPos;
         }
+
 
         Debug.Log("=== 전체 스테이지 및 상태 초기화 완료 ===");
 
