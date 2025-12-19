@@ -2,23 +2,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class UIButtonTextVisual : MonoBehaviour,
-    IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
-    ISelectHandler, IDeselectHandler
+public class UIButtonTextVisual : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     public TMP_Text label;
     public UIButtonTextGroup group;
     public int index;
-
-    void Reset()
-    {
-        if (label == null) label = GetComponentInChildren<TMP_Text>(true);
-    }
-
-    void Awake()
-    {
-        if (label == null) label = GetComponentInChildren<TMP_Text>(true);
-    }
 
     public void Apply(bool selected, bool hovered)
     {
@@ -31,7 +19,7 @@ public class UIButtonTextVisual : MonoBehaviour,
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        //if (group != null) group.SetHover(index, true);
+        if (group != null) group.SetHover(index, true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -42,15 +30,5 @@ public class UIButtonTextVisual : MonoBehaviour,
     public void OnPointerClick(PointerEventData eventData)
     {
         if (group != null) group.Select(index);
-    }
-
-    public void OnSelect(BaseEventData eventData)
-    {
-        if (group != null) group.Select(index);
-    }
-
-    public void OnDeselect(BaseEventData eventData)
-    {
-        if (group != null) group.SetHover(index, false);
     }
 }

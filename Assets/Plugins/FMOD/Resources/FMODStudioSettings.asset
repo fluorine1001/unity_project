@@ -479,7 +479,7 @@ MonoBehaviour:
   MasterBanks:
   - Master
   Banks:
-  - BGM
+  - Scene1
   - SFX
   - UI
   BanksToLoad: []
