@@ -19,10 +19,9 @@ public class PaletteItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public TMP_Text countText;
 
     [Header("UI Settings")]
-    [Tooltip("UI에 표시될 타일 하나당 크기 (픽셀 단위). 너무 크면 줄이세요.")]
-    public float uiCellSize = 6f; 
+    public float uiCellSize = 30f; 
 
-    // 내부 변수
+    // 내부 데이터
     private TileDefinition myDef;
     private int myCount;
     private CanvasGroup canvasGroup;
@@ -37,24 +36,25 @@ public class PaletteItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         myDef = def;
         myCount = count;
-
         if (countText) countText.text = count.ToString();
         BuildCompositeIcon(def);
     }
 
     // =========================================================
-    // ✨ 드래그 앤 드롭 구현부
+    // 🖱️ 드래그 이벤트 (매니저에게 전달)
     // =========================================================
 
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (myDef == null || myCount <= 0) return;
 
+        // 매니저에게 드래그 시작 알림
         if (TilePlacementManager.Instance != null)
         {
-            TilePlacementManager.Instance.StartDrag(myDef, this);
+            TilePlacementManager.Instance.StartDrag(myDef, this, eventData.position);
         }
 
+        // UI 반투명 처리
         canvasGroup.alpha = 0.6f;
         canvasGroup.blocksRaycasts = false;
     }
@@ -63,6 +63,7 @@ public class PaletteItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         if (myDef == null || myCount <= 0) return;
 
+        // 매니저에게 현재 마우스 위치 전달
         if (TilePlacementManager.Instance != null)
         {
             TilePlacementManager.Instance.UpdateDrag(eventData.position);
@@ -73,80 +74,60 @@ public class PaletteItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         if (myDef == null || myCount <= 0) return;
 
+        // 매니저에게 드래그 종료 알림
         if (TilePlacementManager.Instance != null)
         {
             TilePlacementManager.Instance.EndDrag(eventData.position);
         }
 
+        // UI 원상복구
         canvasGroup.alpha = 1.0f;
         canvasGroup.blocksRaycasts = true;
     }
 
     // =========================================================
-    // 🖼️ 아이콘 생성 로직 (크기 조절 반영)
+    // 🖼️ 아이콘 생성 (기존 로직 유지)
     // =========================================================
-
-    private Sprite KindToSprite(TileKind kind)
-        => kind == TileKind.Speed ? speedSprite : deSpeedSprite;
+    private Sprite KindToSprite(TileKind kind) => kind == TileKind.Speed ? speedSprite : deSpeedSprite;
 
     private void BuildCompositeIcon(TileDefinition def)
     {
         ClearCells();
-        if (def == null || def.cells == null || def.cells.Count == 0) return;
-        if (iconRoot == null || cellTemplate == null) return;
+        if (def == null || def.cells == null) return;
 
-        // 1) 범위 계산
         int minX = int.MaxValue, maxX = int.MinValue;
         int minY = int.MaxValue, maxY = int.MinValue;
 
         foreach (var c in def.cells)
         {
-            if (c.offset.x < minX) minX = c.offset.x;
-            if (c.offset.x > maxX) maxX = c.offset.x;
-            if (c.offset.y < minY) minY = c.offset.y;
-            if (c.offset.y > maxY) maxY = c.offset.y;
+            if (c.offset.x < minX) minX = c.offset.x; if (c.offset.x > maxX) maxX = c.offset.x;
+            if (c.offset.y < minY) minY = c.offset.y; if (c.offset.y > maxY) maxY = c.offset.y;
         }
-
         int w = (maxX - minX) + 1;
         int h = (maxY - minY) + 1;
 
-        // Root 크기를 설정값(uiCellSize)에 맞춰 조절
-        iconRoot.sizeDelta = new Vector2(uiCellSize * w, uiCellSize * h);
-
+        if (iconRoot) iconRoot.sizeDelta = new Vector2(uiCellSize * w, uiCellSize * h);
         float cx = (minX + maxX) * 0.5f;
         float cy = (minY + maxY) * 0.5f;
 
-        // 2) 셀 이미지 생성
         foreach (var c in def.cells)
         {
             Sprite spr = KindToSprite(c.kind);
             if (spr == null) continue;
-
             var img = Instantiate(cellTemplate, iconRoot);
             img.gameObject.SetActive(true);
-            
             img.sprite = spr;           
-            img.color = Color.white;
-            img.preserveAspect = true; // 비율 유지
-
+            img.preserveAspect = true;
             var rt = (RectTransform)img.transform;
-            rt.sizeDelta = new Vector2(uiCellSize, uiCellSize); // 설정된 크기 적용
-
-            // 중심점 기준으로 위치 정렬
-            float ax = (c.offset.x - cx) * uiCellSize;
-            float ay = (c.offset.y - cy) * uiCellSize;
-            rt.anchoredPosition = new Vector2(ax, ay);
-
+            rt.sizeDelta = new Vector2(uiCellSize, uiCellSize);
+            rt.anchoredPosition = new Vector2((c.offset.x - cx) * uiCellSize, (c.offset.y - cy) * uiCellSize);
             spawned.Add(img);
         }
     }
 
     private void ClearCells()
     {
-        foreach (var img in spawned)
-        {
-            if (img) Destroy(img.gameObject);
-        }
+        foreach (var img in spawned) if (img) Destroy(img.gameObject);
         spawned.Clear();
     }
 }
