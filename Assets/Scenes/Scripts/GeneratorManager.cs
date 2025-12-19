@@ -62,30 +62,51 @@ public class GeneratorManager : MonoBehaviour
     }
 
     private void GenerateObjectsFromTilemap()
+{
+    foreach (var pos in generatorTilemap.cellBounds.allPositionsWithin)
     {
-        foreach (var pos in generatorTilemap.cellBounds.allPositionsWithin)
-        {
-            Tile tile = generatorTilemap.GetTile(pos) as Tile;
-            if (tile == null) continue;
+        Tile tile = generatorTilemap.GetTile(pos) as Tile;
+        if (tile == null) continue;
 
-            // 프로젝트 창에 보이는 '타일 파일(Asset)'의 이름을 가져옴 (편함!)
-            string tileName = tile.name;
-            Vector3 worldPos = generatorTilemap.GetCellCenterWorld(pos);
-            if (spawnTileNames.Contains(tileName))
+        string tileName = tile.name;
+        Vector3 worldPos = generatorTilemap.GetCellCenterWorld(pos);
+
+        // --- 수정된 부분 시작 ---
+
+        // 1. Spawn 타일인지 확인 후 등록
+        if (spawnTileNames.Contains(tileName))
+        {
+            if (StageManager.Instance != null)
             {
-                continue;
+                StageManager.Instance.RegisterSpawnTile(worldPos);
+                Debug.Log($"<color=cyan>[Generator]</color> Spawn 타일 등록: {tileName} at {worldPos}");
             }
-            if (clearTileNames.Contains(tileName))
-            {
-                continue;
-            }
-            if (prefabDict.TryGetValue(tileName, out GameObject prefab))
-            {
-                var go = Instantiate(prefab, worldPos, Quaternion.identity, spawnParent);
-            }
+            continue; // 프리팹 생성 안 함
         }
-        generatorTilemap.gameObject.SetActive(false);
+
+        // 2. Clear 타일인지 확인 후 등록
+        if (clearTileNames.Contains(tileName))
+        {
+            if (StageManager.Instance != null)
+            {
+                StageManager.Instance.RegisterClearTile(worldPos);
+                Debug.Log($"<color=green>[Generator]</color> Clear 타일 등록: {tileName} at {worldPos}");
+            }
+            continue; // 프리팹 생성 안 함
+        }
+
+        // --- 수정된 부분 끝 ---
+
+        if (prefabDict.TryGetValue(tileName, out GameObject prefab))
+        {
+            var go = Instantiate(prefab, worldPos, Quaternion.identity, spawnParent);
+            // ApplyOrderInLayer(go, spawnOrderInLayer); // 필요시 활성화
+        }
     }
+    
+    // 모든 타일 스캔이 끝난 후 타일맵 비활성화
+    generatorTilemap.gameObject.SetActive(false);
+}
     private void ApplyOrderInLayer(GameObject go, int order)
     {
         if (go == null) return;

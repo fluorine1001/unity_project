@@ -130,12 +130,15 @@ public class PlayerController : MonoBehaviour
     {
         if (StageManager.Instance == null) return;
 
+        // 1. 플레이어의 현재 위치 로그
+        // Debug.Log($"Player Pos: {transform.position}"); 
+
         if (StageManager.Instance.IsClearTile(transform.position))
         {
+            Debug.Log("클리어 타일 감지 성공!");
             StageManager.Instance.OnPlayerStepOnClearTile();
         }
     }
-
     void CheckSpawnTile()
     {
         if (StageManager.Instance == null) return;

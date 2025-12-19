@@ -119,7 +119,7 @@ public class StageManager : MonoBehaviour
     {
         if (stageCleared) return false;
         foreach (var pos in clearTilePositions)
-            if (Vector3.Distance(playerPos, pos) < 0.1f)
+            if (Vector3.Distance(playerPos, pos) < 0.5f)
                 return true;
         return false;
     }
@@ -128,7 +128,7 @@ public class StageManager : MonoBehaviour
     {
         if (stageSpawned) return false;
         foreach (var pos in spawnTilePositions)
-            if (Vector3.Distance(playerPos, pos) < 0.1f)
+            if (Vector3.Distance(playerPos, pos) < 0.5f)
                 return true;
         return false;
     }
