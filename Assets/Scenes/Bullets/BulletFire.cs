@@ -120,18 +120,21 @@ public class BulletFire : MonoBehaviour
 
     private bool IsFirePressed()
     {
+        // UI를 클릭 중이라면 발사하지 않음
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
         {
             return false;
         }
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-        {
-            return false;
-        }
+
 #if ENABLE_INPUT_SYSTEM
-        return Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+        // New Input System 사용 시
+        bool isMouseClick = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+        bool isSpacePressed = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+        
+        return isMouseClick || isSpacePressed;
 #else
-        return Input.GetMouseButtonDown(0);
+        // Legacy Input Manager 사용 시
+        return Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space);
 #endif
     }
 

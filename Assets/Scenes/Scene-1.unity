@@ -21851,9 +21851,7 @@ MonoBehaviour:
   startPosition: {x: -17.92, y: 2.56, z: 0}
   gridCellSize: {x: 1, y: 1, z: 1}
   paletteUI: {fileID: 1013976278}
-  stageLoadouts:
-  - {fileID: 11400000, guid: 0ca05b685d7f3704bad2f0c3d2cf09f8, type: 2}
-  - {fileID: 11400000, guid: 571771286c50d1940a51c6a67eb1f1e4, type: 2}
+  stageLoadouts: []
 --- !u!4 &548608554
 Transform:
   m_ObjectHideFlags: 0

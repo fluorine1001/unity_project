@@ -8,7 +8,7 @@ public class StageManager : MonoBehaviour
 
     [Header("Stage Control")]
     public int currentStage = 0;
-    public int maxClearedStage = 0;
+    public int maxClearedStage = 10;
     
     [Tooltip("스테이지별 카메라 위치 리스트.")]
     public List<Vector3> cameraPositions;
@@ -53,6 +53,8 @@ public class StageManager : MonoBehaviour
                 new Vector3(0f, 0f, 0f)
             };
         }
+
+        InitializeStageLoadouts();
     }
 
     private void Start()
@@ -63,6 +65,44 @@ public class StageManager : MonoBehaviour
     private void Update()
     {
         MoveCameraToTarget();
+    }
+
+    private void InitializeStageLoadouts()
+    {
+        // 1. Resources/StageLoadOut 폴더에서 모든 StageLoadout 에셋 로드
+        // (대소문자 구분: 요청하신 대로 "StageLoadOut"으로 작성했습니다)
+        StageLoadout[] loadedLoadouts = Resources.LoadAll<StageLoadout>("StageLoadouts");
+
+        if (loadedLoadouts != null && loadedLoadouts.Length > 0)
+        {
+            // 2. Stage_{a}-{b} 형식에 맞춘 이중 정렬 (a 우선, b 차선)
+            stageLoadouts = loadedLoadouts
+                .OrderBy(x => {
+                    // 파일명에서 숫자 부분 추출 (Stage_0-1 -> "0-1")
+                    string name = x.name.Replace("Stage_", "");
+                    string[] parts = name.Split('-');
+                    
+                    // a 값 추출
+                    return parts.Length > 0 && int.TryParse(parts[0], out int a) ? a : 0;
+                })
+                .ThenBy(x => {
+                    // b 값 추출
+                    string name = x.name.Replace("Stage_", "");
+                    string[] parts = name.Split('-');
+                    
+                    return parts.Length > 1 && int.TryParse(parts[1], out int b) ? b : 0;
+                })
+                .ToList();
+
+            Debug.Log($"<color=green>[StageManager]</color> {stageLoadouts.Count}개의 로드아웃을 정렬하여 로드했습니다.");
+            
+            // 정렬 결과 확인용 로그 (필요 시 주석 해제)
+            // foreach(var s in stageLoadouts) Debug.Log($"로드된 순서: {s.name}");
+        }
+        else
+        {
+            Debug.LogError("<color=red>[StageManager]</color> 'Resources/StageLoadOut' 폴더에서 에셋을 찾을 수 없습니다.");
+        }
     }
 
     public void SetGridSize(Vector3 size) => gridCellSize = size;
