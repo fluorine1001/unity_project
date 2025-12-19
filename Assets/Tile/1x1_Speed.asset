@@ -9,9 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85b46d42d61cf21489cd7f389fefef61, type: 3}
-  m_Name: StageLoadout_0
-  m_EditorClassIdentifier: Assembly-CSharp::StageLoadout
-  entries:
-  - tile: {fileID: 11400000, guid: 4554d506e7e85984ba1d479db3e16c9d, type: 2}
-    count: 3
+  m_Script: {fileID: 11500000, guid: 5759973987372bd4db11305599c41e28, type: 3}
+  m_Name: 1x1_Speed
+  m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
+  id: 1x1_Speed
+  cells:
+  - offset: {x: 0, y: 0}
+    kind: 0

@@ -10,8 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5759973987372bd4db11305599c41e28, type: 3}
-  m_Name: TD_Speed
+  m_Name: 3x3_T_shape
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
-  id: speed
-  icon: {fileID: 1631790434440380611, guid: 607935a834d09694cada7e584596f2f8, type: 3}
-  prefab: {fileID: 0}
+  id: 
+  cells: []
