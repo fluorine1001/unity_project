@@ -166,4 +166,23 @@ public class StageManager : MonoBehaviour
         // ✅ 초기 스테이지 강제 재시작
         OnPlayerStepOnSpawnTile();
     }
+    private void RefreshStagePalette()
+    {
+        Debug.Log($"[Palette] Refresh stage={currentStage} paletteUI={(paletteUI ? "OK" : "NULL")} loadouts={(stageLoadouts==null ? "NULL" : stageLoadouts.Count.ToString())}");
+
+        if (paletteUI == null) return;
+
+        StageLoadout loadout = null;
+        if (stageLoadouts != null && currentStage >= 0 && currentStage < stageLoadouts.Count)
+            loadout = stageLoadouts[currentStage];
+
+        Debug.Log($"[Palette] Loadout={(loadout ? loadout.name : "NULL")}");
+        paletteUI.Build(loadout);
+    }
+
+private void Start()
+{
+    OnPlayerStepOnSpawnTile();
+}
+
 }
