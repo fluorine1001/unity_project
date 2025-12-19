@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Stage_1-2
   m_EditorClassIdentifier: Assembly-CSharp::StageLoadout
   entries:
-  - tile: {fileID: 11400000, guid: bf3623cb7e7ece642894d8289e195107, type: 2}
+  - tile: {fileID: 11400000, guid: 14a642756046dd545947e0eac73769de, type: 2}
     count: 1

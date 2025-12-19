@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq; 
 
 public class StageManager : MonoBehaviour
 {
@@ -7,116 +8,140 @@ public class StageManager : MonoBehaviour
 
     [Header("Stage Control")]
     public int currentStage = 0;
+    public int maxClearedStage = 0;
+    
+    [Tooltip("스테이지별 카메라 위치 리스트.")]
     public List<Vector3> cameraPositions;
-    public float cameraMoveSpeed = 2f;
+    
+    public float cameraMoveSpeed = 2f; 
+
+    [Header("Player & Reset")]
     public Transform player;
     public Vector3 startPosition = new Vector3(-17.92f, 2.56f, 0f);
 
+    [Header("Grid Settings")]
+    public Vector3 gridCellSize = Vector3.one;
+
     [Header("Stage UI")]
-    public TilePaletteUI paletteUI;           // LeftBar에 붙은 TilePaletteUI 연결
-    public List<StageLoadout> stageLoadouts;  // 스테이지별 프리셋 데이터
+    public TilePaletteUI paletteUI; 
+    public List<StageLoadout> stageLoadouts; 
+
+    // 타일 상태 저장소
+    private Dictionary<int, StageLoadout> runtimeLoadoutCache = new Dictionary<int, StageLoadout>();
 
     private List<Vector3> clearTilePositions = new List<Vector3>();
     private List<Vector3> spawnTilePositions = new List<Vector3>();
+
     private bool pendingPaletteRefresh = false;
-
-
     private bool cameraMoving = false;
-    private bool stageCleared = false;
-    private bool stageSpawned = false;
+    private Camera _mainCamera;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+        _mainCamera = Camera.main;
 
         if (cameraPositions == null || cameraPositions.Count == 0)
         {
+            Debug.Log("[StageManager] 기본 카메라 좌표 생성");
             cameraPositions = new List<Vector3>
             {
-                new Vector3(0f, 0f, 0f),
-                new Vector3(104.96f, 0f, 0f),
-                new Vector3(212.48f, 0f, 0f),
-                new Vector3(319.99f, 0f, 0f),
-                new Vector3(427.52f, 0f, 0f),
-                new Vector3(535.04f, 0f, 0f),
-                new Vector3(642.56f, 0f, 0f),
-                new Vector3(750.08f, 0f, 0f),
-                new Vector3(857.60f, 5.12f, 0f),
+                new Vector3(0f, 0f, 0f), new Vector3(104.96f, 0f, 0f), new Vector3(212.48f, 0f, 0f),
+                new Vector3(319.99f, 0f, 0f), new Vector3(427.52f, 0f, 0f), new Vector3(535.04f, 0f, 0f),
+                new Vector3(642.56f, 0f, 0f), new Vector3(750.08f, 0f, 0f), new Vector3(857.60f, 5.12f, 0f),
                 new Vector3(0f, 0f, 0f)
             };
         }
     }
 
+    private void Start()
+    {
+        SortTilesAndRefresh();
+    }
+
     private void Update()
     {
-        if (cameraMoving)
-            MoveCameraToTarget();
+        MoveCameraToTarget();
     }
 
-    public void RegisterClearTile(Vector3 pos) => clearTilePositions.Add(pos);
-    public void RegisterSpawnTile(Vector3 pos) => spawnTilePositions.Add(pos);
+    public void SetGridSize(Vector3 size) => gridCellSize = size;
 
-    public void OnPlayerStepOnClearTile()
+    private void SortTilesAndRefresh()
     {
-        if (stageCleared) return;
-        stageCleared = true;
-        stageSpawned = false;
-        currentStage++;
-        
-        //RefreshStagePalette();
+        clearTilePositions = clearTilePositions.OrderBy(pos => pos.x).ToList();
+        Debug.Log($"[StageManager] 초기화 완료. ClearTile: {clearTilePositions.Count}");
+        RefreshStagePalette();
+    }
 
-        if (currentStage == 9)
+    // === ✅ [수정됨] 스테이지 이동 로직 (점프 버그 수정) ===
+    public void CheckStageTransitionOnExit(Vector3 playerPos, Vector2 moveDir)
+    {
+        // 상하 이동은 무시
+        if (Mathf.Abs(moveDir.y) > 0.01f) return;
+
+        // 현재 플레이어가 ClearTile 위에 있는지 확인
+        if (!IsClearTile(playerPos)) return;
+
+        int nextStage = currentStage;
+
+        // 오른쪽(→)으로 이동: 다음 스테이지 (Current + 1)
+        if (moveDir.x > 0.01f)
         {
-            ResetStageSystem(); // ✅ 전체 초기화 함수 호출
+            nextStage = currentStage + 1;
+            Debug.Log($"[이동 시도] 현재({currentStage}) -> 다음({nextStage})");
         }
-        else
+        // 왼쪽(←)으로 이동: 이전 스테이지 (Current - 1)
+        else if (moveDir.x < -0.01f)
         {
-            pendingPaletteRefresh = true;
-            MoveCameraToNextStage();
+            nextStage = currentStage - 1;
+            Debug.Log($"[이동 시도] 현재({currentStage}) -> 이전({nextStage})");
+        }
+        else return;
+
+        ChangeStage(nextStage);
+    }
+
+    private void ChangeStage(int targetStage)
+    {
+        // 1. 0보다 작으면 무시
+        if (targetStage < 0) return;
+
+        // 2. ✅ [수정됨] 데이터가 없을 때 초기화(Reset)하지 않고 에러만 출력 후 중단
+        if (targetStage >= cameraPositions.Count)
+        {
+            Debug.LogError($"[이동 불가] 목표 스테이지 {targetStage}에 대한 카메라 좌표가 없습니다. (현재 데이터 개수: {cameraPositions.Count})");
+            // ResetStageSystem(); // <-- 이 줄을 삭제하여 0번으로 튕기는 현상 방지
+            return;
         }
 
-        print(currentStage);
-    }
+        // 3. 정상 이동
+        if (targetStage > maxClearedStage) maxClearedStage = targetStage;
 
-    public void OnPlayerStepOnSpawnTile()
-    {
-        if (stageSpawned) return;
-        stageSpawned = true;
-        stageCleared = false;
-        Debug.Log($"Stage {currentStage} 시작 위치 진입 완료");
-    }
-
-    private void MoveCameraToNextStage()
-    {
-        if (currentStage < cameraPositions.Count)
+        if (currentStage != targetStage)
+        {
+            Debug.Log($"🎥 스테이지 변경 실행: {currentStage} -> {targetStage}");
+            currentStage = targetStage;
             cameraMoving = true;
-        
+            pendingPaletteRefresh = true;
+        }
     }
 
     private void MoveCameraToTarget()
     {
-        Camera mainCam = Camera.main;
-        if (mainCam == null || currentStage >= cameraPositions.Count) return;
+        if (_mainCamera == null || currentStage >= cameraPositions.Count) return;
 
         Vector3 targetPos = cameraPositions[currentStage];
-        targetPos.z = mainCam.transform.position.z;
+        targetPos.z = _mainCamera.transform.position.z;
 
-        mainCam.transform.position = Vector3.Lerp(
-            mainCam.transform.position,
-            targetPos,
-            Time.deltaTime * cameraMoveSpeed
-        );
-
-        if (Vector3.Distance(mainCam.transform.position, targetPos) < 0.05f)
+        if (Vector3.Distance(_mainCamera.transform.position, targetPos) > 0.05f)
+            _mainCamera.transform.position = Vector3.Lerp(_mainCamera.transform.position, targetPos, Time.deltaTime * cameraMoveSpeed);
+        else
         {
-            mainCam.transform.position = targetPos;
+            _mainCamera.transform.position = targetPos;
             cameraMoving = false;
         }
+
         if (pendingPaletteRefresh)
         {
             pendingPaletteRefresh = false;
@@ -124,75 +149,99 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    public bool IsClearTile(Vector3 playerPos)
+    // === 타일 상태 관리 ===
+    private void RefreshStagePalette()
     {
-        if (stageCleared) return false;
+        if (paletteUI == null) return;
+        StageLoadout loadoutToUse = null;
+
+        if (stageLoadouts != null && currentStage >= 0 && currentStage < stageLoadouts.Count)
+        {
+            if (runtimeLoadoutCache.ContainsKey(currentStage))
+                loadoutToUse = runtimeLoadoutCache[currentStage];
+            else
+            {
+                if (stageLoadouts[currentStage] != null)
+                {
+                    loadoutToUse = Instantiate(stageLoadouts[currentStage]);
+                    runtimeLoadoutCache.Add(currentStage, loadoutToUse);
+                }
+            }
+        }
+        paletteUI.Build(loadoutToUse);
+    }
+
+    public void ConsumeTile(int tileIndexInLoadout)
+    {
+        if (runtimeLoadoutCache.ContainsKey(currentStage))
+        {
+            StageLoadout currentLoadout = runtimeLoadoutCache[currentStage];
+            if (currentLoadout.entries != null && tileIndexInLoadout < currentLoadout.entries.Count)
+            {
+                var entry = currentLoadout.entries[tileIndexInLoadout];
+                if (entry.count > 0)
+                {
+                    entry.count--; 
+                    currentLoadout.entries[tileIndexInLoadout] = entry; 
+                }
+            }
+        }
+    }
+
+    public void RegisterClearTile(Vector3 pos) { if (!clearTilePositions.Contains(pos)) clearTilePositions.Add(pos); }
+    public void RegisterSpawnTile(Vector3 pos) { if (!spawnTilePositions.Contains(pos)) spawnTilePositions.Add(pos); }
+    
+    // 현재 위치가 ClearTile인지 확인
+    public bool IsClearTile(Vector3 worldPos)
+    {
+        Vector2 checkPos = new Vector2(worldPos.x, worldPos.y);
+        float threshold = gridCellSize.x * 0.45f; 
+
         foreach (var pos in clearTilePositions)
-            if (Vector3.Distance(playerPos, pos) < 0.5f)
-                return true;
+        {
+            if (Vector2.Distance(checkPos, pos) < threshold) return true;
+        }
         return false;
     }
 
     public bool IsSpawnTile(Vector3 playerPos)
     {
-        if (stageSpawned) return false;
-        foreach (var pos in spawnTilePositions)
-            if (Vector3.Distance(playerPos, pos) < 0.5f)
-                return true;
+        Vector2 pPos = new Vector2(playerPos.x, playerPos.y);
+        float threshold = gridCellSize.x * 0.6f;
+        foreach (var pos in spawnTilePositions) if (Vector2.Distance(pPos, pos) < threshold) return true;
         return false;
     }
 
-    // === ✅ 전체 시스템 초기화 함수 ===
+    public void OnPlayerStepOnSpawnTile() { }
+
+    // public 호출용 (PlayerController 등에서 사용)
+    public void OnPlayerStepOnClearTile() { }
+
     private void ResetStageSystem()
     {
+        Debug.Log("🔄 게임 완전 초기화");
         currentStage = 0;
-        stageCleared = false;
-        stageSpawned = false;
-        cameraMoving = false;
-
-        clearTilePositions.Clear();
-        spawnTilePositions.Clear();
+        cameraMoving = true;
+        pendingPaletteRefresh = true;
+        runtimeLoadoutCache.Clear();
 
         if (player != null)
         {
-            Rigidbody rb = player.GetComponent<Rigidbody>();
-            if (rb != null)
+            Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+            if (rb != null) 
+            {
+                rb.linearVelocity = Vector2.zero;
                 rb.position = startPosition;
-            else
-                player.position = startPosition;
+            }
+            else player.position = startPosition;
         }
-
-        Camera mainCam = Camera.main;
-        if (mainCam != null)
+        
+        if (_mainCamera != null && cameraPositions.Count > 0)
         {
             Vector3 resetPos = cameraPositions[0];
-            resetPos.z = mainCam.transform.position.z;
-            mainCam.transform.position = resetPos;
+            resetPos.z = _mainCamera.transform.position.z;
+            _mainCamera.transform.position = resetPos;
         }
-
-
-        Debug.Log("=== 전체 스테이지 및 상태 초기화 완료 ===");
-
-        // ✅ 초기 스테이지 강제 재시작
-        OnPlayerStepOnSpawnTile();
+        RefreshStagePalette();
     }
-    private void RefreshStagePalette()
-    {
-        Debug.Log($"[Palette] Refresh stage={currentStage} paletteUI={(paletteUI ? "OK" : "NULL")} loadouts={(stageLoadouts==null ? "NULL" : stageLoadouts.Count.ToString())}");
-
-        if (paletteUI == null) return;
-
-        StageLoadout loadout = null;
-        if (stageLoadouts != null && currentStage >= 0 && currentStage < stageLoadouts.Count)
-            loadout = stageLoadouts[currentStage];
-
-        Debug.Log($"[Palette] Loadout={(loadout ? loadout.name : "NULL")}");
-        paletteUI.Build(loadout);
-    }
-
-private void Start()
-{
-    RefreshStagePalette();
-}
-
 }

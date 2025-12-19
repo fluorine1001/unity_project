@@ -12,29 +12,29 @@ public class PlayerController : MonoBehaviour
     public float moveDuration = 0.08f;
 
     [Header("Grid / Cell Size")]
-    public Grid grid;                            // 씬에 Grid가 있으면 할당
-    public bool useGridCellSize = true;          // Grid의 cellSize 자동 사용
-    public Vector2 cellSize = new Vector2(0.16f, 0.16f); // Grid 없을 때 직접 지정
+    public Grid grid;                            
+    public bool useGridCellSize = true;          
+    public Vector2 cellSize = new Vector2(0.16f, 0.16f); 
 
     [Header("Collision")]
     [Tooltip("충돌 감지 offset")]
-    public float collisitionOffset = 0.05f;      // (기존 변수명 유지)
+    public float collisitionOffset = 0.05f;      
     [Tooltip("충돌에서 제외/포함할 레이어 설정")]
     public ContactFilter2D movementFilter;
 
     [Header("Visual")]
-    [SerializeField] private SpriteRenderer sprite; // 좌우 반전용 (비우면 자동 탐색)
-    [SerializeField] private Animator animator;     // 모션 전환용 (비우면 자동 탐색)
+    [SerializeField] private SpriteRenderer sprite; 
+    [SerializeField] private Animator animator;     
 
     // 내부 상태
     private Vector2 movementInput;
     private Rigidbody2D rb;
     private readonly List<RaycastHit2D> castColisitions = new List<RaycastHit2D>();
     private bool isMoving = false;
-    private bool prevInputWasZero = true;        // "누름 에지" 검출용
+    private bool prevInputWasZero = true;        
 
     // 바라보는 방향/마지막 이동 방향
-    private Vector2 lastMoveDir = Vector2.down;  // 시작 기본 바라봄(아래)
+    private Vector2 lastMoveDir = Vector2.down;  
 
     void Start()
     {
@@ -42,44 +42,32 @@ public class PlayerController : MonoBehaviour
         if (sprite == null) sprite = GetComponentInChildren<SpriteRenderer>();
         if (animator == null) animator = GetComponentInChildren<Animator>();
 
-        // 다른 스크립트가 초기 바라보는 방향을 참조할 수 있도록 기본값 보장
         lastMoveDir = lastMoveDir == Vector2.zero ? Vector2.down : lastMoveDir;
 
-        // Grid가 있으면 cellSize 자동 설정
         if (useGridCellSize && grid != null)
             cellSize = grid.cellSize;
 
-        // 시작 위치를 격자에 스냅
         SnapToGrid();
-
-        // 초기 애니메이터 상태 세팅
         ApplyLook(lastMoveDir, isMoving: false);
 
+        // ✅ [복구] 예전 코드의 필터 설정 적용
         movementFilter.useLayerMask = true;
         movementFilter.useTriggers = true;
     }
 
-    // 연속 이동은 사용하지 않음 (고의로 비워둠)
-    void FixedUpdate() { }
-
-    // 새 Input System - Move 액션
     void OnMove(InputValue movementValue)
     {
         movementInput = movementValue.Get<Vector2>();
 
-        // "0 → 비0"으로 바뀌는 순간만 한 칸 이동 (키 다운 에지)
         if (!isMoving && movementInput != Vector2.zero && prevInputWasZero)
         {
-            Vector2 dir = QuantizeToCardinal(movementInput); // 대각 → 가로나 세로
+            Vector2 dir = QuantizeToCardinal(movementInput); 
             if (dir != Vector2.zero)
             {
-                // 이동 시작 전에 시선/모션 갱신
                 BeginMoveLook(dir);
                 StartCoroutine(MoveOneCell(dir));
             }
         }
-
-        // 다음 에지 검출을 위한 기록
         prevInputWasZero = (movementInput == Vector2.zero);
     }
 
@@ -87,26 +75,32 @@ public class PlayerController : MonoBehaviour
     {
         isMoving = true;
 
+        // 1. [신규 기능] 이동 시작 전, ClearTile 위에서 나가는 방향인지 체크 (스테이지 이동)
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.CheckStageTransitionOnExit(transform.position, dir);
+        }
+
+        // 2. [복구] 예전 코드의 강력한 충돌 감지 로직 (rb.Cast)
         Vector2 step = new Vector2(dir.x * cellSize.x, dir.y * cellSize.y);
-
-        // 1) 내 앞이 막혔는지 캐스트
+        
         castColisitions.Clear();
+        // 이동 거리 + 오프셋만큼 레이를 쏨
         float castDistance = step.magnitude + collisitionOffset;
-
+        
         int hitCount = rb.Cast(dir.normalized, movementFilter, castColisitions, castDistance);
 
         if (hitCount > 0)
         {
-            EndMoveLook(); // 애니메이션/시선 복구
+            // 벽에 막힘 -> 이동 취소
+            EndMoveLook(); 
             isMoving = false;
             yield break;
         }
 
-        // 3) 이제 길이 뚫렸으니 내가 한 칸 이동
+        // 3. 이동 실행 (길이 뚫렸을 때만)
         if (AudioManager.instance != null && FMODEvents.instance != null)
-        {
-            AudioManager.instance.PlayOneShot(FMODEvents.instance.PlayerDash, this.transform.position);
-        }
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.PlayerDash, transform.position);
         
         Vector2 start = rb.position;
         Vector2 end = start + step;
@@ -125,83 +119,52 @@ public class PlayerController : MonoBehaviour
         EndMoveLook();
         isMoving = false;
 
-        CheckClearTile();
+        // 4. 도착 후 체크 (SpawnTile 등)
         CheckSpawnTile();
     }
 
-    void CheckClearTile()
-    {
-        if (StageManager.Instance == null) return;
-
-        // 1. 플레이어의 현재 위치 로그
-        // Debug.Log($"Player Pos: {transform.position}"); 
-
-        if (StageManager.Instance.IsClearTile(transform.position))
-        {
-            Debug.Log("클리어 타일 감지 성공!");
-            StageManager.Instance.OnPlayerStepOnClearTile();
-        }
-    }
     void CheckSpawnTile()
     {
         if (StageManager.Instance == null) return;
-
         if (StageManager.Instance.IsSpawnTile(transform.position))
         {
             StageManager.Instance.OnPlayerStepOnSpawnTile();
         }
     }
 
-    // 대각 입력이 들어와도 가로나 세로 중 더 큰 축으로만 1칸 이동
     Vector2 QuantizeToCardinal(Vector2 v)
     {
-        if (Mathf.Approximately(v.x, 0f) && Mathf.Approximately(v.y, 0f))
-            return Vector2.zero;
-
-        if (Mathf.Abs(v.x) >= Mathf.Abs(v.y))
-            return new Vector2(Mathf.Sign(v.x), 0f);
-        else
-            return new Vector2(0f, Mathf.Sign(v.y));
+        if (Mathf.Approximately(v.x, 0f) && Mathf.Approximately(v.y, 0f)) return Vector2.zero;
+        return (Mathf.Abs(v.x) >= Mathf.Abs(v.y)) ? new Vector2(Mathf.Sign(v.x), 0f) : new Vector2(0f, Mathf.Sign(v.y));
     }
-
-    // === 애니메이션 & 바라보는 방향 처리 ===
-
-    // 이동 시작 시: 애니메이션을 "이동"으로, 시선 갱신
+    
     void BeginMoveLook(Vector2 dir)
     {
-        lastMoveDir = dir;                 // 마지막 이동 방향 저장
-        ApplyLook(lastMoveDir, true);      // 이동 중
+        lastMoveDir = dir;
+        ApplyLook(lastMoveDir, true);
     }
-
-    // 이동 종료 시: 애니메이션을 "대기"로, 마지막 방향 유지
+    
     void EndMoveLook()
     {
-        ApplyLook(lastMoveDir, false);     // 대기(Idle)지만 lastMoveDir을 바라봄
+        ApplyLook(lastMoveDir, false);
     }
-
-    // 스프라이트 반전 + 애니메이터 파라미터 세팅
+    
     void ApplyLook(Vector2 lookDir, bool isMoving)
     {
-        // Animator 파라미터 반영
         if (animator != null)
         {
             animator.SetBool("isWalk", isMoving);
             animator.SetFloat("DirectionX", lookDir.x);
             animator.SetFloat("DirectionY", lookDir.y);
-            // 필요하다면 Speed/Blend 파라미터도 추가 가능:
-            // animator.SetFloat("Speed", isMoving ? 1f : 0f);
         }
 
-        // 좌우 반전(수평 입력 있을 때만 갱신, 수직 이동 중엔 기존 반전 유지)
         if (sprite != null)
         {
-            if (lookDir.x > 0.01f) sprite.flipX = false; // 오른쪽
-            else if (lookDir.x < -0.01f) sprite.flipX = true; // 왼쪽
-            // lookDir.x == 0 이면 flipX 유지 (수직 이동/대기에서 마지막 수평 방향 유지)
+            if (lookDir.x > 0.01f) sprite.flipX = false; 
+            else if (lookDir.x < -0.01f) sprite.flipX = true; 
         }
     }
 
-    // 시작/배치 시 그리드 중앙에 정렬
     void SnapToGrid()
     {
         if (grid != null)
@@ -219,8 +182,5 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // 외부에서 현재 바라보는 방향을 안전하게 조회할 수 있도록 공개
     public Vector2 LastMoveDirection => lastMoveDir;
-    
 }
-

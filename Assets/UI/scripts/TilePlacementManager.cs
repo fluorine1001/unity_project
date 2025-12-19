@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
-using UnityEngine.InputSystem; // 🔥 [필수] New Input System 네임스페이스 추가
+using UnityEngine.InputSystem; 
 
 public class TilePlacementManager : MonoBehaviour
 {
@@ -37,34 +37,26 @@ public class TilePlacementManager : MonoBehaviour
     // =========================================================
     private void Update()
     {
-        // 드래그 중이 아니면 무시
         if (!isDragging) return;
 
         bool rotateInput = false;
 
-        // 1. 키보드 'R' 키 입력 확인
         if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
-        {
             rotateInput = true;
-        }
 
-        // 2. 마우스 우클릭 확인
         if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
-        {
             rotateInput = true;
-        }
 
-        // 회전 입력이 들어왔다면
         if (rotateInput)
         {
-            RotateWorkingCellsClockwise();    // 데이터 회전
-            CreateGhost();                    // 고스트 다시 생성
-            UpdateGhostVisual(lastScreenPos); // 위치 즉시 갱신
+            RotateWorkingCellsClockwise();    
+            CreateGhost();                    
+            UpdateGhostVisual(lastScreenPos); 
         }
     }
 
     // =========================================================
-    // 👆 드래그 핸들러 (PaletteItemUI에서 호출)
+    // 👆 드래그 핸들러
     // =========================================================
 
     public void StartDrag(TileDefinition def, PaletteItemUI ui, Vector3 startScreenPos)
@@ -77,9 +69,7 @@ public class TilePlacementManager : MonoBehaviour
         if (def != null && def.cells != null)
         {
             foreach (var cell in def.cells)
-            {
                 workingCells.Add(new TileCell { offset = cell.offset, kind = cell.kind });
-            }
         }
 
         CreateGhost();
@@ -102,6 +92,13 @@ public class TilePlacementManager : MonoBehaviour
         if (IsPositionValid(originCell))
         {
             SpawnObjects(originCell);
+            
+            // ✅ [필수] 배치가 성공했으므로 StageManager에게 소모 알림
+            if (StageManager.Instance != null && currentUI != null)
+            {
+                StageManager.Instance.ConsumeTile(currentUI.LoadoutIndex);
+            }
+
             if (currentUI) Destroy(currentUI.gameObject); 
         }
         
@@ -111,18 +108,15 @@ public class TilePlacementManager : MonoBehaviour
     }
 
     // =========================================================
-    // 🔄 회전 로직 (시계 방향 90도)
+    // 🔄 회전 로직
     // =========================================================
     private void RotateWorkingCellsClockwise()
     {
         for (int i = 0; i < workingCells.Count; i++)
         {
             TileCell cell = workingCells[i];
-            
-            // 시계 방향: (x, y) -> (y, -x)
             int newX = cell.offset.y;
             int newY = -cell.offset.x;
-
             cell.offset = new Vector2Int(newX, newY);
             workingCells[i] = cell;
         }
@@ -157,7 +151,6 @@ public class TilePlacementManager : MonoBehaviour
         ghostRoot = new GameObject("GhostRoot");
         ghostRenderers.Clear();
 
-        // 그리드 정보가 없으면 기본값 1
         Vector3 gridCellSize = Vector3.one;
         if (targetTilemap != null && targetTilemap.layoutGrid != null)
              gridCellSize = targetTilemap.layoutGrid.cellSize;
@@ -178,17 +171,8 @@ public class TilePlacementManager : MonoBehaviour
                 if (prefabSr) 
                 {
                     sr.sprite = prefabSr.sprite;
-                    if (sr.sprite != null)
-                    {
-                        Vector3 spriteSize = sr.sprite.bounds.size;
-                        if (spriteSize.x != 0 && spriteSize.y != 0)
-                        {
-                            go.transform.localScale = new Vector3(
-                                gridCellSize.x / spriteSize.x, 
-                                gridCellSize.y / spriteSize.y, 
-                                1f);
-                        }
-                    }
+                    // ✅ [수정] 뭉개짐 해결: 비율 강제 조정 대신 1:1 비율 유지
+                    go.transform.localScale = Vector3.one; 
                 }
             }
             sr.sortingOrder = 100;
@@ -248,12 +232,12 @@ public class TilePlacementManager : MonoBehaviour
             }
         }
     }
-}
 
-// 데이터 정의
-[System.Serializable]
-public struct TileCell
-{
-    public Vector2Int offset;
-    public TileKind kind;
+    // 데이터 정의
+    [System.Serializable]
+    public struct TileCell
+    {
+        public Vector2Int offset;
+        public TileKind kind;
+    }
 }

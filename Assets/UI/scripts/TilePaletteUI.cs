@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class TilePaletteUI : MonoBehaviour
 {
-    public Transform contentRoot;      // Vertical Layout Group 아래 Content
-    public PaletteItemUI itemPrefab;   // 아이템 프리팹
+    public Transform contentRoot;      
+    public PaletteItemUI itemPrefab;   
 
     readonly List<GameObject> spawned = new();
 
@@ -13,11 +13,18 @@ public class TilePaletteUI : MonoBehaviour
         Clear();
         if (loadout == null) return;
 
-        foreach (var e in loadout.entries)
+        // ✅ [수정] foreach -> for문으로 변경하여 인덱스 추적
+        for (int i = 0; i < loadout.entries.Count; i++)
         {
+            var e = loadout.entries[i];
+
             if (e.tile == null || e.count <= 0) continue;
+
             var item = Instantiate(itemPrefab, contentRoot);
-            item.Bind(e.tile, e.count);
+            
+            // ✅ [수정] 타일 정보와 함께 인덱스(i)도 전달
+            item.Bind(e.tile, e.count, i);
+            
             spawned.Add(item.gameObject);
         }
     }
