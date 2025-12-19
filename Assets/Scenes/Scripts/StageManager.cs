@@ -12,11 +12,6 @@ public class StageManager : MonoBehaviour
     public Transform player;
     public Vector3 startPosition = new Vector3(-17.92f, 2.56f, 0f);
 
-    [Header("Stage UI")]
-    public TilePaletteUI paletteUI;           // LeftBar에 붙은 TilePaletteUI 연결
-    public List<StageLoadout> stageLoadouts;  // 스테이지별 프리셋 데이터
-
-
     private List<Vector3> clearTilePositions = new List<Vector3>();
     private List<Vector3> spawnTilePositions = new List<Vector3>();
 
@@ -85,7 +80,6 @@ public class StageManager : MonoBehaviour
         stageSpawned = true;
         stageCleared = false;
         Debug.Log($"Stage {currentStage} 시작 위치 진입 완료");
-        RefreshStagePalette();
     }
 
     private void MoveCameraToNextStage()
