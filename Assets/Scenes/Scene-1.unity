@@ -21698,8 +21698,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.2D.Runtime::UnityEngine.Rendering.Universal.PixelPerfectCamera
   m_ComponentVersion: 1
   m_AssetsPPU: 8
-  m_RefResolutionX: 1
-  m_RefResolutionY: 205
+  m_RefResolutionX: 656
+  m_RefResolutionY: 369
   m_CropFrame: 0
   m_GridSnapping: 2
   m_FilterMode: 0
