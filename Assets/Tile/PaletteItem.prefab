@@ -88,6 +88,7 @@ GameObject:
   - component: {fileID: 2775176905195222225}
   - component: {fileID: 5646253217459334284}
   - component: {fileID: -502410974493801268}
+  - component: {fileID: 8175648878314954928}
   m_Layer: 5
   m_Name: PaletteItem
   m_TagString: Untagged
@@ -172,6 +173,7 @@ MonoBehaviour:
   speedSprite: {fileID: 1631790434440380611, guid: 607935a834d09694cada7e584596f2f8, type: 3}
   deSpeedSprite: {fileID: 4246522843397325894, guid: b4bfe87da900fdb48bfc90219628a07e, type: 3}
   countText: {fileID: 2144829292618819471}
+  uiCellSize: 6
 --- !u!114 &-502410974493801268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192,6 +194,18 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!225 &8175648878314954928
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3062827088264071489}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &3699870895341732591
 GameObject:
   m_ObjectHideFlags: 0

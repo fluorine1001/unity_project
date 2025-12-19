@@ -2,31 +2,89 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class PaletteItemUI : MonoBehaviour
+[RequireComponent(typeof(CanvasGroup))]
+public class PaletteItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [Header("Composite Icon")]
     public RectTransform iconRoot;
     public Image cellTemplate;
 
-    [Header("Kind Sprites (set in prefab once)")]
+    [Header("Kind Sprites")]
     public Sprite speedSprite;
     public Sprite deSpeedSprite;
 
     [Header("Count")]
     public TMP_Text countText;
 
+    [Header("UI Settings")]
+    [Tooltip("UI에 표시될 타일 하나당 크기 (픽셀 단위). 너무 크면 줄이세요.")]
+    public float uiCellSize = 6f; 
+
+    // 내부 변수
+    private TileDefinition myDef;
+    private int myCount;
+    private CanvasGroup canvasGroup;
     private readonly List<Image> spawned = new();
 
-    public void Bind(TileDefinition def, int count)
-
+    private void Awake()
     {
-        Debug.Log($"[PaletteItemUI] speed={(speedSprite ? speedSprite.name : "NULL")} de={(deSpeedSprite ? deSpeedSprite.name : "NULL")}");
-        Debug.Log($"[PaletteItemUI] def={(def ? def.name : "NULL")} cells={(def?.cells==null ? -1 : def.cells.Count)}");
-        
+        canvasGroup = GetComponent<CanvasGroup>();
+    }
+
+    public void Bind(TileDefinition def, int count)
+    {
+        myDef = def;
+        myCount = count;
+
         if (countText) countText.text = count.ToString();
         BuildCompositeIcon(def);
     }
+
+    // =========================================================
+    // ✨ 드래그 앤 드롭 구현부
+    // =========================================================
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        if (myDef == null || myCount <= 0) return;
+
+        if (TilePlacementManager.Instance != null)
+        {
+            TilePlacementManager.Instance.StartDrag(myDef, this);
+        }
+
+        canvasGroup.alpha = 0.6f;
+        canvasGroup.blocksRaycasts = false;
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (myDef == null || myCount <= 0) return;
+
+        if (TilePlacementManager.Instance != null)
+        {
+            TilePlacementManager.Instance.UpdateDrag(eventData.position);
+        }
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        if (myDef == null || myCount <= 0) return;
+
+        if (TilePlacementManager.Instance != null)
+        {
+            TilePlacementManager.Instance.EndDrag(eventData.position);
+        }
+
+        canvasGroup.alpha = 1.0f;
+        canvasGroup.blocksRaycasts = true;
+    }
+
+    // =========================================================
+    // 🖼️ 아이콘 생성 로직 (크기 조절 반영)
+    // =========================================================
 
     private Sprite KindToSprite(TileKind kind)
         => kind == TileKind.Speed ? speedSprite : deSpeedSprite;
@@ -37,33 +95,28 @@ public class PaletteItemUI : MonoBehaviour
         if (def == null || def.cells == null || def.cells.Count == 0) return;
         if (iconRoot == null || cellTemplate == null) return;
 
-        // 1) bounds
+        // 1) 범위 계산
         int minX = int.MaxValue, maxX = int.MinValue;
         int minY = int.MaxValue, maxY = int.MinValue;
 
         foreach (var c in def.cells)
         {
-            var p = c.offset;
-            if (p.x < minX) minX = p.x;
-            if (p.x > maxX) maxX = p.x;
-            if (p.y < minY) minY = p.y;
-            if (p.y > maxY) maxY = p.y;
+            if (c.offset.x < minX) minX = c.offset.x;
+            if (c.offset.x > maxX) maxX = c.offset.x;
+            if (c.offset.y < minY) minY = c.offset.y;
+            if (c.offset.y > maxY) maxY = c.offset.y;
         }
 
-        int w = maxX - minX + 1;
-        int h = maxY - minY + 1;
+        int w = (maxX - minX) + 1;
+        int h = (maxY - minY) + 1;
 
-        float rootW = iconRoot.rect.width;
-        float rootH = iconRoot.rect.height;
-        float cellSize = 5f; // 원하는 "타일 한 칸" 픽셀 크기 (예: 32)
-        iconRoot.sizeDelta = new Vector2(cellSize * w, cellSize * h);
-
-        //float cellSize = Mathf.Min(rootW / w, rootH / h);
+        // Root 크기를 설정값(uiCellSize)에 맞춰 조절
+        iconRoot.sizeDelta = new Vector2(uiCellSize * w, uiCellSize * h);
 
         float cx = (minX + maxX) * 0.5f;
         float cy = (minY + maxY) * 0.5f;
 
-        // 2) spawn
+        // 2) 셀 이미지 생성
         foreach (var c in def.cells)
         {
             Sprite spr = KindToSprite(c.kind);
@@ -71,32 +124,29 @@ public class PaletteItemUI : MonoBehaviour
 
             var img = Instantiate(cellTemplate, iconRoot);
             img.gameObject.SetActive(true);
-            img.overrideSprite = spr;   // ✅ 이게 중요
-            img.sprite = spr;           // 같이 넣어도 됨
-            img.color = Color.white;    // 알파/색상 혹시 몰라 고정
-            img.material = null;        // 이상한 머티리얼 방지
-            img.preserveAspect = true;
-
+            
+            img.sprite = spr;           
+            img.color = Color.white;
+            img.preserveAspect = true; // 비율 유지
 
             var rt = (RectTransform)img.transform;
-            rt.sizeDelta = new Vector2(cellSize, cellSize);
+            rt.sizeDelta = new Vector2(uiCellSize, uiCellSize); // 설정된 크기 적용
 
-            float ax = (c.offset.x - cx) * cellSize;
-            float ay = (c.offset.y - cy) * cellSize;
+            // 중심점 기준으로 위치 정렬
+            float ax = (c.offset.x - cx) * uiCellSize;
+            float ay = (c.offset.y - cy) * uiCellSize;
             rt.anchoredPosition = new Vector2(ax, ay);
 
             spawned.Add(img);
         }
-
-        cellTemplate.gameObject.SetActive(false);
     }
 
     private void ClearCells()
     {
-        for (int i = 0; i < spawned.Count; i++)
-            if (spawned[i]) Destroy(spawned[i].gameObject);
+        foreach (var img in spawned)
+        {
+            if (img) Destroy(img.gameObject);
+        }
         spawned.Clear();
-
-        if (cellTemplate) cellTemplate.gameObject.SetActive(false);
     }
 }
