@@ -18,6 +18,8 @@ public class StageManager : MonoBehaviour
 
     private List<Vector3> clearTilePositions = new List<Vector3>();
     private List<Vector3> spawnTilePositions = new List<Vector3>();
+    private bool pendingPaletteRefresh = false;
+
 
     private bool cameraMoving = false;
     private bool stageCleared = false;
@@ -65,6 +67,8 @@ public class StageManager : MonoBehaviour
         stageCleared = true;
         stageSpawned = false;
         currentStage++;
+        
+        //RefreshStagePalette();
 
         if (currentStage == 9)
         {
@@ -72,6 +76,7 @@ public class StageManager : MonoBehaviour
         }
         else
         {
+            pendingPaletteRefresh = true;
             MoveCameraToNextStage();
         }
 
@@ -90,8 +95,7 @@ public class StageManager : MonoBehaviour
     {
         if (currentStage < cameraPositions.Count)
             cameraMoving = true;
-        else
-            Debug.Log("No more stages!");
+        
     }
 
     private void MoveCameraToTarget()
@@ -112,6 +116,11 @@ public class StageManager : MonoBehaviour
         {
             mainCam.transform.position = targetPos;
             cameraMoving = false;
+        }
+        if (pendingPaletteRefresh)
+        {
+            pendingPaletteRefresh = false;
+            RefreshStagePalette();
         }
     }
 
@@ -183,7 +192,7 @@ public class StageManager : MonoBehaviour
 
 private void Start()
 {
-    OnPlayerStepOnSpawnTile();
+    RefreshStagePalette();
 }
 
 }
