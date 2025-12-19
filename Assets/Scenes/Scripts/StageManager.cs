@@ -12,6 +12,10 @@ public class StageManager : MonoBehaviour
     public Transform player;
     public Vector3 startPosition = new Vector3(-17.92f, 2.56f, 0f);
 
+    [Header("Stage UI")]
+    public TilePaletteUI paletteUI;           // LeftBar에 붙은 TilePaletteUI 연결
+    public List<StageLoadout> stageLoadouts;  // 스테이지별 프리셋 데이터
+
     private List<Vector3> clearTilePositions = new List<Vector3>();
     private List<Vector3> spawnTilePositions = new List<Vector3>();
 
@@ -163,4 +167,23 @@ public class StageManager : MonoBehaviour
         // ✅ 초기 스테이지 강제 재시작
         OnPlayerStepOnSpawnTile();
     }
+    private void RefreshStagePalette()
+    {
+        Debug.Log($"[Palette] Refresh stage={currentStage} paletteUI={(paletteUI ? "OK" : "NULL")} loadouts={(stageLoadouts==null ? "NULL" : stageLoadouts.Count.ToString())}");
+
+        if (paletteUI == null) return;
+
+        StageLoadout loadout = null;
+        if (stageLoadouts != null && currentStage >= 0 && currentStage < stageLoadouts.Count)
+            loadout = stageLoadouts[currentStage];
+
+        Debug.Log($"[Palette] Loadout={(loadout ? loadout.name : "NULL")}");
+        paletteUI.Build(loadout);
+    }
+
+private void Start()
+{
+    OnPlayerStepOnSpawnTile();
+}
+
 }
