@@ -1506,9 +1506,9 @@ RectTransform:
   - {fileID: 90511894}
   m_Father: {fileID: 2146925363}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 254.36679, y: -109.92514}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &235362539
@@ -7210,7 +7210,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48fc698def786a042b2b2953e7ff626c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SaveButtonUI
-  statusText: {fileID: 226396888}
 --- !u!224 &408693081
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7265,7 +7264,7 @@ MonoBehaviour:
   mainPage: {fileID: 345220252}
   settingsPage: {fileID: 1930615633}
   masterVolumeSlider: {fileID: 945505185}
-  fullscreenToggle: {fileID: 1503554320}
+  fullscreenToggle: {fileID: 0}
 --- !u!114 &408693084
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21080,7 +21079,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 25
+  orthographic size: 13.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -21900,9 +21899,9 @@ RectTransform:
   - {fileID: 1511832760}
   m_Father: {fileID: 2146925363}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 254.36679, y: -36.641712}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1002709893
@@ -22685,7 +22684,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 493750423}
-  m_Father: {fileID: 1503554319}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
@@ -22912,7 +22911,7 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -426902564491260848, guid: 03f0779e53e28ed439cef348d19fe092, type: 3}
+    m_HighlightedSprite: {fileID: 2934200987838199624, guid: 921c88b987e41f3498f4f7f93c315ee4, type: 3}
     m_PressedSprite: {fileID: 6351182500444712689, guid: e2a5736ab22b1204891565db93e08049, type: 3}
     m_SelectedSprite: {fileID: 6351182500444712689, guid: e2a5736ab22b1204891565db93e08049, type: 3}
     m_DisabledSprite: {fileID: 0}
@@ -23310,9 +23309,9 @@ RectTransform:
   - {fileID: 2050111123}
   m_Father: {fileID: 2146925363}
   m_LocalEulerAnglesHint: {x: 1, y: 0, z: 1}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 250.65753, y: -266.992}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 167.4185, y: 51}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1755316989
@@ -23689,7 +23688,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1503554319}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -23818,7 +23817,6 @@ RectTransform:
   - {fileID: 434340624}
   - {fileID: 945505186}
   - {fileID: 823286565}
-  - {fileID: 1503554319}
   m_Father: {fileID: 1428356948}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -24655,3 +24653,5 @@ SceneRoots:
   - {fileID: 2126262155}
   - {fileID: 1166290746}
   - {fileID: 1353258192}
+  - {fileID: 1386633572}
+  - {fileID: 1869543802}
