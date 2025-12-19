@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+
 
 public class SettingsUI : MonoBehaviour
 {
@@ -51,7 +53,11 @@ public class SettingsUI : MonoBehaviour
         AudioListener.volume = value;
 
         if (save)
+        {
             PlayerPrefs.SetFloat(MasterVolumeKey, value);
+            PlayerPrefs.Save();
+        }
+
     }
 
     void ApplyFullscreen(bool on, bool save)
@@ -60,6 +66,7 @@ public class SettingsUI : MonoBehaviour
 
         if (save)
             PlayerPrefs.SetInt(FullscreenKey, on ? 1 : 0);
+            PlayerPrefs.Save();
     }
 
     // === UI 이벤트용 ===
@@ -77,10 +84,13 @@ public class SettingsUI : MonoBehaviour
     public void OpenSettings()
     {
         ShowSettingsPage();
+        if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void CloseSettings()
     {
         ShowMainPage();
+        if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
     }
+
 }
