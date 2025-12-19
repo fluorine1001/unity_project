@@ -39,10 +39,15 @@ public class AudioManager : MonoBehaviour
 
     private void CleanUp()
     {
-        foreach (EventInstance eventInstance in eventInstances)
+        if (eventInstances != null)
         {
-            eventInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-            eventInstance.release();
+            foreach (EventInstance eventInstance in eventInstances)
+            {
+                eventInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+                eventInstance.release();
+            }
+            // 안전하게 리스트 비우기 (선택 사항)
+            eventInstances.Clear(); 
         }
     }
 
