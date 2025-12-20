@@ -45,6 +45,7 @@ public class GeneratorManager : MonoBehaviour
         }
     }
 
+    // 🔥 [수정됨] 생성 로직 전면 수정
     private void GenerateObjectsFromTilemap()
     {
         if (generatorTilemap == null) return;
@@ -57,22 +58,33 @@ public class GeneratorManager : MonoBehaviour
             string tileName = tileBase.name;
             Vector3 worldPos = generatorTilemap.GetCellCenterWorld(pos);
 
+            // 1. Spawn 타일 (플레이어 시작 위치)
+            // - 로직만 등록하고, 벽은 생성하지 않으므로 continue
             if (spawnTileNames.Contains(tileName))
             {
                 if (StageManager.Instance != null) StageManager.Instance.RegisterSpawnTile(worldPos);
-                continue;
+                continue; 
             }
 
+            // 2. Clear 타일 (목표 지점)
+            // - 로직 등록 후, 시각적 타일도 생성해야 하므로 continue 하지 않음!
             if (clearTileNames.Contains(tileName))
             {
                 if (StageManager.Instance != null) StageManager.Instance.RegisterClearTile(worldPos);
+            }
 
+            // 3. [공통] 프리팹 생성 (벽, 바닥, 클리어 타일 등 모두 포함)
+            // - 딕셔너리에 등록된 이름이라면 무조건 생성합니다.
+            if (prefabDict.TryGetValue(tileName, out GameObject prefab))
+            {
                 var go = Instantiate(prefab, worldPos, Quaternion.identity, spawnParent);
                 
-                // [중요] 원본 코드대로 주석 처리 (Sorting Order 강제 적용 해제)
+                // 필요하다면 주석 해제하여 사용
                 // ApplyOrderInLayer(go, spawnOrderInLayer); 
             }
         }
+        
+        // 생성이 끝났으므로 원본 타일맵은 숨김 처리
         generatorTilemap.gameObject.SetActive(false);
     }
 

@@ -28,75 +28,108 @@ public class PaletteItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     private CanvasGroup canvasGroup;
     private readonly List<Image> spawned = new();
 
-    // ✅ [추가] 내가 리스트의 몇 번째 아이템인지 기억
     public int LoadoutIndex { get; private set; }
 
     private void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
+        
         Image myImage = GetComponent<Image>();
-        if (myImage != null) myImage.raycastTarget = true;
+        if (myImage != null)
+        {
+            myImage.raycastTarget = true;
+        }
     }
 
-    // ✅ [수정] index 매개변수 추가
     public void Bind(TileDefinition def, int count, int index)
     {
         myDef = def;
         myCount = count;
-        LoadoutIndex = index; // 인덱스 저장
+        LoadoutIndex = index; 
 
         if (countText) countText.text = count.ToString();
         BuildCompositeIcon(def);
     }
 
+    // =========================================================
+    // 🎯 정밀 클릭 판정 (Raycast Filter)
+    // =========================================================
     public bool IsRaycastLocationValid(Vector2 sp, Camera eventCamera)
     {
+        // 비활성화 상태면 클릭 불가
+        if (!isActiveAndEnabled) return false;
+
         foreach (var img in spawned)
         {
             if (img == null || !img.gameObject.activeInHierarchy) continue;
-            if (RectTransformUtility.RectangleContainsScreenPoint(img.rectTransform, sp, eventCamera)) return true;
+
+            if (RectTransformUtility.RectangleContainsScreenPoint(
+                img.rectTransform, 
+                sp, 
+                eventCamera))
+            {
+                return true; 
+            }
         }
         return false; 
     }
 
+    // =========================================================
+    // 🖱️ 드래그 이벤트
+    // =========================================================
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (myDef == null || myCount <= 0) return;
-        
-        if (TilePlacementManager.Instance != null) 
-            TilePlacementManager.Instance.StartDrag(myDef, this, eventData.position);
 
-        if (canvasGroup != null) 
-        { 
-            canvasGroup.alpha = 0.6f; 
-            canvasGroup.blocksRaycasts = false; 
+        if (TilePlacementManager.Instance != null)
+        {
+            TilePlacementManager.Instance.StartDrag(myDef, this, eventData.position);
+        }
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0.6f;
+            // 🔥 [수정] blocksRaycasts = false 삭제
+            // 스크롤 뷰가 이벤트를 뺏어가는 것을 방지하기 위해 true 유지 (기본값)
         }
     }
 
     public void OnDrag(PointerEventData eventData)
     {
         if (myDef == null || myCount <= 0) return;
+        
+        // 드래그가 시작되지 않았으면(alpha가 1.0f 근처면) 무시
         if (canvasGroup != null && canvasGroup.alpha > 0.9f) return;
 
-        if (TilePlacementManager.Instance != null) 
+        if (TilePlacementManager.Instance != null)
+        {
             TilePlacementManager.Instance.UpdateDrag(eventData.position);
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         if (myDef == null || myCount <= 0) return;
+        
+        // 드래그가 유효하지 않았으면 무시
         if (canvasGroup != null && canvasGroup.alpha > 0.9f) return;
 
-        if (TilePlacementManager.Instance != null) 
+        if (TilePlacementManager.Instance != null)
+        {
             TilePlacementManager.Instance.EndDrag(eventData.position);
+        }
 
-        if (canvasGroup != null) 
-        { 
-            canvasGroup.alpha = 1.0f; 
-            canvasGroup.blocksRaycasts = true; 
+        // UI 원상복구 (객체가 파괴되지 않았다면)
+        if (this != null && canvasGroup != null)
+        {
+            canvasGroup.alpha = 1.0f;
         }
     }
 
+    // =========================================================
+    // 🖼️ 아이콘 생성
+    // =========================================================
     private Sprite KindToSprite(TileKind kind) => kind == TileKind.Speed ? speedSprite : deSpeedSprite;
 
     private void BuildCompositeIcon(TileDefinition def)
@@ -133,15 +166,14 @@ public class PaletteItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             var rt = (RectTransform)img.transform;
             rt.sizeDelta = new Vector2(uiCellSize, uiCellSize);
             rt.anchoredPosition = new Vector2((c.offset.x - cx) * uiCellSize, (c.offset.y - cy) * uiCellSize);
-            
+
             spawned.Add(img);
         }
     }
 
     private void ClearCells()
     {
-        foreach (var img in spawned)
-            if (img) Destroy(img.gameObject);
+        foreach (var img in spawned) if (img) Destroy(img.gameObject);
         spawned.Clear();
     }
 }

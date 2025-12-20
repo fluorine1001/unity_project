@@ -30,11 +30,65 @@ public class TilePlacementManager : MonoBehaviour
     private GameObject ghostRoot;
     private List<SpriteRenderer> ghostRenderers = new List<SpriteRenderer>();
 
-    private void Awake() { Instance = this; }
+    private void Awake() 
+    { 
+        Instance = this; 
+        
+        // 게임 시작 시 자동 할당 실행
+        AutoAssignSettings();
+    }
 
-    // =========================================================
-    // 🖱️ Unity Update (New Input System 적용)
-    // =========================================================
+    // 컴포넌트를 추가하거나 Inspector에서 Reset을 눌렀을 때도 실행
+    private void Reset()
+    {
+        AutoAssignSettings();
+    }
+
+    /// <summary>
+    /// 요청된 오브젝트와 프리팹을 자동으로 찾아 할당합니다.
+    /// </summary>
+    private void AutoAssignSettings()
+    {
+        // 1. Grid 하위의 tile_temp_ground 찾기
+        if (targetTilemap == null || groundTilemap == null)
+        {
+            GameObject grid = GameObject.Find("Grid");
+            if (grid != null)
+            {
+                Transform t = grid.transform.Find("tile_temp_ground");
+                if (t != null)
+                {
+                    Tilemap tm = t.GetComponent<Tilemap>();
+                    if (targetTilemap == null) targetTilemap = tm;
+                    if (groundTilemap == null) groundTilemap = tm;
+                }
+            }
+        }
+
+        // 2. ObjectRoot 오브젝트 찾기
+        if (objectRoot == null)
+        {
+            GameObject objRoot = GameObject.Find("ObjectRoot");
+            if (objRoot != null) objectRoot = objRoot.transform;
+        }
+
+        // 3. player_0 오브젝트 찾기
+        if (playerTransform == null)
+        {
+            GameObject player = GameObject.Find("player_0");
+            if (player != null) playerTransform = player.transform;
+        }
+
+#if UNITY_EDITOR
+        // 4. 프리팹 에셋 로드 (에디터 환경에서만 동작)
+        if (speedPrefab == null)
+            speedPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Scenes/Tile Prefab/Speed/Speed_Up.prefab");
+        
+        if (deSpeedPrefab == null)
+            deSpeedPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Scenes/Tile Prefab/Speed/Speed_Down.prefab");
+#endif
+    }
+
     private void Update()
     {
         if (!isDragging) return;
@@ -61,15 +115,20 @@ public class TilePlacementManager : MonoBehaviour
 
     public void StartDrag(TileDefinition def, PaletteItemUI ui, Vector3 startScreenPos)
     {
+        if (def == null || def.cells == null || def.cells.Count == 0)
+        {
+            Debug.LogError("[TilePlacementManager] 타일 정의(Definition)가 비어있습니다!");
+            return;
+        }
+
         isDragging = true;
         currentUI = ui;
         lastScreenPos = startScreenPos;
 
         workingCells.Clear();
-        if (def != null && def.cells != null)
+        foreach (var cell in def.cells)
         {
-            foreach (var cell in def.cells)
-                workingCells.Add(new TileCell { offset = cell.offset, kind = cell.kind });
+            workingCells.Add(new TileCell { offset = cell.offset, kind = cell.kind });
         }
 
         CreateGhost();
@@ -85,6 +144,7 @@ public class TilePlacementManager : MonoBehaviour
 
     public void EndDrag(Vector3 screenPos)
     {
+        if (!isDragging) return;
         isDragging = false;
 
         Vector3Int originCell = GetCellPosFromScreen(screenPos);
@@ -93,13 +153,16 @@ public class TilePlacementManager : MonoBehaviour
         {
             SpawnObjects(originCell);
             
-            // ✅ [필수] 배치가 성공했으므로 StageManager에게 소모 알림
             if (StageManager.Instance != null && currentUI != null)
             {
                 StageManager.Instance.ConsumeTile(currentUI.LoadoutIndex);
             }
 
             if (currentUI) Destroy(currentUI.gameObject); 
+        }
+        else
+        {
+            Debug.Log("[TilePlacementManager] 설치 실패: 유효하지 않은 위치");
         }
         
         if (ghostRoot) Destroy(ghostRoot);
@@ -128,9 +191,21 @@ public class TilePlacementManager : MonoBehaviour
     
     private Vector3Int GetCellPosFromScreen(Vector3 screenPos)
     {
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPos);
-        worldPos.z = 0; 
-        return targetTilemap.WorldToCell(worldPos);
+        if (Camera.main == null || targetTilemap == null) return Vector3Int.zero;
+
+        // Plane Raycast를 사용하여 정확한 Z=0 지점 찾기
+        Plane zPlane = new Plane(Vector3.back, Vector3.zero);
+        Ray ray = Camera.main.ScreenPointToRay(screenPos);
+
+        if (zPlane.Raycast(ray, out float enter))
+        {
+            Vector3 worldHitPos = ray.GetPoint(enter);
+            return targetTilemap.WorldToCell(worldHitPos);
+        }
+
+        Vector3 simpleWorld = Camera.main.ScreenToWorldPoint(screenPos);
+        simpleWorld.z = 0;
+        return targetTilemap.WorldToCell(simpleWorld);
     }
 
     private void UpdateGhostVisual(Vector3 screenPos)
@@ -161,21 +236,17 @@ public class TilePlacementManager : MonoBehaviour
             go.transform.SetParent(ghostRoot.transform);
             
             go.transform.localPosition = new Vector3(cell.offset.x * gridCellSize.x, cell.offset.y * gridCellSize.y, 0);
-            
+            go.transform.localScale = Vector3.one; 
+
             SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
             GameObject prefab = (cell.kind == TileKind.Speed) ? speedPrefab : deSpeedPrefab;
             
             if (prefab != null)
             {
                 var prefabSr = prefab.GetComponent<SpriteRenderer>();
-                if (prefabSr) 
-                {
-                    sr.sprite = prefabSr.sprite;
-                    // ✅ [수정] 뭉개짐 해결: 비율 강제 조정 대신 1:1 비율 유지
-                    go.transform.localScale = Vector3.one; 
-                }
+                if (prefabSr) sr.sprite = prefabSr.sprite;
             }
-            sr.sortingOrder = 100;
+            sr.sortingOrder = 999; 
             ghostRenderers.Add(sr);
         }
     }
@@ -202,14 +273,14 @@ public class TilePlacementManager : MonoBehaviour
         if (groundTilemap != null && !groundTilemap.HasTile(pos)) return false;
 
         Vector2 worldPos = targetTilemap.GetCellCenterWorld(pos);
-        Collider2D hit = Physics2D.OverlapCircle(worldPos, 0.3f);
+        Collider2D hit = Physics2D.OverlapCircle(worldPos, 0.2f); 
         
         if (hit == null) return true; 
 
         GameObject hitObj = hit.gameObject;
 
         if (groundTilemap != null && hitObj == groundTilemap.gameObject) return true;
-        if (playerTransform != null && hit.transform == playerTransform) return true;
+        if (playerTransform != null && hit.transform == playerTransform) return false; // 플레이어 위치 설치 불가
         if (hitObj.layer == LayerMask.NameToLayer("PlayerPass")) return true;
 
         return false;
@@ -233,7 +304,6 @@ public class TilePlacementManager : MonoBehaviour
         }
     }
 
-    // 데이터 정의
     [System.Serializable]
     public struct TileCell
     {

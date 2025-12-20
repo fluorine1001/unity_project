@@ -21865,6 +21865,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &639901138
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 639901140}
+  - component: {fileID: 639901139}
+  m_Layer: 0
+  m_Name: TilePlacementManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &639901139
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 639901138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffa2ce1607d8a2e4bae8406fddb8e405, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TilePlacementManager
+  targetTilemap: {fileID: 0}
+  groundTilemap: {fileID: 0}
+  objectRoot: {fileID: 0}
+  playerTransform: {fileID: 0}
+  speedPrefab: {fileID: 0}
+  deSpeedPrefab: {fileID: 0}
+--- !u!4 &639901140
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 639901138}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 427.52, y: 2.56, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &735256892
 GameObject:
   m_ObjectHideFlags: 0
@@ -25477,7 +25527,6 @@ SceneRoots:
   - {fileID: 1198785670}
   - {fileID: 548608554}
   - {fileID: 1830932779}
-  - {fileID: 443272127}
   - {fileID: 1986477538}
   - {fileID: 1435952871}
   - {fileID: 519420032}
@@ -25494,3 +25543,4 @@ SceneRoots:
   - {fileID: 1166290746}
   - {fileID: 1353258192}
   - {fileID: 1386633572}
+  - {fileID: 639901140}
