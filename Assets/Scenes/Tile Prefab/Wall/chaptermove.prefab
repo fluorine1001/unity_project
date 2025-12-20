@@ -10,12 +10,12 @@ GameObject:
   m_Component:
   - component: {fileID: 1330046238866862640}
   - component: {fileID: 6892614565479058650}
-  - component: {fileID: -4202958323147834250}
   - component: {fileID: -8676957472188021264}
   - component: {fileID: -5321688108796139523}
-  - component: {fileID: -8013538297086663887}
-  m_Layer: 8
-  m_Name: Push_Wood
+  - component: {fileID: -4850248469393002669}
+  - component: {fileID: -3284435908172872577}
+  m_Layer: 6
+  m_Name: chaptermove
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -94,29 +94,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &-4202958323147834250
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7825602511852947053}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c59424c9ea51f9a42b31e0ae7622fabf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PushableBox2D
-  breakSpeedThreshold: 2
-  decayPerHit: 0
-  cellSize: 5.12
-  gridOrigin: {x: 0, y: 0}
-  blockingMask:
-    serializedVersion: 2
-    m_Bits: 384
-  consumeBulletOnPush: 1
-  destroyBulletOnBreak: 1
-  axisAlignedPush: 1
-  hitCooldown: 0
 --- !u!61 &-8676957472188021264
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -147,7 +124,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
@@ -171,7 +148,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7825602511852947053}
-  m_BodyType: 1
+  m_BodyType: 2
   m_Simulated: 1
   m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
@@ -190,7 +167,20 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &-8013538297086663887
+--- !u!114 &-4850248469393002669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7825602511852947053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b10369b18f698441b0b89b66f1691da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StageExit
+  nextSceneName: GameScene_2
+--- !u!114 &-3284435908172872577
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
