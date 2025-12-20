@@ -1,16 +1,20 @@
 using UnityEngine;
 
-public class d : MonoBehaviour
+namespace LaserSystem
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    /// <summary>
+    /// 실제 화면에 그릴 레이저 선분
+    /// (렌더링 전용 데이터)
+    /// </summary>
+    public struct LaserSegment
     {
-        
-    }
+        public Vector2 worldStart;
+        public Vector2 worldEnd;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        public LaserSegment(Vector2 worldStart, Vector2 worldEnd)
+        {
+            this.worldStart = worldStart;
+            this.worldEnd = worldEnd;
+        }
     }
 }

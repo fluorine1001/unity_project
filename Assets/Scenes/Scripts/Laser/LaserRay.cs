@@ -1,16 +1,25 @@
 using UnityEngine;
 
-public class LaserRay : MonoBehaviour
+namespace LaserSystem
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    /// <summary>
+    /// 논리적 레이저 한 줄의 상태
+    /// (시간, 속도 개념 없음)
+    /// </summary>
+    public struct LaserRay
     {
-        
-    }
+        public Vector2Int originCell;
+        public Direction direction;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        public LaserRay(Vector2Int originCell, Direction direction)
+        {
+            this.originCell = originCell;
+            this.direction = direction;
+        }
+
+        public override string ToString()
+        {
+            return $"LaserRay(cell={originCell}, dir={direction})";
+        }
     }
 }
