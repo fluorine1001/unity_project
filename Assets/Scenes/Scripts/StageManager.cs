@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq; 
+using System;
 
 public class StageManager : MonoBehaviour
 {
@@ -36,6 +37,24 @@ public class StageManager : MonoBehaviour
     private bool cameraMoving = false;
     private Camera _mainCamera;
 
+    // [추가] 총알 UI 갱신을 위한 이벤트
+    public event Action<int> OnAmmoChanged;
+
+    // [추가] 스테이지별 탄약 수 하드코딩 (원하는 대로 수정하세요)
+    private Dictionary<int, int> stageAmmoSettings = new Dictionary<int, int>()
+    {
+        { 0, 99 }, // 0번 스테이지 (튜토리얼 등)
+        { 1, 5 },
+        { 2, 3 },
+        { 3, 4 },
+        // ... 필요한 만큼 추가
+    };
+
+    public int CurrentAmmo { get; private set; }
+
+    // [신규] 방문했던 스테이지를 기억하는 집합 (중복 방지용 HashSet 사용)
+    private HashSet<int> visitedStages = new HashSet<int>();
+
     private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -56,6 +75,9 @@ public class StageManager : MonoBehaviour
 
         InitializePaletteUI();
         InitializeStageLoadouts();
+
+        // [추가] 게임 시작 시 현재 스테이지 탄약 장전
+        ReloadAmmo(currentStage);
     }
 
     private void Start()
@@ -136,6 +158,48 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    // [수정] 방문 여부를 체크하여 재장전
+    private void ReloadAmmo(int stageIndex)
+    {
+        // 이미 방문한 적이 있다면 재장전하지 않고 '현재 탄약' 유지
+        if (visitedStages.Contains(stageIndex))
+        {
+            Debug.Log($"[Ammo] {stageIndex}번 스테이지는 이미 방문함. 탄약 유지: {CurrentAmmo}");
+            return;
+        }
+
+        // --- 여기부터는 첫 방문일 때만 실행됨 ---
+
+        // 방문 목록에 도장 쾅!
+        visitedStages.Add(stageIndex);
+
+        if (stageAmmoSettings.TryGetValue(stageIndex, out int maxAmmo))
+        {
+            CurrentAmmo = maxAmmo;
+        }
+        else
+        {
+            CurrentAmmo = 0; 
+        }
+
+        Debug.Log($"<color=yellow>[Ammo]</color> {stageIndex}번 스테이지 첫 방문! {CurrentAmmo}발 장전됨.");
+        
+        // UI 갱신 알림
+        OnAmmoChanged?.Invoke(CurrentAmmo);
+    }
+
+    // [신규 메서드] 외부에서 호출할 탄약 관련 함수들
+    public bool HasAmmo() => CurrentAmmo > 0;
+    
+    public void UseAmmo()
+    {
+        if (CurrentAmmo > 0)
+        {
+            CurrentAmmo--;
+            OnAmmoChanged?.Invoke(CurrentAmmo);
+        }
+    }
+
     public void SetGridSize(Vector3 size) => gridCellSize = size;
 
     private void SortTilesAndRefresh()
@@ -195,6 +259,7 @@ public class StageManager : MonoBehaviour
             currentStage = targetStage;
             cameraMoving = true;
             pendingPaletteRefresh = true;
+            ReloadAmmo(targetStage);
         }
     }
 
@@ -290,6 +355,9 @@ public class StageManager : MonoBehaviour
 
     private void ResetStageSystem()
     {
+        // [추가] 방문 기록 초기화
+        visitedStages.Clear();
+        
         Debug.Log("🔄 게임 완전 초기화");
         currentStage = 0;
         cameraMoving = true;
