@@ -21850,7 +21850,7 @@ MonoBehaviour:
   player: {fileID: 0}
   startPosition: {x: -17.92, y: 2.56, z: 0}
   gridCellSize: {x: 1, y: 1, z: 1}
-  paletteUI: {fileID: 1013976278}
+  paletteUI: {fileID: 0}
   stageLoadouts: []
 --- !u!4 &548608554
 Transform:

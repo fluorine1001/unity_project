@@ -54,6 +54,7 @@ public class StageManager : MonoBehaviour
             };
         }
 
+        InitializePaletteUI();
         InitializeStageLoadouts();
     }
 
@@ -65,6 +66,36 @@ public class StageManager : MonoBehaviour
     private void Update()
     {
         MoveCameraToTarget();
+    }
+
+    private void InitializePaletteUI()
+    {
+        // 이미 할당되어 있다면 실행하지 않음
+        if (paletteUI != null) return;
+
+        // 1. 씬 내의 모든 오브젝트 중 "LeftBar"라는 이름의 오브젝트를 찾습니다.
+        GameObject leftBarObj = GameObject.Find("LeftBar");
+
+        // 2. 만약 경로가 복잡해서 못 찾을 가능성이 있다면 "Canvas/LeftBar"로 찾습니다.
+        if (leftBarObj == null)
+        {
+            leftBarObj = GameObject.Find("Canvas/LeftBar");
+        }
+
+        if (leftBarObj != null)
+        {
+            // 3. 찾은 오브젝트에서 TilePaletteUI 컴포넌트를 가져와 할당합니다.
+            paletteUI = leftBarObj.GetComponent<TilePaletteUI>();
+            
+            if (paletteUI != null)
+                Debug.Log("<color=cyan>[StageManager]</color> LeftBar의 TilePaletteUI를 자동으로 할당했습니다.");
+            else
+                Debug.LogError("[StageManager] LeftBar 오브젝트는 찾았으나 TilePaletteUI 컴포넌트가 없습니다.");
+        }
+        else
+        {
+            Debug.LogError("<color=red>[StageManager]</color> 'LeftBar' 오브젝트를 씬에서 찾을 수 없습니다. 이름과 계층 구조를 확인하세요.");
+        }
     }
 
     private void InitializeStageLoadouts()
