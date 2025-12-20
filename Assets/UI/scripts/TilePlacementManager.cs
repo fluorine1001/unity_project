@@ -27,29 +27,24 @@ public class TilePlacementManager : MonoBehaviour
     // 작업용 데이터
     private List<TileCell> workingCells = new List<TileCell>(); 
 
+    // 고스트(미리보기) 관련
     private GameObject ghostRoot;
     private List<SpriteRenderer> ghostRenderers = new List<SpriteRenderer>();
 
     private void Awake() 
     { 
         Instance = this; 
-        
-        // 게임 시작 시 자동 할당 실행
         AutoAssignSettings();
     }
 
-    // 컴포넌트를 추가하거나 Inspector에서 Reset을 눌렀을 때도 실행
     private void Reset()
     {
         AutoAssignSettings();
     }
 
-    /// <summary>
-    /// 요청된 오브젝트와 프리팹을 자동으로 찾아 할당합니다.
-    /// </summary>
+    // 필수 컴포넌트 자동 할당
     private void AutoAssignSettings()
     {
-        // 1. Grid 하위의 tile_temp_ground 찾기
         if (targetTilemap == null || groundTilemap == null)
         {
             GameObject grid = GameObject.Find("Grid");
@@ -65,14 +60,12 @@ public class TilePlacementManager : MonoBehaviour
             }
         }
 
-        // 2. ObjectRoot 오브젝트 찾기
         if (objectRoot == null)
         {
             GameObject objRoot = GameObject.Find("ObjectRoot");
             if (objRoot != null) objectRoot = objRoot.transform;
         }
 
-        // 3. player_0 오브젝트 찾기
         if (playerTransform == null)
         {
             GameObject player = GameObject.Find("player_0");
@@ -80,7 +73,6 @@ public class TilePlacementManager : MonoBehaviour
         }
 
 #if UNITY_EDITOR
-        // 4. 프리팹 에셋 로드 (에디터 환경에서만 동작)
         if (speedPrefab == null)
             speedPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Scenes/Tile Prefab/Speed/Speed_Up.prefab");
         
@@ -95,6 +87,7 @@ public class TilePlacementManager : MonoBehaviour
 
         bool rotateInput = false;
 
+        // R키 또는 우클릭으로 회전
         if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
             rotateInput = true;
 
@@ -110,23 +103,22 @@ public class TilePlacementManager : MonoBehaviour
     }
 
     // =========================================================
-    // 👆 드래그 핸들러
+    // 🖱️ 드래그 시작 / 진행 / 종료
     // =========================================================
 
     public void StartDrag(TileDefinition def, PaletteItemUI ui, Vector3 startScreenPos)
     {
-        AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesSelected, this.transform.position);
+        // 사운드 재생
+        if (AudioManager.instance != null && FMODEvents.instance != null)
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesSelected, this.transform.position);
 
-        if (def == null || def.cells == null || def.cells.Count == 0)
-        {
-            Debug.LogError("[TilePlacementManager] 타일 정의(Definition)가 비어있습니다!");
-            return;
-        }
+        if (def == null || def.cells == null || def.cells.Count == 0) return;
 
         isDragging = true;
         currentUI = ui;
         lastScreenPos = startScreenPos;
 
+        // 드래그할 셀 데이터 복사
         workingCells.Clear();
         foreach (var cell in def.cells)
         {
@@ -153,30 +145,40 @@ public class TilePlacementManager : MonoBehaviour
 
         if (IsPositionValid(originCell))
         {
-            AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesDropped, this.transform.position);
+            // 성공 사운드
+            if (AudioManager.instance != null && FMODEvents.instance != null)
+                AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesDropped, this.transform.position);
+
             SpawnObjects(originCell);
             
+            // 탄약 소비
             if (StageManager.Instance != null && currentUI != null)
             {
                 StageManager.Instance.ConsumeTile(currentUI.LoadoutIndex);
             }
 
+            // UI 아이콘 제거
             if (currentUI) Destroy(currentUI.gameObject); 
         }
         else
         {
-            AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesBlocked, this.transform.position);
+            // 실패 사운드
+            if (AudioManager.instance != null && FMODEvents.instance != null)
+                AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesBlocked, this.transform.position);
+
             Debug.Log("[TilePlacementManager] 설치 실패: 유효하지 않은 위치");
         }
         
+        // 고스트 정리
         if (ghostRoot) Destroy(ghostRoot);
         currentUI = null;
         workingCells.Clear();
     }
 
     // =========================================================
-    // 🔄 회전 로직
+    // 🔄 회전 및 좌표 변환
     // =========================================================
+
     private void RotateWorkingCellsClockwise()
     {
         for (int i = 0; i < workingCells.Count; i++)
@@ -188,16 +190,11 @@ public class TilePlacementManager : MonoBehaviour
             workingCells[i] = cell;
         }
     }
-
-    // =========================================================
-    // 👻 Ghost 및 좌표 처리
-    // =========================================================
     
     private Vector3Int GetCellPosFromScreen(Vector3 screenPos)
     {
         if (Camera.main == null || targetTilemap == null) return Vector3Int.zero;
 
-        // Plane Raycast를 사용하여 정확한 Z=0 지점 찾기
         Plane zPlane = new Plane(Vector3.back, Vector3.zero);
         Ray ray = Camera.main.ScreenPointToRay(screenPos);
 
@@ -212,21 +209,32 @@ public class TilePlacementManager : MonoBehaviour
         return targetTilemap.WorldToCell(simpleWorld);
     }
 
+    // =========================================================
+    // 👻 고스트(미리보기) 처리 - 시인성 개선됨
+    // =========================================================
+
     private void UpdateGhostVisual(Vector3 screenPos)
     {
         if (ghostRoot == null) return;
-
         Vector3Int cellPos = GetCellPosFromScreen(screenPos);
-        ghostRoot.transform.position = targetTilemap.GetCellCenterWorld(cellPos);
+        
+        // 🔥 [개선] Z축을 -5f로 설정하여 모든 오브젝트보다 앞에 표시
+        Vector3 worldPos = targetTilemap.GetCellCenterWorld(cellPos);
+        worldPos.z = -5f; 
+        ghostRoot.transform.position = worldPos;
 
         bool isValid = IsPositionValid(cellPos);
-        SetGhostColor(isValid ? new Color(1, 1, 1, 0.5f) : new Color(1, 0, 0, 0.5f));
+        
+        // 🔥 [개선] Alpha값을 0.8로 올려서 진하게 표시 + 색상 구분 명확화
+        Color validColor = new Color(0.6f, 1f, 0.6f, 0.5f);   // 연두색
+        Color invalidColor = new Color(1f, 0.2f, 0.2f, 0.5f); // 진한 빨강
+
+        SetGhostColor(isValid ? validColor : invalidColor);
     }
 
     private void CreateGhost()
     {
         if (ghostRoot != null) Destroy(ghostRoot);
-
         ghostRoot = new GameObject("GhostRoot");
         ghostRenderers.Clear();
 
@@ -239,18 +247,26 @@ public class TilePlacementManager : MonoBehaviour
             GameObject go = new GameObject("GhostCell");
             go.transform.SetParent(ghostRoot.transform);
             
+            // 로컬 위치 설정 (부모인 GhostRoot가 움직임)
             go.transform.localPosition = new Vector3(cell.offset.x * gridCellSize.x, cell.offset.y * gridCellSize.y, 0);
             go.transform.localScale = Vector3.one; 
 
             SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
             GameObject prefab = (cell.kind == TileKind.Speed) ? speedPrefab : deSpeedPrefab;
-            
             if (prefab != null)
             {
                 var prefabSr = prefab.GetComponent<SpriteRenderer>();
-                if (prefabSr) sr.sprite = prefabSr.sprite;
+                if (prefabSr) 
+                {
+                    sr.sprite = prefabSr.sprite;
+                    // 프리팹 원래 색상 적용 (투명도는 나중에 SetGhostColor로 덮어씀)
+                    sr.color = prefabSr.color; 
+                }
             }
-            sr.sortingOrder = 999; 
+            
+            // 🔥 [개선] Sorting Order를 최대로 설정하여 가려짐 방지
+            sr.sortingOrder = 32767; 
+            
             ghostRenderers.Add(sr);
         }
     }
@@ -258,8 +274,9 @@ public class TilePlacementManager : MonoBehaviour
     private void SetGhostColor(Color c) { foreach (var sr in ghostRenderers) sr.color = c; }
 
     // =========================================================
-    // ✅ 유효성 검사
+    // ✅ 유효성 검사 (StageManager 연동)
     // =========================================================
+
     private bool IsPositionValid(Vector3Int originCell)
     {
         if (workingCells.Count == 0) return false;
@@ -274,25 +291,49 @@ public class TilePlacementManager : MonoBehaviour
 
     private bool CheckTileCondition(Vector3Int pos)
     {
-        if (groundTilemap != null && !groundTilemap.HasTile(pos)) return false;
+        // 1. 바닥(Ground) 타일 존재 여부 확인 (허공 설치 불가)
+        if (groundTilemap != null)
+        {
+            if (!groundTilemap.HasTile(pos)) return false;
+        }
 
-        Vector2 worldPos = targetTilemap.GetCellCenterWorld(pos);
-        Collider2D hit = Physics2D.OverlapCircle(worldPos, 0.2f); 
-        
-        if (hit == null) return true; 
+        Vector3 worldPos = targetTilemap.GetCellCenterWorld(pos);
 
-        GameObject hitObj = hit.gameObject;
+        // 2. 🔥 StageManager에게 ClearTile인지 확인
+        if (StageManager.Instance != null)
+        {
+            // StageManager가 인식한 ClearTile 범위 내라면 설치 금지
+            if (StageManager.Instance.IsClearTile(worldPos))
+            {
+                // Debug.Log($"[TilePlacement] ClearTile 영역입니다. ({worldPos})");
+                return false; 
+            }
+        }
 
-        if (groundTilemap != null && hitObj == groundTilemap.gameObject) return true;
-        if (playerTransform != null && hit.transform == playerTransform) return false; // 플레이어 위치 설치 불가
-        if (hitObj.layer == LayerMask.NameToLayer("PlayerPass")) return true;
+        // 3. 물리적 장애물(Collider) 확인
+        // (반경 0.2f로 체크하여 벽, 기존 타일, 장애물 등 감지)
+        Collider2D[] hits = Physics2D.OverlapCircleAll(worldPos, 0.2f); 
 
-        return false;
+        foreach (var hit in hits)
+        {
+            GameObject hitObj = hit.gameObject;
+
+            // 바닥 타일맵은 장애물 아님
+            if (groundTilemap != null && hitObj == groundTilemap.gameObject) continue;
+            
+            // 통과 가능한 레이어(PlayerPass)는 무시 (원하면 설치 가능하게)
+            if (hitObj.layer == LayerMask.NameToLayer("PlayerPass")) continue;
+
+            // 플레이어 위에는 설치 불가
+            if (playerTransform != null && hit.transform == playerTransform) return false;
+
+            // 그 외(벽, 다른 타일 등) 충돌체가 있으면 설치 불가
+            return false; 
+        }
+
+        return true;
     }
 
-    // =========================================================
-    // 🏗️ 오브젝트 생성
-    // =========================================================
     private void SpawnObjects(Vector3Int originCell)
     {
         foreach (var cell in workingCells)
