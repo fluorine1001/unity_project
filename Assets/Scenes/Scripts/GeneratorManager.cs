@@ -79,7 +79,6 @@ public class GeneratorManager : MonoBehaviour
             if (StageManager.Instance != null)
             {
                 StageManager.Instance.RegisterSpawnTile(worldPos);
-                Debug.Log($"<color=cyan>[Generator]</color> Spawn 타일 등록: {tileName} at {worldPos}");
             }
             continue; // 프리팹 생성 안 함
         }
@@ -90,7 +89,6 @@ public class GeneratorManager : MonoBehaviour
             if (StageManager.Instance != null)
             {
                 StageManager.Instance.RegisterClearTile(worldPos);
-                Debug.Log($"<color=green>[Generator]</color> Clear 타일 등록: {tileName} at {worldPos}");
             }
             continue; // 프리팹 생성 안 함
         }
