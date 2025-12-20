@@ -3,7 +3,7 @@ using UnityEngine;
 public class PushableBox2D : FunctionalTile
 {
     [Header("물리 반응 설정")]
-    [SerializeField] private float breakSpeedThreshold = 8f;
+    [SerializeField] private float breakSpeedThreshold = 8f; // 파괴 속도 임계값
     [SerializeField] private float decayPerHit = 0.5f;
     [SerializeField] private float cellSize = 1f;
     [SerializeField] private Vector2 gridOrigin = Vector2.zero;
@@ -36,7 +36,7 @@ public class PushableBox2D : FunctionalTile
         var rb = bullet.GetComponent<Rigidbody2D>();
         if (rb == null) return;
 
-        // ✅ 총알의 "진행방향"을 그대로 사용 (반전 금지)
+        // ✅ 총알의 "진행방향"을 그대로 사용
         Vector2 dir = rb.linearVelocity.normalized;
         float logicalSpeed = rb.linearVelocity.magnitude / GameConfig.SpeedScale;
 
@@ -58,14 +58,21 @@ public class PushableBox2D : FunctionalTile
 
     private void HandleHit(Vector2 dir, float speed, GameObject bulletGO)
     {
+        // 1️⃣ [복구됨] 속도가 임계값 이상이면 상자 파괴 (이동 로직보다 먼저 수행)
         if (speed >= breakSpeedThreshold)
         {
             AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxBroken, this.transform.position);
-            if (destroyBulletOnBreak && bulletGO != null) Destroy(bulletGO);
+            
+            // 총알 제거 옵션 확인
+            if (destroyBulletOnBreak && bulletGO != null) 
+                Destroy(bulletGO);
+            
+            // 상자 파괴
             Destroy(gameObject);
-            return;
+            return; // 여기서 함수 종료 (이동 안 함)
         }
 
+        // 2️⃣ 이동 칸 수 계산
         int steps = Mathf.FloorToInt(Mathf.Max(0f, speed - decayPerHit));
         if (steps <= 0)
         {
@@ -73,7 +80,7 @@ public class PushableBox2D : FunctionalTile
             return;
         }
 
-        // ✅ 축 정렬 (정방향 유지)
+        // 3️⃣ 축 정렬 (이동 방향 보정)
         if (axisAlignedPush)
         {
             if (Mathf.Abs(dir.x) >= Mathf.Abs(dir.y))
@@ -87,12 +94,20 @@ public class PushableBox2D : FunctionalTile
         Vector2 halfExtents = GetHalfExtents();
 
         int actualSteps = 0;
+
+        // 4️⃣ 이동 시뮬레이션
         for (int i = 0; i < steps; i++)
         {
             Vector2Int nextCoord = gridCoord + new Vector2Int((int)Mathf.Round(dir.x), (int)Mathf.Round(dir.y));
             Vector3 nextWorld = GridToWorld(nextCoord);
 
-            // ✔ (1) 먼저 구멍 검사
+            // ✅ [추가됨] 다음 위치가 ClearTile(클리어 구역)이면 이동 막기
+            if (StageManager.Instance != null && StageManager.Instance.IsClearTile(nextWorld))
+            {
+                break; // 루프 탈출 (이동 불가)
+            }
+
+            // ✔ (1) 구멍(Hole) 검사
             Collider2D holeCol = Physics2D.OverlapPoint(nextWorld);
             if (holeCol != null)
             {
@@ -105,24 +120,25 @@ public class PushableBox2D : FunctionalTile
                     if (consumeBulletOnPush && bulletGO != null)
                         Destroy(bulletGO);
 
-                    return; // 이동 종료
+                    return; // 상자가 구멍에 빠졌으므로 종료
                 }
             }
 
-            // ✔ (2) 일반 장애물 체크는 그 다음
+            // ✔ (2) 일반 장애물(벽, 다른 상자 등) 검사
             Collider2D hit = Physics2D.OverlapBox(nextWorld, halfExtents * 2f, 0f, blockingMask);
             if (hit != null && hit.gameObject != this.gameObject)
             {
-                break;
+                break; // 장애물 만남 -> 이동 중단
             }
 
-            // ✔ (3) 이동 가능하므로 좌표 갱신
+            // ✔ (3) 이동 가능 -> 좌표 갱신
             gridCoord = nextCoord;
             actualSteps++;
         }
 
-
-        if(actualSteps != 0){
+        // 5️⃣ 실제 이동 처리
+        if (actualSteps != 0)
+        {
             AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxPushed, this.transform.position);
         }
 
@@ -148,7 +164,6 @@ public class PushableBox2D : FunctionalTile
 
     private static Vector2 AbsVec2(Vector3 v) => new Vector2(Mathf.Abs(v.x), Mathf.Abs(v.y));
 
-    // ✅ 중심 정렬 보정된 Grid 변환
     private Vector2 WorldToGrid(Vector2 worldPos)
     {
         Vector2 offset = worldPos - gridOrigin - Vector2.one * (cellSize / 2f);
@@ -157,7 +172,6 @@ public class PushableBox2D : FunctionalTile
 
     private Vector3 GridToWorld(Vector2Int gridCoord)
     {
-        // ✅ 셀의 중심으로 변환 (0.5f * cellSize 보정)
         return new Vector3(
             gridOrigin.x + (gridCoord.x + 0.5f) * cellSize,
             gridOrigin.y + (gridCoord.y + 0.5f) * cellSize,

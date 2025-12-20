@@ -66,15 +66,32 @@ public class BulletFire : MonoBehaviour
 
     void Update()
     {
+        // === [수정됨] 발사체(총알) 상태일 때 처리 ===
         if (isProjectile)
         {
+            // 1. 수명 체크
             lifeTimer += Time.deltaTime;
             if (lifeTimer >= projectileLifetime)
+            {
                 Destroy(gameObject);
-            return;
+                return;
+            }
+
+            // 2. 🔥 [신규] 매 프레임마다 현재 위치가 ClearTile 위인지 검사
+            // 물리 충돌(Collider) 없이 좌표만으로 체크합니다.
+            if (StageManager.Instance != null && StageManager.Instance.IsClearTile(transform.position))
+            {
+                // 필요하다면 소멸 이펙트 추가 가능
+                Destroy(gameObject);
+                return;
+            }
+
+            return; // 발사체는 여기서 Update 종료
         }
 
-        // 🔥 쿨다운 감소
+        // === 플레이어 따라다니는 상태 (발사 전) ===
+
+        // 쿨다운 감소
         if (fireCooldownTimer > 0f)
             fireCooldownTimer -= Time.deltaTime;
 
@@ -89,16 +106,22 @@ public class BulletFire : MonoBehaviour
         float lerpT = 1f - Mathf.Exp(-followLerpSpeed * Time.deltaTime);
         transform.position = Vector3.Lerp(transform.position, targetPos, lerpT);
 
-        // 🔥 발사 (쿨다운 체크 포함)
+        // 발사 입력 체크
         if (lookDir != Vector2.zero && IsFirePressed() && fireCooldownTimer <= 0f)
         {
             SpawnProjectile(lookDir.normalized);
-            fireCooldownTimer = fireCooldown; // ⏳ 재장전 시작
+            fireCooldownTimer = fireCooldown; 
         }
     }
 
     private void SpawnProjectile(Vector2 direction)
     {
+        // 🔥 [추가] 발사 시 탄약 차감
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.UseAmmo();
+        }
+        
         AudioManager.instance.PlayOneShot(FMODEvents.instance.BulletLaunched, this.transform.position);
 
         GameObject prefab = bulletProjectilePrefab != null ? bulletProjectilePrefab : gameObject;
@@ -120,18 +143,26 @@ public class BulletFire : MonoBehaviour
 
     private bool IsFirePressed()
     {
+        // 🔥 [추가] 탄약이 없으면 발사 불가
+        if (StageManager.Instance != null && !StageManager.Instance.HasAmmo())
+        {
+            return false; 
+        }
+        // UI를 클릭 중이라면 발사하지 않음
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
         {
             return false;
         }
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-        {
-            return false;
-        }
+
 #if ENABLE_INPUT_SYSTEM
-        return Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+        // New Input System 사용 시
+        bool isMouseClick = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+        bool isSpacePressed = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+        
+        return isMouseClick || isSpacePressed;
 #else
-        return Input.GetMouseButtonDown(0);
+        // Legacy Input Manager 사용 시
+        return Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space);
 #endif
     }
 
@@ -262,6 +293,13 @@ public class BulletFire : MonoBehaviour
     private void HandleHit(Collider2D collider)
     {
         if (!isProjectile || collider == null) return;
+
+        // 🔥 [추가] ClearTile 위를 지나갈 수 없음 (즉시 소멸)
+        if (StageManager.Instance != null && StageManager.Instance.IsClearTile(transform.position))
+        {
+            Destroy(gameObject);
+            return;
+        }
 
         if (collider.GetComponent<FunctionalTile>() != null)
             return;
