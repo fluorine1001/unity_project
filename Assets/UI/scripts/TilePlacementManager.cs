@@ -115,6 +115,8 @@ public class TilePlacementManager : MonoBehaviour
 
     public void StartDrag(TileDefinition def, PaletteItemUI ui, Vector3 startScreenPos)
     {
+        AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesSelected, this.transform.position);
+
         if (def == null || def.cells == null || def.cells.Count == 0)
         {
             Debug.LogError("[TilePlacementManager] 타일 정의(Definition)가 비어있습니다!");
@@ -151,6 +153,7 @@ public class TilePlacementManager : MonoBehaviour
 
         if (IsPositionValid(originCell))
         {
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesDropped, this.transform.position);
             SpawnObjects(originCell);
             
             if (StageManager.Instance != null && currentUI != null)
@@ -162,6 +165,7 @@ public class TilePlacementManager : MonoBehaviour
         }
         else
         {
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesBlocked, this.transform.position);
             Debug.Log("[TilePlacementManager] 설치 실패: 유효하지 않은 위치");
         }
         

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects serializationModel="Studio.02.03.00">
-	<object class="AudioFile" id="{bb46406c-5b59-4e8f-a416-95e671a4b8f8}">
+	<object class="AudioFile" id="{45e88e33-37de-435f-9300-41e8f234fadc}">
 		<property name="assetPath">
-			<value>sfx/Objects/PaperBurnt.mp3</value>
+			<value>sfx/UI/TilesBlocked.mp3</value>
 		</property>
 		<property name="frequencyInKHz">
 			<value>44.0999985</value>
@@ -11,7 +11,7 @@
 			<value>2</value>
 		</property>
 		<property name="length">
-			<value>0.70530612244897961</value>
+			<value>2.1159183673469388</value>
 		</property>
 		<relationship name="masterAssetFolder">
 			<destination>{67fbdc89-ab35-4f28-8118-b7432dac1311}</destination>

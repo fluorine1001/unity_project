@@ -60,6 +60,9 @@ static class FMODEventsAutoSync
 
             any |= TrySetStringProp(so, "menuPressedPath", FMODEvents.Defaults.MenuPressed);
             any |= TrySetStringProp(so, "menuClosedPath", FMODEvents.Defaults.MenuClosed);
+            any |= TrySetStringProp(so, "tilesSelectedPath", FMODEvents.Defaults.TilesSelected);
+            any |= TrySetStringProp(so, "tilesDroppedPath", FMODEvents.Defaults.TilesDropped);
+            any |= TrySetStringProp(so, "tilesBlockedPath", FMODEvents.Defaults.TilesBlocked);
 
             if (any)
             {
@@ -104,6 +107,9 @@ static class FMODEventsAutoSync
 
             any |= TrySetStringProp(so, "menuPressedPath", FMODEvents.Defaults.MenuPressed);
             any |= TrySetStringProp(so, "menuClosedPath", FMODEvents.Defaults.MenuClosed);
+            any |= TrySetStringProp(so, "tilesSelectedPath", FMODEvents.Defaults.TilesSelected);
+            any |= TrySetStringProp(so, "tilesDroppedPath", FMODEvents.Defaults.TilesDropped);
+            any |= TrySetStringProp(so, "tilesBlockedPath", FMODEvents.Defaults.TilesBlocked);
 
             if (any)
             {

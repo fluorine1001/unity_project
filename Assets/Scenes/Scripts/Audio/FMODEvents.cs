@@ -22,6 +22,9 @@ public class FMODEvents : MonoBehaviour
     [Header("UI")]
     [EventRef] [SerializeField] private string menuPressedPath = Defaults.MenuPressed;
     [EventRef] [SerializeField] private string menuClosedPath  = Defaults.MenuClosed;
+    [EventRef] [SerializeField] private string tilesSelectedPath  = Defaults.TilesSelected;
+    [EventRef] [SerializeField] private string tilesDroppedPath  = Defaults.TilesDropped;
+    [EventRef] [SerializeField] private string tilesBlockedPath  = Defaults.TilesBlocked;
 
     // EventReference 프로퍼티들...
     public EventReference Scene1Music { get; private set; }
@@ -35,6 +38,9 @@ public class FMODEvents : MonoBehaviour
     public EventReference MenuPressed { get; private set; }
     public EventReference MenuClosed { get; private set; }
     public EventReference HoleFilled { get; private set; }
+    public EventReference TilesSelected { get; private set; }
+    public EventReference TilesDropped { get; private set; }
+    public EventReference TilesBlocked { get; private set; }
 
     public static FMODEvents instance { get; private set; }
 
@@ -63,6 +69,9 @@ public class FMODEvents : MonoBehaviour
         MenuPressed = RuntimeManager.PathToEventReference(menuPressedPath);
         MenuClosed = RuntimeManager.PathToEventReference(menuClosedPath);
         HoleFilled = RuntimeManager.PathToEventReference(holeFilledPath);
+        TilesSelected = RuntimeManager.PathToEventReference(tilesSelectedPath);
+        TilesDropped = RuntimeManager.PathToEventReference(tilesDroppedPath);
+        TilesBlocked = RuntimeManager.PathToEventReference(tilesBlockedPath);
     }
 
     // 중앙 기본값: 코드에서 이 값만 수정하면 에디터 자동 동기화가 그 값을 반영함
@@ -82,5 +91,8 @@ public class FMODEvents : MonoBehaviour
 
         public const string MenuPressed = "event:/SFX/UI/MenuPressed";
         public const string MenuClosed  = "event:/SFX/UI/MenuClosed";
+        public const string TilesSelected  = "event:/SFX/UI/TilesSelected";
+        public const string TilesDropped  = "event:/SFX/UI/TilesDropped";
+        public const string TilesBlocked  = "event:/SFX/UI/TilesBlocked";
     }
 }
