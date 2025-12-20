@@ -9,16 +9,28 @@ public class StageManager : MonoBehaviour
 
     [Header("Stage Control")]
     public int currentStage = 0;
+    
+    // ✅ 최고 도달 스테이지 (체크포인트 역할)
+    public int highestReachedStage = 0; 
     public int maxClearedStage = 10;
     
     [Tooltip("스테이지별 카메라 위치 리스트.")]
     public List<Vector3> cameraPositions;
     
-    public float cameraMoveSpeed = 2f; 
+    [Tooltip("카메라 이동 속도")]
+    public float cameraMoveSpeed = 5f; 
 
     [Header("Player & Reset")]
     public Transform player;
+    public Transform objectRoot; 
     public Vector3 startPosition = new Vector3(-17.92f, 2.56f, 0f);
+
+    [Header("Map Environment (New)")]
+    [Tooltip("자동 생성된 맵의 부모. GeneratorManager가 채워줍니다.")]
+    public Transform mapEnvironmentRoot;
+    
+    // 🛠️ 리셋을 위한 맵 원본 백업본
+    private GameObject mapBackup; 
 
     [Header("Grid Settings")]
     public Vector3 gridCellSize = Vector3.one;
@@ -30,29 +42,21 @@ public class StageManager : MonoBehaviour
     // 타일 상태 저장소
     private Dictionary<int, StageLoadout> runtimeLoadoutCache = new Dictionary<int, StageLoadout>();
 
+    // 타일 좌표들
     private List<Vector3> clearTilePositions = new List<Vector3>();
-    private List<Vector3> spawnTilePositions = new List<Vector3>();
+    private List<Vector3> spawnTilePositions = new List<Vector3>(); 
 
     private bool pendingPaletteRefresh = false;
-    private bool cameraMoving = false;
     private Camera _mainCamera;
 
-    // [추가] 총알 UI 갱신을 위한 이벤트
     public event Action<int> OnAmmoChanged;
 
-    // [추가] 스테이지별 탄약 수 하드코딩 (원하는 대로 수정하세요)
     private Dictionary<int, int> stageAmmoSettings = new Dictionary<int, int>()
     {
-        { 0, 99 }, // 0번 스테이지 (튜토리얼 등)
-        { 1, 5 },
-        { 2, 3 },
-        { 3, 4 },
-        // ... 필요한 만큼 추가
+        { 0, 99 }, { 1, 5 }, { 2, 3 }, { 3, 4 },
     };
 
     public int CurrentAmmo { get; private set; }
-
-    // [신규] 방문했던 스테이지를 기억하는 집합 (중복 방지용 HashSet 사용)
     private HashSet<int> visitedStages = new HashSet<int>();
 
     private void Awake()
@@ -61,222 +65,66 @@ public class StageManager : MonoBehaviour
         Instance = this;
         _mainCamera = Camera.main;
 
+        highestReachedStage = currentStage;
+
+        // ✅ [복구 완료] 카메라 좌표가 없으면 하드코딩된 값 사용
         if (cameraPositions == null || cameraPositions.Count == 0)
         {
-            Debug.Log("[StageManager] 기본 카메라 좌표 생성");
+            Debug.Log("<color=yellow>[StageManager]</color> 카메라 좌표가 비어있어 기본값을 로드합니다.");
             cameraPositions = new List<Vector3>
             {
-                new Vector3(0f, 0f, 0f), new Vector3(104.96f, 0f, 0f), new Vector3(212.48f, 0f, 0f),
-                new Vector3(319.99f, 0f, 0f), new Vector3(427.52f, 0f, 0f), new Vector3(535.04f, 0f, 0f),
-                new Vector3(642.56f, 0f, 0f), new Vector3(750.08f, 0f, 0f), new Vector3(857.60f, 5.12f, 0f),
-                new Vector3(0f, 0f, 0f)
+                new Vector3(0f, 0f, 0f), 
+                new Vector3(104.96f, 0f, 0f), 
+                new Vector3(212.48f, 0f, 0f),
+                new Vector3(319.99f, 0f, 0f), 
+                new Vector3(427.52f, 0f, 0f), 
+                new Vector3(535.04f, 0f, 0f),
+                new Vector3(642.56f, 0f, 0f), 
+                new Vector3(750.08f, 0f, 0f), 
+                new Vector3(857.60f, 5.12f, 0f),
+                new Vector3(0f, 0f, 0f) 
             };
+        }
+
+        if (objectRoot == null)
+        {
+            GameObject obj = GameObject.Find("ObjectRoot");
+            if (obj != null) objectRoot = obj.transform;
         }
 
         InitializePaletteUI();
         InitializeStageLoadouts();
-
-        // [추가] 게임 시작 시 현재 스테이지 탄약 장전
+        
         ReloadAmmo(currentStage);
     }
 
-    private void Start()
+    // 🛠️ [추가됨] GeneratorManager가 맵 생성을 끝내면 호출
+    public void InitializeStageData()
     {
+        // 1. 맵 환경(상자, 벽 등) 연결
+        if (mapEnvironmentRoot == null)
+        {
+            GameObject envObj = GameObject.Find("MapEnvironment");
+            if (envObj != null) mapEnvironmentRoot = envObj.transform;
+        }
+
+        // 2. 맵 백업 (최초 1회만 수행)
+        if (mapEnvironmentRoot != null && mapBackup == null)
+        {
+            mapBackup = Instantiate(mapEnvironmentRoot.gameObject);
+            mapBackup.name = "MapEnvironment_Backup";
+            mapBackup.SetActive(false); 
+            DontDestroyOnLoad(mapBackup); 
+            Debug.Log("<color=green>[StageManager]</color> 맵 백업 완료.");
+        }
+
         SortTilesAndRefresh();
     }
 
     private void Update()
     {
+        // ✅ [복구 완료] 카메라 이동 로직
         MoveCameraToTarget();
-    }
-
-    private void InitializePaletteUI()
-    {
-        // 이미 할당되어 있다면 실행하지 않음
-        if (paletteUI != null) return;
-
-        // 1. 씬 내의 모든 오브젝트 중 "LeftBar"라는 이름의 오브젝트를 찾습니다.
-        GameObject leftBarObj = GameObject.Find("LeftBar");
-
-        // 2. 만약 경로가 복잡해서 못 찾을 가능성이 있다면 "Canvas/LeftBar"로 찾습니다.
-        if (leftBarObj == null)
-        {
-            leftBarObj = GameObject.Find("Canvas/LeftBar");
-        }
-
-        if (leftBarObj != null)
-        {
-            // 3. 찾은 오브젝트에서 TilePaletteUI 컴포넌트를 가져와 할당합니다.
-            paletteUI = leftBarObj.GetComponent<TilePaletteUI>();
-            
-            if (paletteUI != null)
-                Debug.Log("<color=cyan>[StageManager]</color> LeftBar의 TilePaletteUI를 자동으로 할당했습니다.");
-            else
-                Debug.LogError("[StageManager] LeftBar 오브젝트는 찾았으나 TilePaletteUI 컴포넌트가 없습니다.");
-        }
-        else
-        {
-            Debug.LogError("<color=red>[StageManager]</color> 'LeftBar' 오브젝트를 씬에서 찾을 수 없습니다. 이름과 계층 구조를 확인하세요.");
-        }
-    }
-
-    private void InitializeStageLoadouts()
-    {
-        // 1. Resources/StageLoadOut 폴더에서 모든 StageLoadout 에셋 로드
-        // (대소문자 구분: 요청하신 대로 "StageLoadOut"으로 작성했습니다)
-        StageLoadout[] loadedLoadouts = Resources.LoadAll<StageLoadout>("StageLoadouts");
-
-        if (loadedLoadouts != null && loadedLoadouts.Length > 0)
-        {
-            // 2. Stage_{a}-{b} 형식에 맞춘 이중 정렬 (a 우선, b 차선)
-            stageLoadouts = loadedLoadouts
-                .OrderBy(x => {
-                    // 파일명에서 숫자 부분 추출 (Stage_0-1 -> "0-1")
-                    string name = x.name.Replace("Stage_", "");
-                    string[] parts = name.Split('-');
-                    
-                    // a 값 추출
-                    return parts.Length > 0 && int.TryParse(parts[0], out int a) ? a : 0;
-                })
-                .ThenBy(x => {
-                    // b 값 추출
-                    string name = x.name.Replace("Stage_", "");
-                    string[] parts = name.Split('-');
-                    
-                    return parts.Length > 1 && int.TryParse(parts[1], out int b) ? b : 0;
-                })
-                .ToList();
-
-            Debug.Log($"<color=green>[StageManager]</color> {stageLoadouts.Count}개의 로드아웃을 정렬하여 로드했습니다.");
-            
-            // 정렬 결과 확인용 로그 (필요 시 주석 해제)
-            // foreach(var s in stageLoadouts) Debug.Log($"로드된 순서: {s.name}");
-        }
-        else
-        {
-            Debug.LogError("<color=red>[StageManager]</color> 'Resources/StageLoadOut' 폴더에서 에셋을 찾을 수 없습니다.");
-        }
-    }
-
-    // [수정] 방문 여부를 체크하여 재장전
-    private void ReloadAmmo(int stageIndex)
-    {
-        // 이미 방문한 적이 있다면 재장전하지 않고 '현재 탄약' 유지
-        if (visitedStages.Contains(stageIndex))
-        {
-            Debug.Log($"[Ammo] {stageIndex}번 스테이지는 이미 방문함. 탄약 유지: {CurrentAmmo}");
-            return;
-        }
-
-        // --- 여기부터는 첫 방문일 때만 실행됨 ---
-
-        // 방문 목록에 도장 쾅!
-        visitedStages.Add(stageIndex);
-
-        if (stageAmmoSettings.TryGetValue(stageIndex, out int maxAmmo))
-        {
-            CurrentAmmo = maxAmmo;
-        }
-        else
-        {
-            CurrentAmmo = 0; 
-        }
-
-        Debug.Log($"<color=yellow>[Ammo]</color> {stageIndex}번 스테이지 첫 방문! {CurrentAmmo}발 장전됨.");
-        
-        // UI 갱신 알림
-        OnAmmoChanged?.Invoke(CurrentAmmo);
-    }
-
-    // [신규 메서드] 외부에서 호출할 탄약 관련 함수들
-    public bool HasAmmo() => CurrentAmmo > 0;
-    
-    public void UseAmmo()
-    {
-        if (CurrentAmmo > 0)
-        {
-            CurrentAmmo--;
-            OnAmmoChanged?.Invoke(CurrentAmmo);
-        }
-    }
-
-    public void SetGridSize(Vector3 size) => gridCellSize = size;
-
-    private void SortTilesAndRefresh()
-    {
-        clearTilePositions = clearTilePositions.OrderBy(pos => pos.x).ToList();
-        Debug.Log($"[StageManager] 초기화 완료. ClearTile: {clearTilePositions.Count}");
-        RefreshStagePalette();
-    }
-
-    // === ✅ [수정됨] 스테이지 이동 로직 (점프 버그 수정) ===
-    public void CheckStageTransitionOnExit(Vector3 playerPos, Vector2 moveDir)
-    {
-        // 상하 이동은 무시
-        if (Mathf.Abs(moveDir.y) > 0.01f) return;
-
-        // 현재 플레이어가 ClearTile 위에 있는지 확인
-        if (!IsClearTile(playerPos)) return;
-
-        int nextStage = currentStage;
-
-        // 오른쪽(→)으로 이동: 다음 스테이지 (Current + 1)
-        if (moveDir.x > 0.01f)
-        {
-            nextStage = currentStage + 1;
-            Debug.Log($"[이동 시도] 현재({currentStage}) -> 다음({nextStage})");
-        }
-        // 왼쪽(←)으로 이동: 이전 스테이지 (Current - 1)
-        else if (moveDir.x < -0.01f)
-        {
-            nextStage = currentStage - 1;
-            Debug.Log($"[이동 시도] 현재({currentStage}) -> 이전({nextStage})");
-        }
-        else return;
-
-        ChangeStage(nextStage);
-    }
-
-    private void ChangeStage(int targetStage)
-    {
-        // 1. 0보다 작으면 무시
-        if (targetStage < 0) return;
-
-        // 2. ✅ [수정됨] 데이터가 없을 때 초기화(Reset)하지 않고 에러만 출력 후 중단
-        if (targetStage >= cameraPositions.Count)
-        {
-            Debug.LogError($"[이동 불가] 목표 스테이지 {targetStage}에 대한 카메라 좌표가 없습니다. (현재 데이터 개수: {cameraPositions.Count})");
-            // ResetStageSystem(); // <-- 이 줄을 삭제하여 0번으로 튕기는 현상 방지
-            return;
-        }
-
-        // 3. 정상 이동
-        if (targetStage > maxClearedStage) maxClearedStage = targetStage;
-
-        if (currentStage != targetStage)
-        {
-            Debug.Log($"🎥 스테이지 변경 실행: {currentStage} -> {targetStage}");
-            currentStage = targetStage;
-            cameraMoving = true;
-            pendingPaletteRefresh = true;
-            ReloadAmmo(targetStage);
-        }
-    }
-
-    private void MoveCameraToTarget()
-    {
-        if (_mainCamera == null || currentStage >= cameraPositions.Count) return;
-
-        Vector3 targetPos = cameraPositions[currentStage];
-        targetPos.z = _mainCamera.transform.position.z;
-
-        if (Vector3.Distance(_mainCamera.transform.position, targetPos) > 0.05f)
-            _mainCamera.transform.position = Vector3.Lerp(_mainCamera.transform.position, targetPos, Time.deltaTime * cameraMoveSpeed);
-        else
-        {
-            _mainCamera.transform.position = targetPos;
-            cameraMoving = false;
-        }
 
         if (pendingPaletteRefresh)
         {
@@ -285,7 +133,110 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    // === 타일 상태 관리 ===
+    // =========================================================
+    // ✅ 카메라 이동 (사용자 코드 복원)
+    // =========================================================
+    private void MoveCameraToTarget()
+    {
+        if (_mainCamera == null) return;
+        if (cameraPositions == null || cameraPositions.Count == 0) return;
+
+        int targetIndex = Mathf.Clamp(currentStage, 0, cameraPositions.Count - 1);
+        
+        Vector3 targetPos = cameraPositions[targetIndex];
+        targetPos.z = -10f; 
+
+        float distance = Vector3.Distance(_mainCamera.transform.position, targetPos);
+        if (distance > 0.01f)
+        {
+            _mainCamera.transform.position = Vector3.Lerp(_mainCamera.transform.position, targetPos, Time.deltaTime * cameraMoveSpeed);
+        }
+        else
+        {
+            _mainCamera.transform.position = targetPos;
+        }
+    }
+
+    // =========================================================
+    // 데이터 로드 및 UI
+    // =========================================================
+    private void InitializePaletteUI()
+    {
+        if (paletteUI != null) return;
+        GameObject leftBarObj = GameObject.Find("LeftBar");
+        if (leftBarObj == null) leftBarObj = GameObject.Find("Canvas/LeftBar");
+        if (leftBarObj != null) paletteUI = leftBarObj.GetComponent<TilePaletteUI>();
+    }
+
+    private void InitializeStageLoadouts()
+    {
+        StageLoadout[] loadedLoadouts = Resources.LoadAll<StageLoadout>("StageLoadouts");
+        if (loadedLoadouts != null && loadedLoadouts.Length > 0)
+        {
+            stageLoadouts = loadedLoadouts
+                .OrderBy(x => {
+                    string name = x.name.Replace("Stage_", "");
+                    string[] parts = name.Split('-');
+                    return parts.Length > 0 && int.TryParse(parts[0], out int a) ? a : 0;
+                }).ToList();
+        }
+    }
+
+    // =========================================================
+    // 탄약 및 스테이지 관리
+    // =========================================================
+    private void ReloadAmmo(int stageIndex)
+    {
+        if (visitedStages.Contains(stageIndex)) return; 
+        visitedStages.Add(stageIndex);
+
+        if (stageAmmoSettings.TryGetValue(stageIndex, out int maxAmmo)) CurrentAmmo = maxAmmo;
+        else CurrentAmmo = 0;
+        
+        OnAmmoChanged?.Invoke(CurrentAmmo);
+    }
+
+    public void CheckStageTransitionOnExit(Vector3 playerPos, Vector2 moveDir)
+    {
+        if (Mathf.Abs(moveDir.y) > 0.01f) return;
+        if (!IsClearTile(playerPos)) return;
+
+        int nextStage = currentStage;
+        if (moveDir.x > 0.01f) nextStage = currentStage + 1;
+        else if (moveDir.x < -0.01f) nextStage = currentStage - 1;
+        else return;
+
+        ChangeStage(nextStage);
+    }
+
+    private void ChangeStage(int targetStage)
+    {
+        if (targetStage < 0 || targetStage >= cameraPositions.Count) return;
+        
+        if (targetStage > maxClearedStage) maxClearedStage = targetStage;
+        if (targetStage > highestReachedStage) highestReachedStage = targetStage;
+
+        if (currentStage != targetStage)
+        {
+            currentStage = targetStage;
+            ReloadAmmo(targetStage);
+            pendingPaletteRefresh = true;
+        }
+    }
+
+    // =========================================================
+    // 타일 관리
+    // =========================================================
+    public void RegisterClearTile(Vector3 pos) { if (!clearTilePositions.Contains(pos)) clearTilePositions.Add(pos); }
+    public void RegisterSpawnTile(Vector3 pos) { if (!spawnTilePositions.Contains(pos)) spawnTilePositions.Add(pos); }
+
+    private void SortTilesAndRefresh()
+    {
+        if (spawnTilePositions.Count > 0) spawnTilePositions = spawnTilePositions.OrderBy(pos => pos.x).ToList();
+        if (clearTilePositions.Count > 0) clearTilePositions = clearTilePositions.OrderBy(pos => pos.x).ToList();
+        RefreshStagePalette();
+    }
+
     private void RefreshStagePalette()
     {
         if (paletteUI == null) return;
@@ -294,7 +245,9 @@ public class StageManager : MonoBehaviour
         if (stageLoadouts != null && currentStage >= 0 && currentStage < stageLoadouts.Count)
         {
             if (runtimeLoadoutCache.ContainsKey(currentStage))
+            {
                 loadoutToUse = runtimeLoadoutCache[currentStage];
+            }
             else
             {
                 if (stageLoadouts[currentStage] != null)
@@ -311,76 +264,126 @@ public class StageManager : MonoBehaviour
     {
         if (runtimeLoadoutCache.ContainsKey(currentStage))
         {
-            StageLoadout currentLoadout = runtimeLoadoutCache[currentStage];
-            if (currentLoadout.entries != null && tileIndexInLoadout < currentLoadout.entries.Count)
+            var loadout = runtimeLoadoutCache[currentStage];
+            if (loadout.entries != null && tileIndexInLoadout < loadout.entries.Count)
             {
-                var entry = currentLoadout.entries[tileIndexInLoadout];
+                var entry = loadout.entries[tileIndexInLoadout];
                 if (entry.count > 0)
                 {
-                    entry.count--; 
-                    currentLoadout.entries[tileIndexInLoadout] = entry; 
+                    entry.count--;
+                    loadout.entries[tileIndexInLoadout] = entry; 
                 }
             }
         }
     }
 
-    public void RegisterClearTile(Vector3 pos) { if (!clearTilePositions.Contains(pos)) clearTilePositions.Add(pos); }
-    public void RegisterSpawnTile(Vector3 pos) { if (!spawnTilePositions.Contains(pos)) spawnTilePositions.Add(pos); }
-    
-    // 현재 위치가 ClearTile인지 확인
+    // =========================================================
+    // 유틸리티
+    // =========================================================
+    public Vector3 GetCurrentStageCheckpoint()
+    {
+        if (spawnTilePositions == null || spawnTilePositions.Count == 0) return startPosition;
+        if (currentStage >= 0 && currentStage < spawnTilePositions.Count) return spawnTilePositions[currentStage];
+        return spawnTilePositions.Last(); 
+    }
+
     public bool IsClearTile(Vector3 worldPos)
     {
         Vector2 checkPos = new Vector2(worldPos.x, worldPos.y);
         float threshold = gridCellSize.x * 0.45f; 
-
-        foreach (var pos in clearTilePositions)
-        {
-            if (Vector2.Distance(checkPos, pos) < threshold) return true;
-        }
+        foreach (var pos in clearTilePositions) if (Vector2.Distance(checkPos, pos) < threshold) return true;
         return false;
     }
 
-    public bool IsSpawnTile(Vector3 playerPos)
+    public bool IsSpawnTile(Vector3 worldPos)
     {
-        Vector2 pPos = new Vector2(playerPos.x, playerPos.y);
-        float threshold = gridCellSize.x * 0.6f;
-        foreach (var pos in spawnTilePositions) if (Vector2.Distance(pPos, pos) < threshold) return true;
+        Vector2 checkPos = new Vector2(worldPos.x, worldPos.y);
+        float threshold = gridCellSize.x * 0.45f; 
+        foreach (var pos in spawnTilePositions) if (Vector2.Distance(checkPos, pos) < threshold) return true;
         return false;
     }
 
-    public void OnPlayerStepOnSpawnTile() { }
+    public bool HasAmmo() => CurrentAmmo > 0;
+    
+    public void UseAmmo()
+    {
+        if (CurrentAmmo > 0)
+        {
+            CurrentAmmo--;
+            OnAmmoChanged?.Invoke(CurrentAmmo);
+        }
+    }
 
-    // public 호출용 (PlayerController 등에서 사용)
+    public void SetGridSize(Vector3 size) => gridCellSize = size;
+    public void OnPlayerStepOnSpawnTile() { }
     public void OnPlayerStepOnClearTile() { }
 
-    private void ResetStageSystem()
+    // =========================================================
+    // ✅ 리셋 기능 (맵 복구 기능 추가)
+    // =========================================================
+    public void ResetGamePartial()
     {
-        // [추가] 방문 기록 초기화
-        visitedStages.Clear();
+        Debug.Log($"🔄 [Reset] 체크포인트(Stage {highestReachedStage})로 복귀 및 전체 초기화");
+
+        // 1. 플레이어 설치물 제거 (ObjectRoot)
+        if (objectRoot != null) foreach (Transform child in objectRoot) Destroy(child.gameObject);
         
-        Debug.Log("🔄 게임 완전 초기화");
-        currentStage = 0;
-        cameraMoving = true;
-        pendingPaletteRefresh = true;
+        // 🛠️ 2. [추가됨] 맵 환경(MapEnvironment) 초기화 및 복구
+        if (mapEnvironmentRoot != null && mapBackup != null)
+        {
+            // 현재 망가진/변경된 맵 삭제
+            Destroy(mapEnvironmentRoot.gameObject);
+            
+            // 백업본에서 새 맵 생성
+            GameObject newMap = Instantiate(mapBackup);
+            newMap.name = mapBackup.name.Replace("_Backup", ""); 
+            newMap.SetActive(true);
+            
+            // 참조 갱신
+            mapEnvironmentRoot = newMap.transform; 
+            
+            // GeneratorManager의 참조도 갱신해줘야 혹시 모를 오류 방지 (선택사항)
+            var gen = FindObjectOfType<GeneratorManager>();
+            if (gen != null) gen.spawnParent = mapEnvironmentRoot;
+        }
+
+        // 3. 스테이지 및 데이터 리셋
+        currentStage = highestReachedStage;
+
+        foreach(var loadout in runtimeLoadoutCache.Values)
+        {
+            if(loadout != null) Destroy(loadout); 
+        }
         runtimeLoadoutCache.Clear();
+        
+        visitedStages.Clear();
+        ReloadAmmo(currentStage);
+
+        RefreshStagePalette();
+
+        // 4. 플레이어 위치 이동
+        if (player == null)
+        {
+            GameObject pObj = GameObject.FindGameObjectWithTag("Player");
+            if (pObj != null) player = pObj.transform;
+        }
 
         if (player != null)
         {
+            player.position = GetCurrentStageCheckpoint();
             Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
-            if (rb != null) 
+            if (rb != null)
             {
-                rb.linearVelocity = Vector2.zero;
-                rb.position = startPosition;
+#if UNITY_6000_0_OR_NEWER
+                rb.linearVelocity = Vector2.zero; 
+#else
+                rb.velocity = Vector2.zero;
+#endif
+                rb.angularVelocity = 0f;
+                rb.Sleep(); 
+                rb.WakeUp();
             }
-            else player.position = startPosition;
         }
-        
-        if (_mainCamera != null && cameraPositions.Count > 0)
-        {
-            Vector3 resetPos = cameraPositions[0];
-            resetPos.z = _mainCamera.transform.position.z;
-            _mainCamera.transform.position = resetPos;
-        }
-        RefreshStagePalette();
+        // 카메라는 Update()에서 currentStage를 따라 자동으로 이동함
     }
 }

@@ -13,40 +13,49 @@ public class TilePrefabMapping
 public class GeneratorManager : MonoBehaviour
 {
     [Header("Tilemaps")]
+    [Tooltip("탐색할 타일맵입니다.")]
     public Tilemap generatorTilemap;
 
     [Header("Prefab Mappings (TileName → Prefab)")]
-    [Tooltip("타일 이름과 대응되는 프리팹 리스트")] 
+    [Tooltip("타일 이름과 생성될 프리팹을 연결하는 리스트입니다. (Spawn, Clear 타일도 여기에 시각적 프리팹이 등록되어 있어야 합니다)")] 
     public List<TilePrefabMapping> prefabMappings = new();
 
     [Header("Spawn / Clear Tile Names")]
-    [Tooltip("StageManager.RegisterSpawnTile() 에 등록될 타일 sprite 이름 목록")]
+    [Tooltip("StageManager에 체크포인트(Spawn)로 등록할 타일 이름들")]
     public List<string> spawnTileNames = new();
 
-    [Header("Spawn / Clear Tile Names")]
-    [Tooltip("StageManager.RegisterClearTile() 에 등록될 타일 sprite 이름 목록")]
+    [Tooltip("StageManager에 클리어 지점(Clear)으로 등록할 타일 이름들")]
     public List<string> clearTileNames = new();
 
-    // 🔥 [추가됨] Blocker 관련 설정
     [Header("Blocker Settings")]
     [Tooltip("TileBlocker(설치 불가, 통과 가능)로 변환할 타일 이름들")]
     public List<string> blockerTileNames = new(); 
 
-    [Tooltip("생성될 Blocker 프리팹 (투명, IsTrigger)")]
+    [Tooltip("생성될 Blocker 프리팹 (투명, IsTrigger 권장)")]
     public GameObject blockerPrefab;              
 
     [Header("Parent for spawned objects")]
+    [Tooltip("생성된 오브젝트들이 들어갈 부모. 비워두면 자동으로 'MapEnvironment'를 생성합니다.")]
     public Transform spawnParent;
 
-    [Header("Rendering")]
-    [Tooltip("DynamicYDepthSort의 Base Sorting Order와 동일하게 설정해야 합니다. (3만 제한 내에서 최대)")]
-    [SerializeField] public int spawnOrderInLayer = 29999; 
-
+    // 빠른 조회를 위한 딕셔너리
     private Dictionary<string, GameObject> prefabDict;
 
     private void Start()
     {
+        // [중요] StageManager가 맵을 백업할 수 있도록 부모 오브젝트 설정
+        // 사용자가 Inspector에 할당하지 않았다면 자동으로 "MapEnvironment"를 생성해서 할당
+        if (spawnParent == null)
+        {
+            GameObject env = GameObject.Find("MapEnvironment");
+            if (env == null) env = new GameObject("MapEnvironment");
+            spawnParent = env.transform;
+        }
+
+        // 1. 프리팹 매핑 딕셔너리 구축
         BuildPrefabDictionary();
+        
+        // 2. 타일맵을 읽어 오브젝트 생성 및 데이터 등록
         GenerateObjectsFromTilemap();
     }
 
@@ -58,52 +67,67 @@ public class GeneratorManager : MonoBehaviour
         {
             if (mapping == null || mapping.prefab == null || string.IsNullOrEmpty(mapping.tileName))
             {
-                Debug.LogWarning("[Generator] 잘못된 TilePrefabMapping이 있습니다.");
+                // Debug.LogWarning("[Generator] 유효하지 않은 TilePrefabMapping이 발견되었습니다.");
                 continue;
             }
 
             if (!prefabDict.ContainsKey(mapping.tileName))
+            {
                 prefabDict.Add(mapping.tileName, mapping.prefab);
+            }
             else
-                Debug.LogWarning($"[Generator] 중복된 tileName 감지: {mapping.tileName}");
+            {
+                Debug.LogWarning($"[Generator] 중복된 타일 이름이 감지되었습니다: {mapping.tileName}. 첫 번째 매핑만 사용됩니다.");
+            }
         }
     }
 
     private void GenerateObjectsFromTilemap()
     {
-        if (generatorTilemap == null) return;
+        if (generatorTilemap == null)
+        {
+            Debug.LogError("[Generator] GeneratorTilemap이 연결되지 않았습니다!");
+            return;
+        }
 
+        // 타일맵의 모든 위치를 순회
         foreach (var pos in generatorTilemap.cellBounds.allPositionsWithin)
         {
             Tile tile = generatorTilemap.GetTile(pos) as Tile;
-            if (tile == null) continue;
+            if (tile == null) continue; // 빈 칸은 건너뜀
 
             string tileName = tile.name;
             Vector3 worldPos = generatorTilemap.GetCellCenterWorld(pos);
 
-            // 1. Spawn 타일인지 확인 후 등록
+            // ==========================================================
+            // 1. 데이터 등록 단계 (StageManager에 위치 알림)
+            // ==========================================================
+
+            // A. Spawn 타일 (체크포인트)
             if (spawnTileNames.Contains(tileName))
             {
                 if (StageManager.Instance != null)
                 {
                     StageManager.Instance.RegisterSpawnTile(worldPos);
-                    Debug.Log($"<color=cyan>[Generator]</color> Spawn 타일 등록: {tileName} at {worldPos}");
                 }
-                continue; 
+                // Continue 하지 않음 (시각적 프리팹 생성)
             }
 
-            // 2. Clear 타일인지 확인 후 등록
+            // B. Clear 타일 (클리어 지점)
             if (clearTileNames.Contains(tileName))
             {
                 if (StageManager.Instance != null)
                 {
                     StageManager.Instance.RegisterClearTile(worldPos);
-                    Debug.Log($"<color=green>[Generator]</color> Clear 타일 등록: {tileName} at {worldPos}");
                 }
-                continue; 
+                // Continue 하지 않음 (시각적 프리팹 생성)
             }
 
-            // 🔥 [추가됨] 3. Blocker 타일 확인 (설치 금지 구역 생성)
+            // ==========================================================
+            // 2. 오브젝트 생성 단계 (Instantiate)
+            // ==========================================================
+
+            // C. Blocker 타일 (설치 금지 구역)
             if (blockerTileNames.Contains(tileName))
             {
                 if (blockerPrefab != null)
@@ -112,31 +136,28 @@ public class GeneratorManager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning($"[Generator] {tileName}에 해당하는 Blocker Prefab이 연결되지 않았습니다!");
+                    Debug.LogWarning($"[Generator] {tileName}은 Blocker로 설정되었으나, blockerPrefab이 비어있습니다.");
                 }
-                continue;
+                continue; // Blocker는 프리팹 매핑을 거치지 않으므로 여기서 끝
             }
 
-            // 4. 일반 매핑 프리팹 생성
+            // D. 일반/Spawn/Clear 프리팹 생성
             if (prefabDict.TryGetValue(tileName, out GameObject prefab))
             {
-                var go = Instantiate(prefab, worldPos, Quaternion.identity, spawnParent);
-                // ApplyOrderInLayer(go, spawnOrderInLayer); 
+                Instantiate(prefab, worldPos, Quaternion.identity, spawnParent);
             }
         }
         
-        // 모든 타일 스캔이 끝난 후 타일맵 비활성화
+        // 3. 최적화를 위해 원본 타일맵 비활성화
         generatorTilemap.gameObject.SetActive(false);
-    }
 
-    private void ApplyOrderInLayer(GameObject go, int order)
-    {
-        if (go == null) return;
-
-        var renderers = go.GetComponentsInChildren<SpriteRenderer>(includeInactive: true);
-        foreach (var r in renderers)
+        // ==========================================================
+        // 3. 데이터 정렬 및 초기화 요청 (필수)
+        // ==========================================================
+        if (StageManager.Instance != null)
         {
-            r.sortingOrder = order;
+            Debug.Log("<color=cyan>[Generator]</color> 맵 생성 및 등록 완료 -> StageManager 초기화 요청");
+            StageManager.Instance.InitializeStageData();
         }
     }
 }
