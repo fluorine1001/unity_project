@@ -10,6 +10,9 @@ public class DoorController : MonoBehaviour
     private SpriteRenderer rend;
     private bool isOpen = false;
 
+    // ✅ [추가] 외부(StageManager)에서 문이 열려있는지 확인할 수 있게 해주는 프로퍼티
+    public bool IsDoorOpen => isOpen; 
+
     private void Awake()
     {
         col = GetComponent<BoxCollider2D>();
@@ -18,7 +21,6 @@ public class DoorController : MonoBehaviour
 
     private void Start()
     {
-        // ✅ GeneratorManager를 통해 이 문이 위치한 정확한 스테이지 ID를 가져옵니다.
         var generator = FindObjectOfType<GeneratorManager>();
         if (generator != null)
         {
@@ -30,7 +32,7 @@ public class DoorController : MonoBehaviour
             StageManager.Instance.RegisterDoor(StageID, this);
         }
         
-        // 초기 상태: 닫힘
+        // 초기 상태: 닫힘 (SetDoorState 내부에서 isOpen을 체크하므로 안전함)
         SetDoorState(false);
     }
 
@@ -41,7 +43,6 @@ public class DoorController : MonoBehaviour
 
         isOpen = open;
 
-        // 문이 열리면(open=true) 장애물(col)과 모습(rend)을 비활성화
         if (col != null) col.enabled = !isOpen;
         if (rend != null) rend.enabled = !isOpen;
 

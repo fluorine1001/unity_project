@@ -18,6 +18,13 @@ public class FMODEvents : MonoBehaviour
     [EventRef] [SerializeField] private string boxPushedPath  = Defaults.BoxPushed;
     [EventRef] [SerializeField] private string boxBrokenPath  = Defaults.BoxBroken;
     [EventRef] [SerializeField] private string holeFilledPath = Defaults.HoleFilled;
+    [EventRef] [SerializeField] private string laserBuzzingPath = Defaults.LaserBuzzing;
+    [EventRef] [SerializeField] private string mirrorPushedPath = Defaults.MirrorPushed;
+    [EventRef] [SerializeField] private string paperBurntPath = Defaults.PaperBurnt;
+    [EventRef] [SerializeField] private string doorOpenedPath = Defaults.DoorOpened;
+    [EventRef] [SerializeField] private string doorClosedPath = Defaults.DoorClosed;
+    [EventRef] [SerializeField] private string targetActivatedPath = Defaults.TargetActivated;
+    [EventRef] [SerializeField] private string nontargetActivatedPath = Defaults.NonTargetActivated;
 
     [Header("UI")]
     [EventRef] [SerializeField] private string menuPressedPath = Defaults.MenuPressed;
@@ -34,6 +41,13 @@ public class FMODEvents : MonoBehaviour
     public EventReference BulletDecelerated { get; private set; }
     public EventReference BoxPushed { get; private set; }
     public EventReference BoxBroken { get; private set; }
+    public EventReference LaserBuzzing { get; private set; }
+    public EventReference MirrorPushed { get; private set; }
+    public EventReference PaperBurnt { get; private set; }
+    public EventReference DoorOpened { get; private set; }
+    public EventReference DoorClosed { get; private set; }
+    public EventReference TargetActivated { get; private set; }
+    public EventReference NonTargetActivated { get; private set; }
     public EventReference PlayerDash { get; private set; }
     public EventReference MenuPressed { get; private set; }
     public EventReference MenuClosed { get; private set; }
@@ -65,6 +79,13 @@ public class FMODEvents : MonoBehaviour
         BulletDecelerated = RuntimeManager.PathToEventReference(bulletDeceleratedPath);
         BoxPushed = RuntimeManager.PathToEventReference(boxPushedPath);
         BoxBroken = RuntimeManager.PathToEventReference(boxBrokenPath);
+        LaserBuzzing = RuntimeManager.PathToEventReference(laserBuzzingPath);
+        MirrorPushed = RuntimeManager.PathToEventReference(mirrorPushedPath);
+        PaperBurnt = RuntimeManager.PathToEventReference(paperBurntPath);
+        DoorOpened = RuntimeManager.PathToEventReference(doorOpenedPath);
+        DoorClosed = RuntimeManager.PathToEventReference(doorClosedPath);
+        TargetActivated = RuntimeManager.PathToEventReference(targetActivatedPath);
+        NonTargetActivated = RuntimeManager.PathToEventReference(nontargetActivatedPath);
         PlayerDash = RuntimeManager.PathToEventReference(playerDashPath);
         MenuPressed = RuntimeManager.PathToEventReference(menuPressedPath);
         MenuClosed = RuntimeManager.PathToEventReference(menuClosedPath);
@@ -88,6 +109,13 @@ public class FMODEvents : MonoBehaviour
         public const string BoxPushed  = "event:/SFX/Objects/BoxPushed";
         public const string BoxBroken  = "event:/SFX/Objects/BoxBroken";
         public const string HoleFilled = "event:/SFX/Objects/HoleFilled";
+        public const string LaserBuzzing = "event:/SFX/Objects/LaserBuzzing";
+        public const string MirrorPushed = "event:/SFX/Objects/MirrorPushed";
+        public const string PaperBurnt = "event:/SFX/Objects/PaperBurnt";
+        public const string DoorClosed = "event:/SFX/Objects/DoorClosed";
+        public const string DoorOpened = "event:/SFX/Objects/DoorOpened";
+        public const string TargetActivated = "event:/SFX/Objects/TargetActivated";
+        public const string NonTargetActivated = "event:/SFX/Objects/NonTargetActivated";
 
         public const string MenuPressed = "event:/SFX/UI/MenuPressed";
         public const string MenuClosed  = "event:/SFX/UI/MenuClosed";

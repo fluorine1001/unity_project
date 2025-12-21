@@ -130,7 +130,7 @@ public class MirrorPushable : FunctionalTile
         if (consumeBullet && bulletGO != null) Destroy(bulletGO);
 
         if (AudioManager.instance != null)
-            AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxPushed, transform.position);
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.MirrorPushed, transform.position);
 
         transform.position = nextWorldPos;
         

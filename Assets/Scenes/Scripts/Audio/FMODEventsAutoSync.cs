@@ -57,6 +57,13 @@ static class FMODEventsAutoSync
             any |= TrySetStringProp(so, "boxPushedPath", FMODEvents.Defaults.BoxPushed);
             any |= TrySetStringProp(so, "boxBrokenPath", FMODEvents.Defaults.BoxBroken);
             any |= TrySetStringProp(so, "holeFilledPath", FMODEvents.Defaults.HoleFilled);
+            any |= TrySetStringProp(so, "laserBuzzingPath", FMODEvents.Defaults.LaserBuzzing);
+            any |= TrySetStringProp(so, "mirrorPushedPath", FMODEvents.Defaults.MirrorPushed);
+            any |= TrySetStringProp(so, "paperBurntPath", FMODEvents.Defaults.PaperBurnt);
+            any |= TrySetStringProp(so, "doorOpenedPath", FMODEvents.Defaults.DoorOpened);
+            any |= TrySetStringProp(so, "doorClosedPath", FMODEvents.Defaults.DoorClosed);
+            any |= TrySetStringProp(so, "targetActivatedPath", FMODEvents.Defaults.TargetActivated);
+            any |= TrySetStringProp(so, "nontargetActivatedPath", FMODEvents.Defaults.NonTargetActivated);
 
             any |= TrySetStringProp(so, "menuPressedPath", FMODEvents.Defaults.MenuPressed);
             any |= TrySetStringProp(so, "menuClosedPath", FMODEvents.Defaults.MenuClosed);
@@ -104,6 +111,13 @@ static class FMODEventsAutoSync
             any |= TrySetStringProp(so, "boxPushedPath", FMODEvents.Defaults.BoxPushed);
             any |= TrySetStringProp(so, "boxBrokenPath", FMODEvents.Defaults.BoxBroken);
             any |= TrySetStringProp(so, "holeFilledPath", FMODEvents.Defaults.HoleFilled);
+            any |= TrySetStringProp(so, "laserBuzzingPath", FMODEvents.Defaults.LaserBuzzing);
+            any |= TrySetStringProp(so, "mirrorPushedPath", FMODEvents.Defaults.MirrorPushed);
+            any |= TrySetStringProp(so, "paperBurntPath", FMODEvents.Defaults.PaperBurnt);
+            any |= TrySetStringProp(so, "doorOpenedPath", FMODEvents.Defaults.DoorOpened);
+            any |= TrySetStringProp(so, "doorClosedPath", FMODEvents.Defaults.DoorClosed);
+            any |= TrySetStringProp(so, "targetActivatedPath", FMODEvents.Defaults.TargetActivated);
+            any |= TrySetStringProp(so, "nontargetActivatedPath", FMODEvents.Defaults.NonTargetActivated);
 
             any |= TrySetStringProp(so, "menuPressedPath", FMODEvents.Defaults.MenuPressed);
             any |= TrySetStringProp(so, "menuClosedPath", FMODEvents.Defaults.MenuClosed);

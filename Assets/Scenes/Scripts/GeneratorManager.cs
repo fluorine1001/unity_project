@@ -285,11 +285,11 @@ public class GeneratorManager : MonoBehaviour
 
         if (tileStageMap.TryGetValue(cellPos, out int stageIndex))
         {
-            Debug.Log($"<color=white>📍 [Tile Check]</color> 좌표: {cellPos} | 타일명: <color=lime>{tileName}</color> | 판정: <b>Stage {stageIndex}</b>");
+            
             return stageIndex;
         }
         
-        Debug.Log($"<color=red>📍 [Tile Check 실패]</color> 좌표: {cellPos} | 타일명: <color=orange>{tileName}</color> | 판정: <b>영역 없음</b>");
+        
         return -1;
     }
 }

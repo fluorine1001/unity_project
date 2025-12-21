@@ -70,7 +70,11 @@ public class LaserTargetBlock : MonoBehaviour, ILaserInteractable
     {
         if (spriteRenderer == null) return;
         
-        if (IsActive && onSprite != null) spriteRenderer.sprite = onSprite;
+        if (IsActive && onSprite != null){
+            spriteRenderer.sprite = onSprite;
+            if(isTarget) AudioManager.instance.PlayOneShot(FMODEvents.instance.TargetActivated, transform.position);
+            else AudioManager.instance.PlayOneShot(FMODEvents.instance.NonTargetActivated, transform.position);
+        }
         else if (!IsActive && offSprite != null) spriteRenderer.sprite = offSprite;
     }
 }

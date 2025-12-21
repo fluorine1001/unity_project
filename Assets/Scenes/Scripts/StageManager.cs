@@ -256,44 +256,62 @@ public class StageManager : MonoBehaviour
     }
 
     public void CheckDoorState(int stageID)
+{
+    // 데이터가 없는 경우 방지
+    if (!stagePuzzleBlocks.ContainsKey(stageID) || !stageDoors.ContainsKey(stageID)) return;
+
+    List<LaserTargetBlock> blocks = stagePuzzleBlocks[stageID];
+    List<DoorController> doors = stageDoors[stageID];
+
+    // 1. 퍼즐 조건 계산
+    bool allTargetsOn = true;
+    bool allNonTargetsOff = true;
+
+    foreach (var block in blocks)
     {
-        if (!stagePuzzleBlocks.ContainsKey(stageID) || !stageDoors.ContainsKey(stageID)) return;
-
-        List<LaserTargetBlock> blocks = stagePuzzleBlocks[stageID];
-        bool allTargetsOn = true;
-        bool allNonTargetsOff = true;
-        
-        // ✅ 퍼즐 상세 로그
-        Debug.Log($"<color=orange>🔍 [Puzzle Check] Stage {stageID} 상태 검사 중...</color>");
-
-        foreach (var block in blocks)
+        if (block.isTarget)
         {
-            if (block.isTarget)
-            {
-                if (!block.IsActive) {
-                    allTargetsOn = false;
-                    Debug.Log($"   - <color=red>미달성:</color> [{block.name}] 타겟 블록이 꺼져있음.");
-                }
-            }
-            else
-            {
-                if (block.IsActive) {
-                    allNonTargetsOff = false;
-                    Debug.Log($"   - <color=red>미달성:</color> [{block.name}] 논타겟 블록이 켜져있음.");
-                }
-            }
+            if (!block.IsActive) allTargetsOn = false;
         }
-
-        bool shouldOpen = allTargetsOn && allNonTargetsOff;
-        
-        if (shouldOpen)
-            Debug.Log($"<color=green><b>✨ [Stage {stageID} 클리어!]</b> 모든 조건 충족. 문을 엽니다.</color>");
-
-        foreach (var door in stageDoors[stageID])
+        else
         {
-            door.SetDoorState(shouldOpen);
+            if (block.IsActive) allNonTargetsOff = false;
         }
     }
+
+    // 최종적으로 문이 열려야 하는 상태
+    bool shouldBeOpen = allTargetsOn && allNonTargetsOff;
+    bool f1 = false, f2 = false;
+    // 2. 상태 변화 감지 및 적용
+    foreach (var door in doors)
+    {
+        if (door == null) continue;
+
+        // 문 컨트롤러에서 현재 열림 여부를 가져옴 (DoorController에 isOpen public getter 필요)
+        bool currentlyOpen = door.IsDoorOpen; 
+
+        // [상태 전환 시점 포착]
+        if (!currentlyOpen && shouldBeOpen)
+        {
+            // 🔓 닫혀있다가 열리는 순간
+            Debug.Log($"<color=lime>🔓 [Door Event]</color> Stage {stageID}: 모든 조건 충족! 문이 열립니다.");
+            door.SetDoorState(true);
+            f1 = true;
+            // 여기에 문 열리는 사운드 재생 등을 추가할 수 있습니다.
+        }
+        else if (currentlyOpen && !shouldBeOpen)
+        {
+            // 🔒 열려있다가 다시 닫히는 순간
+            Debug.Log($"<color=orange>🔒 [Door Event]</color> Stage {stageID}: 조건 불충분! 문이 다시 닫힙니다.");
+            door.SetDoorState(false);
+            f2 = true;
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.DoorClosed, transform.position);
+            // 여기에 문 닫히는 사운드 재생 등을 추가할 수 있습니다.
+        }
+    }
+    if(f1) AudioManager.instance.PlayOneShot(FMODEvents.instance.DoorOpened, transform.position);
+    if(f2) AudioManager.instance.PlayOneShot(FMODEvents.instance.DoorClosed, transform.position);
+}
 
     // =========================================================
     // 타일 관리
