@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5509938623355523184}
   - component: {fileID: 225802418570719517}
   - component: {fileID: -7071922344537619389}
+  - component: {fileID: 7373310371461265477}
   m_Layer: 7
   m_Name: Wall
   m_TagString: Untagged
@@ -81,7 +82,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -1
+  m_SortingOrder: 20
   m_Sprite: {fileID: -3838113514846946, guid: ddc8983a024c21742a66f69f01100620, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -179,3 +180,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DynamicYDepthSort
   baseSortingOrder: 29999
+--- !u!114 &7373310371461265477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7825602511852947053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d7d054f3ec662745b51fed6160a1bc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LaserObstacle
+  isTransparent: 0

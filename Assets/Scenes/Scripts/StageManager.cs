@@ -46,6 +46,13 @@ public class StageManager : MonoBehaviour
     private List<Vector3> clearTilePositions = new List<Vector3>();
     private List<Vector3> spawnTilePositions = new List<Vector3>(); 
 
+    // =================================================================
+    // 🧩 [NEW] 퍼즐 시스템 데이터 (타겟 블록, 문)
+    // =================================================================
+    private Dictionary<int, List<LaserTargetBlock>> stagePuzzleBlocks = new Dictionary<int, List<LaserTargetBlock>>();
+    private Dictionary<int, List<DoorController>> stageDoors = new Dictionary<int, List<DoorController>>();
+    // =================================================================
+
     private bool pendingPaletteRefresh = false;
     private Camera _mainCamera;
 
@@ -225,6 +232,70 @@ public class StageManager : MonoBehaviour
     }
 
     // =========================================================
+    // 🧩 [NEW] 퍼즐 및 문 관리 로직 (새로 추가된 기능)
+    // =========================================================
+    
+    // 타겟/논타겟 블록 등록
+    public void RegisterPuzzleBlock(int stageID, LaserTargetBlock block)
+    {
+        if (!stagePuzzleBlocks.ContainsKey(stageID))
+            stagePuzzleBlocks[stageID] = new List<LaserTargetBlock>();
+        
+        if (!stagePuzzleBlocks[stageID].Contains(block))
+            stagePuzzleBlocks[stageID].Add(block);
+    }
+
+    // 문 등록
+    public void RegisterDoor(int stageID, DoorController door)
+    {
+        if (!stageDoors.ContainsKey(stageID))
+            stageDoors[stageID] = new List<DoorController>();
+        
+        if (!stageDoors[stageID].Contains(door))
+            stageDoors[stageID].Add(door);
+    }
+
+    public void CheckDoorState(int stageID)
+    {
+        if (!stagePuzzleBlocks.ContainsKey(stageID) || !stageDoors.ContainsKey(stageID)) return;
+
+        List<LaserTargetBlock> blocks = stagePuzzleBlocks[stageID];
+        bool allTargetsOn = true;
+        bool allNonTargetsOff = true;
+        
+        // ✅ 퍼즐 상세 로그
+        Debug.Log($"<color=orange>🔍 [Puzzle Check] Stage {stageID} 상태 검사 중...</color>");
+
+        foreach (var block in blocks)
+        {
+            if (block.isTarget)
+            {
+                if (!block.IsActive) {
+                    allTargetsOn = false;
+                    Debug.Log($"   - <color=red>미달성:</color> [{block.name}] 타겟 블록이 꺼져있음.");
+                }
+            }
+            else
+            {
+                if (block.IsActive) {
+                    allNonTargetsOff = false;
+                    Debug.Log($"   - <color=red>미달성:</color> [{block.name}] 논타겟 블록이 켜져있음.");
+                }
+            }
+        }
+
+        bool shouldOpen = allTargetsOn && allNonTargetsOff;
+        
+        if (shouldOpen)
+            Debug.Log($"<color=green><b>✨ [Stage {stageID} 클리어!]</b> 모든 조건 충족. 문을 엽니다.</color>");
+
+        foreach (var door in stageDoors[stageID])
+        {
+            door.SetDoorState(shouldOpen);
+        }
+    }
+
+    // =========================================================
     // 타일 관리
     // =========================================================
     public void RegisterClearTile(Vector3 pos) { if (!clearTilePositions.Contains(pos)) clearTilePositions.Add(pos); }
@@ -319,7 +390,7 @@ public class StageManager : MonoBehaviour
     public void OnPlayerStepOnClearTile() { }
 
     // =========================================================
-    // ✅ 리셋 기능 (맵 복구 기능 추가)
+    // ✅ 리셋 기능 (맵 복구 기능 + [NEW] 퍼즐 리셋 추가)
     // =========================================================
     public void ResetGamePartial()
     {
@@ -328,7 +399,13 @@ public class StageManager : MonoBehaviour
         // 1. 플레이어 설치물 제거 (ObjectRoot)
         if (objectRoot != null) foreach (Transform child in objectRoot) Destroy(child.gameObject);
         
-        // 🛠️ 2. [추가됨] 맵 환경(MapEnvironment) 초기화 및 복구
+        // 🧩 [NEW] 퍼즐 및 맵 데이터 초기화 (재등록을 위해 리스트 비움)
+        stagePuzzleBlocks.Clear();
+        stageDoors.Clear();
+        spawnTilePositions.Clear(); 
+        clearTilePositions.Clear();
+
+        // 🛠️ 2. 맵 환경(MapEnvironment) 초기화 및 복구
         if (mapEnvironmentRoot != null && mapBackup != null)
         {
             // 현재 망가진/변경된 맵 삭제
@@ -345,6 +422,7 @@ public class StageManager : MonoBehaviour
             // GeneratorManager의 참조도 갱신해줘야 혹시 모를 오류 방지 (선택사항)
             var gen = FindObjectOfType<GeneratorManager>();
             if (gen != null) gen.spawnParent = mapEnvironmentRoot;
+            // 여기서 GeneratorManager의 Start() 등이 실행되며 블록/스폰 타일이 다시 등록됩니다.
         }
 
         // 3. 스테이지 및 데이터 리셋
@@ -386,4 +464,5 @@ public class StageManager : MonoBehaviour
         }
         // 카메라는 Update()에서 currentStage를 따라 자동으로 이동함
     }
+    
 }

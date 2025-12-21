@@ -4,15 +4,17 @@ public class DynamicYDepthSort : MonoBehaviour
 {
     private const float Y_AXIS_MULTIPLIER = 50f; 
     
-    [Tooltip("Order 제한(3만) 내에서 최대한 높은 값으로 설정하여 음수를 방지하는 기준 오프셋.")]
+    [Tooltip("전체적인 베이스 오더 값")]
     public int baseSortingOrder = 29999; 
+
+    [Tooltip("개별 물체의 높이 보정값. (거울: -100, 박스: 0, 플레이어: 0)")]
+    public int sortOffset = 0; // ✅ 새로 추가된 부분
 
     private SpriteRenderer[] renderers;
 
     void Start()
     {
         renderers = GetComponentsInChildren<SpriteRenderer>(includeInactive: true);
-        
         UpdateSortingOrder();
     }
 
@@ -23,8 +25,10 @@ public class DynamicYDepthSort : MonoBehaviour
 
     private void UpdateSortingOrder()
     {
-        int calculatedOrder = (int)(-transform.position.y * Y_AXIS_MULTIPLIER) + baseSortingOrder;
+        // Y좌표에 따른 기본 순서 + 개별 오프셋 적용
+        int calculatedOrder = (int)(-transform.position.y * Y_AXIS_MULTIPLIER) + baseSortingOrder + sortOffset;
 
+        // 최소 1 이상 유지 (배경보다 앞)
         int finalOrder = Mathf.Max(calculatedOrder, 1); 
 
         foreach (var r in renderers)

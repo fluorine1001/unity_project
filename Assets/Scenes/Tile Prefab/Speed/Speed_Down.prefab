@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5509938623355523184}
   - component: {fileID: 6172780182932208082}
   - component: {fileID: 225802418570719517}
+  - component: {fileID: 9431968194951072}
   m_Layer: 7
   m_Name: Speed_Down
   m_TagString: Untagged
@@ -179,3 +180,16 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &9431968194951072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7825602511852947053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d7d054f3ec662745b51fed6160a1bc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LaserObstacle
+  isTransparent: 0

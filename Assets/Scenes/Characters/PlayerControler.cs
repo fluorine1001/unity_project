@@ -68,10 +68,8 @@ public class PlayerController : MonoBehaviour
     {
         isMoving = true;
 
-        // 🔥 [디버깅] 플레이어가 이동을 시작할 때 StageManager에게 체크 요청
         if (StageManager.Instance != null)
         {
-            // Debug.Log($"[Player] 이동 시작. Pos: {transform.position}, Dir: {dir}. 스테이지 체크 요청...");
             StageManager.Instance.CheckStageTransitionOnExit(transform.position, dir);
         }
 
@@ -105,6 +103,22 @@ public class PlayerController : MonoBehaviour
         }
 
         rb.MovePosition(end);
+
+        // ==========================================================
+        // ✅ [추가] 이동 완료 후 현재 위치한 스테이지 번호 로그 출력
+        // ==========================================================
+        var generator = FindObjectOfType<GeneratorManager>();
+        if (generator != null)
+        {
+            int stageID = generator.GetStageIndexFromWorldPos(new Vector3(end.x, end.y, 0));
+            if (stageID != -1)
+                Debug.Log($"<color=white>👣 [Player Move]</color> 현재 위치: {end} ➡ <color=yellow><b>Stage {stageID}</b></color>");
+            else
+                Debug.Log($"<color=gray>👣 [Player Move]</color> 현재 위치: {end} ➡ <b>구역 외 지역</b>");
+            generator.GetStageIndexFromWorldPos(new Vector3(end.x, end.y, 0));
+        }
+        // ==========================================================
+
         EndMoveLook();
         isMoving = false;
 
