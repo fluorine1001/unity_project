@@ -143,12 +143,24 @@ public class BulletFire : MonoBehaviour
 
     private bool IsFirePressed()
     {
-        // 🔥 [추가] 탄약이 없으면 발사 불가
+        // 1. 탄약이 없으면 발사 불가
         if (StageManager.Instance != null && !StageManager.Instance.HasAmmo())
         {
             return false; 
         }
-        // UI를 클릭 중이라면 발사하지 않음
+
+        // ✅ 2. [신규] 플레이어가 Blocker 타일 위에 있으면 발사 불가
+        if (playerTransform != null && GeneratorManager.Instance != null)
+        {
+            // 플레이어의 현재 위치가 블로커 타일인지 확인
+            if (GeneratorManager.Instance.IsBlockerTile(playerTransform.position))
+            {
+                // Debug.Log("벽 안에서는 총알을 발사할 수 없습니다.");
+                return false;
+            }
+        }
+
+        // 3. UI를 클릭 중이라면 발사하지 않음
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
         {
             return false;

@@ -31,6 +31,8 @@ public class TilePlacementManager : MonoBehaviour
     private GameObject ghostRoot;
     private List<SpriteRenderer> ghostRenderers = new List<SpriteRenderer>();
 
+    private int startStageIndex; // 드래그 시작 시점의 스테이지 번호 저장
+
     private void Awake() 
     { 
         Instance = this; 
@@ -85,6 +87,21 @@ public class TilePlacementManager : MonoBehaviour
     {
         if (!isDragging) return;
 
+        // ✅ [추가] 스테이지 변경 감지
+        if (StageManager.Instance != null && GeneratorManager.Instance != null)
+        {
+            int currentStage = GeneratorManager.Instance.GetStageIndexFromWorldPos(playerTransform.position);
+            
+            // 드래그 시작할 때의 스테이지와 현재 스테이지가 다르면 강제 취소
+            if (currentStage != startStageIndex)
+            {
+                CancelDrag();
+                return;
+            }
+        }
+
+        UpdateGhostVisual(lastScreenPos);
+
         bool rotateInput = false;
 
         // R키 또는 우클릭으로 회전
@@ -118,6 +135,12 @@ public class TilePlacementManager : MonoBehaviour
         currentUI = ui;
         lastScreenPos = startScreenPos;
 
+        // ✅ [추가] 드래그 시작 시점의 스테이지 인덱스 저장
+        if (GeneratorManager.Instance != null && playerTransform != null)
+        {
+            startStageIndex = GeneratorManager.Instance.GetStageIndexFromWorldPos(playerTransform.position);
+        }
+
         // 드래그할 셀 데이터 복사
         workingCells.Clear();
         foreach (var cell in def.cells)
@@ -127,6 +150,29 @@ public class TilePlacementManager : MonoBehaviour
 
         CreateGhost();
         UpdateGhostVisual(lastScreenPos);
+    }
+
+    // ✅ [추가] 강제 취소 함수 (효과음 없음)
+    public void CancelDrag()
+    {
+        if (!isDragging) return;
+        
+        isDragging = false;
+        
+        // 고스트 제거 및 변수 초기화 (효과음 재생 및 물체 생성 안 함)
+        if (ghostRoot) Destroy(ghostRoot);
+        
+        // PaletteItemUI가 투명해진 상태라면 다시 복구
+        if (currentUI != null)
+        {
+            var group = currentUI.GetComponent<CanvasGroup>();
+            if (group != null) group.alpha = 1.0f;
+        }
+
+        currentUI = null;
+        workingCells.Clear();
+        
+        Debug.Log("[TilePlacementManager] 스테이지 변경으로 인해 드래그가 취소되었습니다.");
     }
 
     public void UpdateDrag(Vector3 screenPos)
@@ -209,25 +255,22 @@ public class TilePlacementManager : MonoBehaviour
         return targetTilemap.WorldToCell(simpleWorld);
     }
 
-    // =========================================================
-    // 👻 고스트(미리보기) 처리 - 시인성 개선됨
-    // =========================================================
-
     private void UpdateGhostVisual(Vector3 screenPos)
     {
         if (ghostRoot == null) return;
         Vector3Int cellPos = GetCellPosFromScreen(screenPos);
         
-        // 🔥 [개선] Z축을 -5f로 설정하여 모든 오브젝트보다 앞에 표시
+        // 위치 업데이트
         Vector3 worldPos = targetTilemap.GetCellCenterWorld(cellPos);
         worldPos.z = -5f; 
         ghostRoot.transform.position = worldPos;
 
+        // ✅ 실시간 유효성 검사
         bool isValid = IsPositionValid(cellPos);
         
-        // 🔥 [개선] Alpha값을 0.8로 올려서 진하게 표시 + 색상 구분 명확화
-        Color validColor = new Color(0.6f, 1f, 0.6f, 0.5f);   // 연두색
-        Color invalidColor = new Color(1f, 0.2f, 0.2f, 0.5f); // 진한 빨강
+        // 시각적 피드백 (Alpha값을 적절히 조절하여 시인성 확보)
+        Color validColor = new Color(0.6f, 1f, 0.6f, 0.5f);   // 설치 가능 (연두색)
+        Color invalidColor = new Color(1f, 0.2f, 0.2f, 0.5f); // 설치 불가 (빨간색)
 
         SetGhostColor(isValid ? validColor : invalidColor);
     }
@@ -298,6 +341,23 @@ public class TilePlacementManager : MonoBehaviour
         }
 
         Vector3 worldPos = targetTilemap.GetCellCenterWorld(pos);
+
+        // ✅ [추가] 스테이지 일치 여부 확인 (다른 스테이지 설치 방지)
+        if (GeneratorManager.Instance != null && StageManager.Instance != null)
+        {
+            // 설치하려는 타일 좌표의 스테이지 인덱스 가져오기
+            int tileStageIndex = GeneratorManager.Instance.GetStageIndexFromWorldPos(worldPos);
+            
+            // 현재 플레이어가 활성화 중인 스테이지 인덱스 가져오기
+            int currentActiveStage = StageManager.Instance.currentStage;
+
+            // 설치하려는 위치가 현재 스테이지가 아니라면 설치 불가
+            if (tileStageIndex != currentActiveStage)
+            {
+                // Debug.Log($"[TilePlacement] 다른 스테이지 영역입니다. (타일:{tileStageIndex} / 현재:{currentActiveStage})");
+                return false;
+            }
+        }
 
         // 2. 🔥 StageManager에게 ClearTile인지 확인
         if (StageManager.Instance != null)
