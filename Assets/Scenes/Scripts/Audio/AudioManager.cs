@@ -58,7 +58,8 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        InitializeMusic(FMODEvents.instance.Scene1Music);
+        if(StageManager.Instance.sceneIndex==0) InitializeMusic(FMODEvents.instance.Scene1Music);
+        else if(StageManager.Instance.sceneIndex==1) InitializeMusic(FMODEvents.instance.Scene2Music);
     }
 
     private void InitializeMusic(EventReference musicEventReference)

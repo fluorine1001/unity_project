@@ -58,18 +58,16 @@ public class PushableBox2D : FunctionalTile
 
     private void HandleHit(Vector2 dir, float speed, GameObject bulletGO)
     {
-        // 1️⃣ [복구됨] 속도가 임계값 이상이면 상자 파괴 (이동 로직보다 먼저 수행)
+        // 1️⃣ 속도가 임계값 이상이면 상자 파괴
         if (speed >= breakSpeedThreshold)
         {
             AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxBroken, this.transform.position);
             
-            // 총알 제거 옵션 확인
             if (destroyBulletOnBreak && bulletGO != null) 
                 Destroy(bulletGO);
             
-            // 상자 파괴
             Destroy(gameObject);
-            return; // 여기서 함수 종료 (이동 안 함)
+            return; 
         }
 
         // 2️⃣ 이동 칸 수 계산
@@ -101,10 +99,21 @@ public class PushableBox2D : FunctionalTile
             Vector2Int nextCoord = gridCoord + new Vector2Int((int)Mathf.Round(dir.x), (int)Mathf.Round(dir.y));
             Vector3 nextWorld = GridToWorld(nextCoord);
 
-            // ✅ [추가됨] 다음 위치가 ClearTile(클리어 구역)이면 이동 막기
+            // ✅ [추가] 다음 위치가 GeneratorManager에 등록된 BlockerTile인지 확인
+            if (GeneratorManager.Instance != null)
+            {
+                // GeneratorManager의 WorldToCell을 이용해 좌표 변환 후 Blocker 여부 확인
+                // (GeneratorManager에 public bool IsBlocker(Vector3 pos) 함수를 추가했다면 그것을 호출)
+                if (IsNextStepBlocker(nextWorld)) 
+                {
+                    break; // 블로커 타일을 만났으므로 루프 중단
+                }
+            }
+
+            // ✅ [기존] 다음 위치가 ClearTile(클리어 구역)이면 이동 막기
             if (StageManager.Instance != null && StageManager.Instance.IsClearTile(nextWorld))
             {
-                break; // 루프 탈출 (이동 불가)
+                break; 
             }
 
             // ✔ (1) 구멍(Hole) 검사
@@ -114,21 +123,21 @@ public class PushableBox2D : FunctionalTile
                 HoleTile hole = holeCol.GetComponent<HoleTile>();
                 if (hole != null && hole.IsEmpty())
                 {
-                    hole.FillHole();            // 구멍 채우기
-                    Destroy(gameObject);        // 박스 삭제
+                    hole.FillHole();            
+                    Destroy(gameObject);        
 
                     if (consumeBulletOnPush && bulletGO != null)
                         Destroy(bulletGO);
 
-                    return; // 상자가 구멍에 빠졌으므로 종료
+                    return; 
                 }
             }
 
-            // ✔ (2) 일반 장애물(벽, 다른 상자 등) 검사
+            // ✔ (2) 일반 장애물(LayerMask 기반 벽, 다른 상자 등) 검사
             Collider2D hit = Physics2D.OverlapBox(nextWorld, halfExtents * 2f, 0f, blockingMask);
             if (hit != null && hit.gameObject != this.gameObject)
             {
-                break; // 장애물 만남 -> 이동 중단
+                break; 
             }
 
             // ✔ (3) 이동 가능 -> 좌표 갱신
@@ -146,6 +155,16 @@ public class PushableBox2D : FunctionalTile
         MoveTo(snappedPos);
 
         if (consumeBulletOnPush && bulletGO != null) Destroy(bulletGO);
+    }
+
+    // ✅ 헬퍼 함수: GeneratorManager의 데이터를 사용하여 블로커 여부 판별
+    private bool IsNextStepBlocker(Vector3 worldPos)
+    {
+        if (GeneratorManager.Instance == null) return false;
+        
+        // GeneratorManager 내부의 allBlockerPositions 리스트를 참조하여 체크
+        // GeneratorManager에 해당 리스트를 조회하는 함수가 필요합니다.
+        return GeneratorManager.Instance.IsBlockerTile(worldPos); 
     }
 
     private void MoveTo(Vector3 targetPos)

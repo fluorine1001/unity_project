@@ -54,6 +54,20 @@ public class GeneratorManager : MonoBehaviour
     // 스테이지에 속하지 않는 타일은 키가 존재하지 않음
     private Dictionary<Vector3Int, int> tileStageMap = new Dictionary<Vector3Int, int>();
 
+    // ✅ 1. 싱글톤 인스턴스 정의 (추가)
+    public static GeneratorManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        // ✅ 2. 싱글톤 초기화 (추가)
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
     private void Start()
     {
         if (spawnParent == null)
@@ -79,6 +93,17 @@ public class GeneratorManager : MonoBehaviour
             if (!prefabDict.ContainsKey(mapping.tileName)) prefabDict.Add(mapping.tileName, mapping.prefab);
         }
     }
+
+    // GeneratorManager.cs 내부에 추가
+    public bool IsBlockerTile(Vector3 worldPos)
+    {
+        if (generatorTilemap == null) return false;
+        Vector3Int cellPos = generatorTilemap.WorldToCell(worldPos);
+        
+        // 분석 단계에서 수집한 블로커 좌표 리스트에 포함되어 있는지 확인
+        return allBlockerPositions.Contains(cellPos);
+    }
+
     private bool IsWalkableTile(Vector3Int pos)
     {
         // generatorTilemap 혹은 groundTilemap 둘 중 하나에라도 타일 데이터가 있는지 확인

@@ -98,6 +98,9 @@ public class MirrorPushable : FunctionalTile
     // =========================================================
     // ✅ 2. 이동 로직 (즉시 이동)
     // =========================================================
+    // =========================================================
+    // ✅ 이동 로직 (즉시 이동) - Blocker 및 ClearTile 체크 강화
+    // =========================================================
     private void TryMoveInstant(Vector2 dir, GameObject bulletGO)
     {
         Vector2 currentGridPos = WorldToGrid(transform.position);
@@ -109,24 +112,31 @@ public class MirrorPushable : FunctionalTile
         
         Vector3 nextWorldPos = GridToWorld(nextGridPos);
 
-        // A. 장애물 체크
+        // 1. [추가] GeneratorManager를 통한 Blocker 타일 체크
+        if (GeneratorManager.Instance != null && GeneratorManager.Instance.IsBlockerTile(nextWorldPos))
+        {
+            if (consumeBullet && bulletGO != null) Destroy(bulletGO);
+            return; // 블로커 타일이므로 이동 불가
+        }
+
+        // 2. [기존/보완] StageManager를 통한 클리어 타일 체크
+        if (StageManager.Instance != null && StageManager.Instance.IsClearTile(nextWorldPos))
+        {
+            if (consumeBullet && bulletGO != null) Destroy(bulletGO);
+            return; // 클리어 구역이므로 이동 불가
+        }
+
+        // 3. [기존] 일반 오브젝트 장애물 체크 (Physics2D)
         Vector2 halfSize = Vector2.one * (cellSize * 0.4f);
         Collider2D hit = Physics2D.OverlapBox(nextWorldPos, halfSize, 0f, blockingMask);
         
         if (hit != null && hit.gameObject != gameObject && hit.gameObject != bulletGO)
         {
             if (consumeBullet && bulletGO != null) Destroy(bulletGO);
-            return;
+            return; // 벽이나 다른 상자 등이 있으므로 이동 불가
         }
 
-        // B. 클리어 타일 체크
-        if (StageManager.Instance != null && StageManager.Instance.IsClearTile(nextWorldPos))
-        {
-            if (consumeBullet && bulletGO != null) Destroy(bulletGO);
-            return;
-        }
-
-        // C. 이동 실행
+        // --- 이동 실행 ---
         if (consumeBullet && bulletGO != null) Destroy(bulletGO);
 
         if (AudioManager.instance != null)

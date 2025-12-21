@@ -8,6 +8,11 @@ public class StageManager : MonoBehaviour
     public static StageManager Instance { get; private set; }
 
     [Header("Stage Control")]
+    // ✅ 현재 씬의 번호를 저장하는 변수
+    [Tooltip("현재 스테이지가 속한 씬의 인덱스 번호입니다.")]
+    public int sceneIndex = 0;
+
+    [Header("Stage Control")]
     public int currentStage = 0;
     
     // ✅ 최고 도달 스테이지 (체크포인트 역할)
