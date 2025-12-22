@@ -57,6 +57,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 7432
   lineRendererPrefab: {fileID: 1673289985074945238, guid: e71aca90d20f71546ad6e3e58754fb6d, type: 3}
+  blockingTags:
+  - LaserBlocker
   laserWidth: 0.6
 --- !u!61 &-3819773751971708542
 BoxCollider2D:

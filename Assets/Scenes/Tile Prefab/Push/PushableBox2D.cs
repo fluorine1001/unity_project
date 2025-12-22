@@ -20,10 +20,10 @@ public class PushableBox2D : FunctionalTile
 
     protected override void Awake()
     {
-        base.Awake(); // FunctionalTile에 Awake가 있다면 호출
+        base.Awake(); 
 
         var col = GetComponent<Collider2D>();
-        if (col != null) col.isTrigger = false; // 충돌 감지를 위해 Trigger 끄기
+        if (col != null) col.isTrigger = false; 
 
         _rb2d = GetComponent<Rigidbody2D>();
         if (_rb2d == null) _rb2d = gameObject.AddComponent<Rigidbody2D>();
@@ -33,7 +33,6 @@ public class PushableBox2D : FunctionalTile
         _rb2d.useFullKinematicContacts = true;
     }
 
-    // 충돌 발생 시 호출
     private void OnCollisionEnter2D(Collision2D collision)
     {
         var bullet = collision.collider.GetComponent<BulletFire>();
@@ -50,8 +49,6 @@ public class PushableBox2D : FunctionalTile
         var rb = bullet.GetComponent<Rigidbody2D>();
         if (rb == null) return;
 
-        // [주의] Unity 6 이전 버전(2022 등)이라면 rb.linearVelocity 대신 rb.velocity를 사용해야 합니다.
-        // 여기서는 주신 코드대로 linearVelocity를 사용합니다. 에러나면 .velocity로 바꾸세요.
 #if UNITY_6000_0_OR_NEWER
         Vector2 velocity = rb.linearVelocity;
 #else
@@ -59,13 +56,7 @@ public class PushableBox2D : FunctionalTile
 #endif
 
         Vector2 dir = velocity.normalized;
-        
-        // 속도 계산 로직
-        // GameConfig.SpeedScale이 너무 크면 logicalSpeed가 작아져서 안 움직일 수 있습니다.
         float logicalSpeed = velocity.magnitude / GameConfig.SpeedScale;
-
-        // 디버깅: 속도 확인
-        // Debug.Log($"[Box] Hit! BulletVel: {velocity.magnitude}, LogicalSpeed: {logicalSpeed}");
 
         HandleHit(dir, logicalSpeed, bullet.gameObject);
     }
@@ -92,17 +83,16 @@ public class PushableBox2D : FunctionalTile
         }
 
         // 2️⃣ 이동 칸 수 계산
-        // 여기서 steps가 0이 나오면 "아예 안 밀리는" 현상이 발생합니다.
         int steps = Mathf.FloorToInt(Mathf.Max(0f, speed - decayPerHit));
         
         if (steps <= 0)
         {
-            Debug.LogWarning($"[Box] 힘이 부족함. Speed({speed}) - Decay({decayPerHit}) < 1. Steps: 0");
+            Debug.LogWarning($"[Box] 힘이 부족함. Steps: 0");
             if (consumeBulletOnPush && bulletGO != null) Destroy(bulletGO);
             return;
         }
 
-        // 3️⃣ 축 정렬 (이동 방향 보정)
+        // 3️⃣ 축 정렬
         if (axisAlignedPush)
         {
             if (Mathf.Abs(dir.x) >= Mathf.Abs(dir.y))
@@ -117,7 +107,7 @@ public class PushableBox2D : FunctionalTile
 
         int actualSteps = 0;
 
-        // 4️⃣ 이동 시뮬레이션
+        // 4️⃣ 이동 시뮬레이션 (벽 체크만 수행, 구멍은 무시)
         for (int i = 0; i < steps; i++)
         {
             Vector2Int nextCoord = gridCoord + new Vector2Int((int)Mathf.Round(dir.x), (int)Mathf.Round(dir.y));
@@ -126,7 +116,7 @@ public class PushableBox2D : FunctionalTile
             // (A) GeneratorManager Blocker 체크
             if (IsNextStepBlocker(nextWorld)) 
             {
-                Debug.Log("[Box] GeneratorManager Blocker에 막힘");
+                Debug.Log("[Box] 벽에 막힘");
                 break;
             }
 
@@ -137,29 +127,20 @@ public class PushableBox2D : FunctionalTile
                 break; 
             }
 
-            // (C) 구멍(Hole) 체크
-            Collider2D holeCol = Physics2D.OverlapPoint(nextWorld);
-            if (holeCol != null)
-            {
-                HoleTile hole = holeCol.GetComponent<HoleTile>();
-                if (hole != null && hole.IsEmpty())
-                {
-                    hole.FillHole();            
-                    Destroy(gameObject);        
-
-                    if (consumeBulletOnPush && bulletGO != null)
-                        Destroy(bulletGO);
-
-                    return; // 구멍에 빠지면 즉시 종료
-                }
-            }
-
-            // (D) 일반 장애물(벽, 다른 상자) 체크
+            // (C) 일반 장애물(벽, 다른 상자) 체크
             Collider2D hit = Physics2D.OverlapBox(nextWorld, halfExtents * 2f, 0f, blockingMask);
             if (hit != null && hit.gameObject != this.gameObject)
             {
-                Debug.Log($"[Box] 장애물에 막힘: {hit.gameObject.name}");
-                break; 
+                // [중요 수정] 장애물이 'HoleTile'이라면, 벽이 아니므로 멈추지 않고 통과합니다.
+                if (hit.GetComponent<HoleTile>() != null)
+                {
+                    // 구멍은 장애물이 아님 -> 통과 (Loop 계속 진행)
+                }
+                else
+                {
+                    Debug.Log($"[Box] 장애물에 막힘: {hit.gameObject.name}");
+                    break; // 진짜 벽이면 멈춤
+                }
             }
 
             // 이동 가능 확정
@@ -167,20 +148,51 @@ public class PushableBox2D : FunctionalTile
             actualSteps++;
         }
 
-        // 5️⃣ 실제 이동 처리
+        // 5️⃣ 실제 이동 처리 및 최종 위치 구멍 체크
         if (actualSteps > 0)
         {
             AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxPushed, this.transform.position);
             Vector3 snappedPos = GridToWorld(gridCoord);
+            
+            // 이동
             MoveTo(snappedPos);
             Debug.Log($"[Box] {actualSteps}칸 이동 완료");
+
+            // [NEW] 이동 완료 후 최종 위치에서 구멍(Hole) 체크
+            CheckFinalPositionForHole(snappedPos, bulletGO);
         }
         else
         {
-             Debug.Log($"[Box] 이동 시도했으나 모든 경로가 막힘 (Steps: {steps}, Actual: 0)");
+             Debug.Log($"[Box] 이동 불가 (Steps: {steps}, Actual: 0)");
         }
 
+        // 총알 제거 (구멍에 빠지지 않았을 때만 여기서 제거, 빠졌으면 CheckFinalPositionForHole 내부에서 처리됨)
+        // 안전하게 처리하기 위해 bulletGO가 null이 아닌 경우만 파괴
         if (consumeBulletOnPush && bulletGO != null) Destroy(bulletGO);
+    }
+
+    // 최종 위치에 구멍이 있는지 확인하고 처리하는 함수
+    private void CheckFinalPositionForHole(Vector3 targetPos, GameObject bulletGO)
+    {
+        // 겹쳐있는 모든 콜라이더 확인 (박스 자신도 포함될 수 있으니 주의)
+        Collider2D[] hits = Physics2D.OverlapPointAll(targetPos);
+        
+        foreach (var hit in hits)
+        {
+            HoleTile hole = hit.GetComponent<HoleTile>();
+            // 구멍이 존재하고 비어있다면
+            if (hole != null && hole.IsEmpty())
+            {
+                hole.FillHole();     // 구멍 채우기
+                Destroy(gameObject); // 상자 파괴
+
+                // 총알도 즉시 제거 (상위 함수에서 중복 제거되지 않도록 null 체크 하므로 안전)
+                if (consumeBulletOnPush && bulletGO != null)
+                    Destroy(bulletGO);
+
+                return; // 처리 끝
+            }
+        }
     }
 
     private bool IsNextStepBlocker(Vector3 worldPos)
@@ -200,7 +212,6 @@ public class PushableBox2D : FunctionalTile
     private Vector2 GetHalfExtents()
     {
         var box = GetComponent<BoxCollider2D>();
-        // 박스 크기를 약간 줄여서(0.95배) 옆 타일과 겹치는 문제 방지
         return box ? box.size * 0.5f * AbsVec2(transform.lossyScale) * 0.95f : Vector2.one * (cellSize * 0.45f);
     }
 

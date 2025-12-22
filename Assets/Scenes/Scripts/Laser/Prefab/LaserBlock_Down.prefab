@@ -55,7 +55,7 @@ MonoBehaviour:
   maxBounces: 20
   hitMask:
     serializedVersion: 2
-    m_Bits: 7432
+    m_Bits: 4294967295
   lineRendererPrefab: {fileID: 1673289985074945238, guid: e71aca90d20f71546ad6e3e58754fb6d, type: 3}
   laserWidth: 0.6
 --- !u!61 &1202714607241367196

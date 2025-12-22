@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Wall
   - wall
+  - LaserBlocker
+  - SpeedTile
+  - DespeedTile
   layers:
   - Default
   - TransparentFX

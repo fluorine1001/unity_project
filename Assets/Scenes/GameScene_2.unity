@@ -2135,8 +2135,8 @@ Tilemap:
   - first: {x: 63, y: -3, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 20
-      m_TileSpriteIndex: 20
+      m_TileIndex: 23
+      m_TileSpriteIndex: 17
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -8385,8 +8385,8 @@ Tilemap:
   - first: {x: 63, y: 4, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 26
-      m_TileSpriteIndex: 19
+      m_TileIndex: 29
+      m_TileSpriteIndex: 29
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -9484,25 +9484,25 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: d8c31abf3a42955459d9a07e8c0c2a0b, type: 2}
   - m_RefCount: 6
     m_Data: {fileID: 11400000, guid: bf0f8f58f46ec624e8c7d50b010dd546, type: 2}
-  - m_RefCount: 15
+  - m_RefCount: 14
     m_Data: {fileID: 11400000, guid: 6973674fa6a79b94fbc2b2afaea9d4ed, type: 2}
   - m_RefCount: 10
     m_Data: {fileID: 11400000, guid: 770a8b6113c838d44aed0f9819bf2531, type: 2}
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 5
+  - m_RefCount: 6
     m_Data: {fileID: 11400000, guid: d834ccf6b8dc86d42914357125016a5e, type: 2}
   - m_RefCount: 0
     m_Data: {fileID: 0}
   - m_RefCount: 3
     m_Data: {fileID: 11400000, guid: 4260b424fe5211245a401a0fd3f558f6, type: 2}
-  - m_RefCount: 32
+  - m_RefCount: 31
     m_Data: {fileID: 11400000, guid: 2fa63100184430541824dc91d2c9f531, type: 2}
   - m_RefCount: 4
     m_Data: {fileID: 11400000, guid: f5c8dc33bd7108c4f94fd5c978a4362f, type: 2}
   - m_RefCount: 6
     m_Data: {fileID: 11400000, guid: 4cfb27a3a795787489ef91207aaf6bee, type: 2}
-  - m_RefCount: 19
+  - m_RefCount: 20
     m_Data: {fileID: 11400000, guid: a11d401b143de6f4497c583bfeb9db09, type: 2}
   - m_RefCount: 5
     m_Data: {fileID: 11400000, guid: 319b8f7c6e317b84fb0e06a522d99276, type: 2}
@@ -9541,13 +9541,13 @@ Tilemap:
     m_Data: {fileID: 6572497905155425096, guid: a074e718391d14e409d41c66881b2fba, type: 3}
   - m_RefCount: 6
     m_Data: {fileID: 6819990038148440687, guid: b0cff195f7a942f48a0f42a6a46cd5b1, type: 3}
-  - m_RefCount: 8
+  - m_RefCount: 9
     m_Data: {fileID: 191808093226141285, guid: 667fbfe79d61c6d439b0dddf91c0da04, type: 3}
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 32
+  - m_RefCount: 31
     m_Data: {fileID: 6832969521616369221, guid: 51ed5cc88155cf04ba1174ecc8bbb854, type: 3}
-  - m_RefCount: 15
+  - m_RefCount: 14
     m_Data: {fileID: 4455322281995055512, guid: 55fad86260f6a054ea729a25c56d51f2, type: 3}
   - m_RefCount: 10
     m_Data: {fileID: -3838113514846946, guid: 6f53fbc65c231554db5c6748190ad6b8, type: 3}
@@ -9565,7 +9565,7 @@ Tilemap:
     m_Data: {fileID: 6643361344309109725, guid: 774e8556886ecab4d9a260aa74598e66, type: 3}
   - m_RefCount: 6
     m_Data: {fileID: -1584790374615076940, guid: 59dc0a5d58cf79247a518ca042c44c55, type: 3}
-  - m_RefCount: 19
+  - m_RefCount: 20
     m_Data: {fileID: 3903270916822696662, guid: b6792ec09bf87ea4ead1c0c0f808827b, type: 3}
   - m_RefCount: 5
     m_Data: {fileID: 5574273982585983708, guid: 7c218e999676166418a31f5eea2c6c3e, type: 3}
@@ -24352,8 +24352,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageManager
   sceneIndex: 2
-  currentStage: 0
-  highestReachedStage: 0
+  currentStage: 3
+  highestReachedStage: 3
   maxClearedStage: 10
   cameraPositions: []
   cameraMoveSpeed: 1
@@ -27094,9 +27094,9 @@ MonoBehaviour:
   - tileName: mirror-left-to-up-nof_0
     prefab: {fileID: 8178340932578773788, guid: 6c9a9906a139a224588c40fba8716822, type: 3}
   - tileName: mirror-right-to-down_0
-    prefab: {fileID: 6965485686774366033, guid: 4685d86f08bddb14db5a93d17865ad8d, type: 3}
-  - tileName: mirror-left-to-down_0
     prefab: {fileID: 2874276391229169491, guid: 704955506acf729499a7726fc488202f, type: 3}
+  - tileName: mirror-left-to-down_0
+    prefab: {fileID: 6965485686774366033, guid: 4685d86f08bddb14db5a93d17865ad8d, type: 3}
   - tileName: mirror-square-ver3_0
     prefab: {fileID: 3652366282191737765, guid: a3b8af3893a4ae5459a551df9fbf8e6b, type: 3}
   - tileName: mirror-right-to-up-nof_0
