@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -3639133148502330837, guid: 776d7da28b299a942b628645984540e4, type: 3}
+  m_Sprite: {fileID: 6832969521616369221, guid: 51ed5cc88155cf04ba1174ecc8bbb854, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -130,8 +130,8 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5.12, y: 5.12}
+    pivot: {x: 0.5, y: 0.35164836}
+    oldSize: {x: 5.12, y: 7.28}
     newSize: {x: 5.12, y: 5.12}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -152,8 +152,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LaserTargetBlock
   isTarget: 0
-  offSprite: {fileID: -3639133148502330837, guid: 776d7da28b299a942b628645984540e4, type: 3}
-  onSprite: {fileID: 4573982945170551656, guid: 1909ae8f62ec2ce47a8a61837b56400c, type: 3}
+  offSprite: {fileID: 6832969521616369221, guid: 51ed5cc88155cf04ba1174ecc8bbb854, type: 3}
+  onSprite: {fileID: 7803045420892937696, guid: 7f058515e464e9a449dc818688391d2f, type: 3}
 --- !u!114 &-5639429346439381128
 MonoBehaviour:
   m_ObjectHideFlags: 0

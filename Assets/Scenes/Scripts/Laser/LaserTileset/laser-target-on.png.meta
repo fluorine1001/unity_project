@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: ffeafd07cd91a9f4daeebeebbbf97bff
+guid: 28de37513ccf9f54a96c1355d05dd078
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8028226994099793745
-    second: mirror_tri_rightup (1)_0
+      213: 3491914581498244485
+    second: laser-target-on_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: mirror_tri_rightup (1)_0
+      name: laser-target-on_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 640
-        height: 640
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        height: 910
+      alignment: 9
+      pivot: {x: 0.5, y: 0.35164836}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fa0da709512069090800000000000000
-      internalID: -8028226994099793745
+      spriteID: 58da5389fc5c57030800000000000000
+      internalID: 3491914581498244485
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: d61d5380cadb3c446ab332481d77e0c5
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      mirror_tri_rightup (1)_0: -8028226994099793745
+      laser-target-on_0: 3491914581498244485
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -10,10 +10,9 @@ public class LaserTargetBlock : MonoBehaviour, ILaserInteractable
     public bool isTarget = true;
 
     [Header("Visuals")]
-    public Sprite offSprite; // 평소 이미지
-    public Sprite onSprite;  // 레이저 닿았을 때 이미지
+    public Sprite offSprite; 
+    public Sprite onSprite;  
 
-    // 현재 활성화 여부
     public bool IsActive { get; private set; } = false;
     public int StageID { get; private set; } = -1;
 
@@ -25,14 +24,12 @@ public class LaserTargetBlock : MonoBehaviour, ILaserInteractable
         spriteRenderer = GetComponent<SpriteRenderer>();
         UpdateSprite();
 
-        // 1. 스테이지 번호 찾기
         var generator = FindObjectOfType<GeneratorManager>();
         if (generator != null)
         {
             StageID = generator.GetStageIndexFromWorldPos(transform.position);
         }
 
-        // 2. StageManager에 등록
         if (StageManager.Instance != null && StageID != -1)
         {
             StageManager.Instance.RegisterPuzzleBlock(StageID, this);
@@ -41,7 +38,7 @@ public class LaserTargetBlock : MonoBehaviour, ILaserInteractable
 
     private void LateUpdate()
     {
-        // 레이저가 이번 프레임에 닿았는지 여부로 상태 결정
+        // 이번 프레임에 레이저를 맞았는지 확인하여 상태 갱신
         bool newState = wasHitThisFrame;
 
         if (IsActive != newState)
@@ -49,7 +46,6 @@ public class LaserTargetBlock : MonoBehaviour, ILaserInteractable
             IsActive = newState;
             UpdateSprite();
 
-            // 상태 변화가 생기면 StageManager에게 문 검사 요청
             if (StageManager.Instance != null)
                 StageManager.Instance.CheckDoorState(StageID);
         }
@@ -58,12 +54,17 @@ public class LaserTargetBlock : MonoBehaviour, ILaserInteractable
         wasHitThisFrame = false;
     }
 
-    // 인터페이스 구현
+    // ✅ 인터페이스 구현 (수정됨)
     public LaserAction OnLaserHit(Vector2 inDir, out List<Vector2> outDirs)
     {
         wasHitThisFrame = true; // 레이저 맞음 표시
-        outDirs = null;
-        return LaserAction.Pass; // 레이저는 통과함 (Pass는 정의되어 있으므로 그대로 사용)
+        
+        // 반사각 없음 (흡수)
+        outDirs = null; 
+
+        // Reflect를 리턴하면 LaserEmitter는 충돌로 인식하고 Loop를 멈춤(break).
+        // 하지만 outDirs가 없으므로 새로운 레이저가 나가지 않음 -> 결과적으로 Stop.
+        return LaserAction.Reflect; 
     }
 
     private void UpdateSprite()
@@ -72,6 +73,7 @@ public class LaserTargetBlock : MonoBehaviour, ILaserInteractable
         
         if (IsActive && onSprite != null){
             spriteRenderer.sprite = onSprite;
+            // 오디오 재생
             if(isTarget) AudioManager.instance.PlayOneShot(FMODEvents.instance.TargetActivated, transform.position);
             else AudioManager.instance.PlayOneShot(FMODEvents.instance.NonTargetActivated, transform.position);
         }

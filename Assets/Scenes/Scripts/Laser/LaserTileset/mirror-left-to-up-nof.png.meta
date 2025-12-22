@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 4d25b2862c5385040853ede46636bad3
+guid: b0cff195f7a942f48a0f42a6a46cd5b1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -433251279572579174
-    second: mirror_tri_downright (1)_0
+      213: 6819990038148440687
+    second: mirror-left-to-up-nof_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: mirror_tri_downright (1)_0
+      name: mirror-left-to-up-nof_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 640
-        height: 640
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        height: 901
+      alignment: 9
+      pivot: {x: 0.5, y: 0.35516092}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a9cc796b148ccf9f0800000000000000
-      internalID: -433251279572579174
+      spriteID: f626a8b4ec875ae50800000000000000
+      internalID: 6819990038148440687
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 782c4bc84d50248458a4b8f887ac1a8d
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      mirror_tri_downright (1)_0: -433251279572579174
+      mirror-left-to-up-nof_0: 6819990038148440687
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
