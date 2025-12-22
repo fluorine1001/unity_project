@@ -64,51 +64,64 @@ public class PlayerController : MonoBehaviour
         prevInputWasZero = (movementInput == Vector2.zero);
     }
 
+    // PlayerController.cs 내 MoveOneCell 수정
+
+    // PlayerController.cs 내 MoveOneCell 코루틴 수정
+
     IEnumerator MoveOneCell(Vector2 dir)
     {
         isMoving = true;
-
-        if (StageManager.Instance != null)
-        {
-            StageManager.Instance.CheckStageTransitionOnExit(transform.position, dir);
-        }
-
+        Vector2 start = rb.position;
         Vector2 step = new Vector2(dir.x * cellSize.x, dir.y * cellSize.y);
+        Vector2 end = start + step; // 목적지 좌표
+
+        // 1. 충돌 검사
         castColisitions.Clear();
         float castDistance = step.magnitude + collisitionOffset;
-        
         int hitCount = rb.Cast(dir.normalized, movementFilter, castColisitions, castDistance);
 
         if (hitCount > 0)
         {
-            EndMoveLook(); 
+            EndMoveLook();
             isMoving = false;
             yield break;
         }
 
-        if (AudioManager.instance != null && FMODEvents.instance != null)
-            AudioManager.instance.PlayOneShot(FMODEvents.instance.PlayerDash, transform.position);
-        
-        Vector2 start = rb.position;
-        Vector2 end = start + step;
-        float t = 0f;
-        float dur = Mathf.Max(0.0001f, moveDuration);
-
-        while (t < 1f)
+        // 🔍 [이동 시작 로그] 목적지의 스테이지 번호를 미리 확인
+        if (GeneratorManager.Instance != null)
         {
-            t += Time.fixedDeltaTime / dur;
-            float s = Mathf.SmoothStep(0f, 1f, t);
-            rb.MovePosition(Vector2.Lerp(start, end, s));
-            yield return new WaitForFixedUpdate();
+            int targetStageIdx = GeneratorManager.Instance.GetStageIndexFromWorldPos(end);
+            Debug.Log($"<color=white>🏃 [Move Start]</color> 목적지: {end} | 예상 스테이지: <color=yellow>{targetStageIdx}</color>");
         }
 
+        // ✅ 스테이지 전환 체크
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.CheckStageTransition(end);
+        }
+
+        // 2. 실제 이동 처리
+        if (AudioManager.instance != null)
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.PlayerDash, transform.position);
+
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.fixedDeltaTime / moveDuration;
+            rb.MovePosition(Vector2.Lerp(start, end, Mathf.SmoothStep(0f, 1f, t)));
+            yield return new WaitForFixedUpdate();
+        }
         rb.MovePosition(end);
 
-        
+        // 🔍 [이동 종료 로그] 최종 도착지 스테이지 확인
+        if (GeneratorManager.Instance != null)
+        {
+            int finalStageIdx = GeneratorManager.Instance.GetStageIndexFromWorldPos(transform.position);
+            Debug.Log($"<color=lime>📍 [Move End]</color> 현재 위치: {transform.position} | 확정 스테이지: <color=cyan>{finalStageIdx}</color>");
+        }
 
         EndMoveLook();
         isMoving = false;
-
         CheckSpawnTile();
     }
 

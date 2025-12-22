@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: -1669007757896602361}
   - component: {fileID: 8814894971998936428}
   - component: {fileID: 1853084608919310143}
-  m_Layer: 7
+  m_Layer: 12
   m_Name: Mirror_Half_UpLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -225,7 +225,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7563783114728474593}
   - component: {fileID: 2664338235570610042}
-  m_Layer: 7
+  m_Layer: 12
   m_Name: mirror_half_rightup (1)_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}

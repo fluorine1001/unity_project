@@ -13,7 +13,7 @@ public class SpeedTile : FunctionalTile
         if (col != null) col.isTrigger = true;
     }
 
-    protected override void OnBulletHit(BulletFire bullet)
+    public override void OnBulletHit(BulletFire bullet)
     {
         if (bullet == null) return;
 

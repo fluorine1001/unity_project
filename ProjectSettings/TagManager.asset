@@ -18,8 +18,8 @@ TagManager:
   - Box
   - Obstacle
   - GlobalObstacle
-  - 
-  - 
+  - LaserObstacle
+  - Mirror
   - 
   - 
   - 

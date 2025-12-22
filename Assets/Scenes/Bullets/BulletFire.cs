@@ -17,7 +17,6 @@ public class BulletFire : MonoBehaviour
     [Header("Projectile Settings")]
     [SerializeField] private GameObject bulletProjectilePrefab;
     [SerializeField] private float projectileSpeed = 6f;          
-    [SerializeField] private float projectileLifetime = 4f;
     [SerializeField] private LayerMask wallLayers;
     [SerializeField] private string wallTag = "Wall";
 
@@ -34,7 +33,6 @@ public class BulletFire : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D col;
     private bool isProjectile;
-    private float lifeTimer;
     private Vector2 currentDirection = Vector2.down;
     private Transform playerTransform;
 
@@ -69,10 +67,8 @@ public class BulletFire : MonoBehaviour
         // === [수정됨] 발사체(총알) 상태일 때 처리 ===
         if (isProjectile)
         {
-            // 1. 수명 체크
-            lifeTimer += Time.deltaTime;
-            if (lifeTimer >= projectileLifetime)
-            {
+            float logicalSpeed = rb.linearVelocity.magnitude / GameConfig.SpeedScale;
+            if(logicalSpeed <= 0.5f){
                 Destroy(gameObject);
                 return;
             }
@@ -182,7 +178,7 @@ public class BulletFire : MonoBehaviour
     {
         isProjectile = true;
         currentDirection = direction.normalized;
-        lifeTimer = 0f;
+        
         transform.SetParent(null);
         UpdateOrientation(currentDirection);
         PrepareProjectileBody();
@@ -257,7 +253,7 @@ public class BulletFire : MonoBehaviour
     private void CopyProjectileSettingsFrom(BulletFire source)
     {
         projectileSpeed = source.projectileSpeed;
-        projectileLifetime = source.projectileLifetime;
+        
         wallLayers = source.wallLayers;
         wallTag = source.wallTag;
         destroyPushableWalls = source.destroyPushableWalls;

@@ -14,7 +14,8 @@ GameObject:
   - component: {fileID: -3748632918906840916}
   - component: {fileID: 2880374752490081120}
   - component: {fileID: 6398434531646694110}
-  m_Layer: 7
+  - component: {fileID: -3365474969224365200}
+  m_Layer: 10
   m_Name: LaserBlock_Right
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -54,7 +55,7 @@ MonoBehaviour:
   maxBounces: 20
   hitMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 7432
   lineRendererPrefab: {fileID: 1673289985074945238, guid: e71aca90d20f71546ad6e3e58754fb6d, type: 3}
   laserWidth: 0.6
 --- !u!61 &-3819773751971708542
@@ -94,8 +95,8 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 9.6, y: 9.1}
+    pivot: {x: 0.35164836, y: 0.37096965}
+    oldSize: {x: 7.68, y: 7.28}
     newSize: {x: 9.6, y: 9.1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -202,6 +203,19 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &-3365474969224365200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1523588662586189179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d7d054f3ec662745b51fed6160a1bc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LaserObstacle
+  isTransparent: 0
 --- !u!1 &2431932484777152346
 GameObject:
   m_ObjectHideFlags: 0
@@ -212,7 +226,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6814226548942860089}
   - component: {fileID: 4218232697238089373}
-  m_Layer: 7
+  m_Layer: 10
   m_Name: laser-fount-right-reboot_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}

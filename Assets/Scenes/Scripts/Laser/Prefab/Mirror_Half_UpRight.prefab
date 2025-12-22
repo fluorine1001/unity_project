@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3296447890039889218}
   - component: {fileID: 2325814063788638565}
-  m_Layer: 7
+  m_Layer: 12
   m_Name: mirror_half_rightdown (1)_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -105,7 +105,7 @@ GameObject:
   - component: {fileID: 354277149138428771}
   - component: {fileID: 2386152994089168795}
   - component: {fileID: 507838674099128614}
-  m_Layer: 7
+  m_Layer: 12
   m_Name: Mirror_Half_UpRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -304,4 +304,6 @@ MonoBehaviour:
   blockingMask:
     serializedVersion: 2
     m_Bits: 384
+  speedScale: 30
+  decayPerHit: 0
   consumeBullet: 1

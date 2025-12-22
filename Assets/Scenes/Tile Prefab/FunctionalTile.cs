@@ -20,5 +20,5 @@ public abstract class FunctionalTile : MonoBehaviour
     }
 
     // 🔸 구체 타일이 오버라이드해서 기능 구현
-    protected abstract void OnBulletHit(BulletFire bullet);
+    public abstract void OnBulletHit(BulletFire bullet);
 }

@@ -179,7 +179,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b10369b18f698441b0b89b66f1691da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageExit
-  nextSceneName: GameScene_2
+  nextSceneName: MainMenu
 --- !u!114 &-3284435908172872577
 MonoBehaviour:
   m_ObjectHideFlags: 0

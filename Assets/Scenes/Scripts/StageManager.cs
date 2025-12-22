@@ -63,9 +63,27 @@ public class StageManager : MonoBehaviour
 
     public event Action<int> OnAmmoChanged;
 
-    private Dictionary<int, int> stageAmmoSettings = new Dictionary<int, int>()
+    private Dictionary<(int, int), int> stageAmmoSettings = new Dictionary<(int, int), int>()
     {
-        { 0, 99 }, { 1, 5 }, { 2, 3 }, { 3, 4 },
+        // --- Scene 0 설정 ---
+        { (1, 0), 20 }, 
+        { (1, 1), 1 }, 
+        { (1, 2), 1 }, 
+        { (1, 3), 2 },
+        { (1, 4), 2 },
+        { (1, 5), 4 },
+        { (1, 6), 3 },
+        { (1, 7), 10 },
+        { (1, 8), 12 },
+        { (2, 0), 4 },
+        { (2, 1), 4 },
+        { (2, 2), 3 },
+        { (2, 3), 4 },
+        { (2, 4), 4 },
+        { (2, 5), 5 },
+        { (2, 6), 3 },
+        { (2, 7), 5 },
+
     };
 
     public int CurrentAmmo { get; private set; }
@@ -94,6 +112,7 @@ public class StageManager : MonoBehaviour
                 new Vector3(642.56f, 0f, 0f), 
                 new Vector3(750.08f, 0f, 0f), 
                 new Vector3(857.60f, 5.12f, 0f),
+                new Vector3(965.12f, 5.12f, 0f),
                 new Vector3(0f, 0f, 0f) 
             };
         }
@@ -131,6 +150,7 @@ public class StageManager : MonoBehaviour
         }
 
         SortTilesAndRefresh();
+        ResetGamePartial();
     }
 
     private void Update()
@@ -182,58 +202,137 @@ public class StageManager : MonoBehaviour
 
     private void InitializeStageLoadouts()
     {
+        Debug.Log($"<color=cyan>[Init] Loadout 초기화 시작. 현재 Scene Index 설정값: {this.sceneIndex}</color>");
+
         StageLoadout[] loadedLoadouts = Resources.LoadAll<StageLoadout>("StageLoadouts");
+
         if (loadedLoadouts != null && loadedLoadouts.Length > 0)
         {
+            Debug.Log($"[Init] Resources 폴더에서 총 {loadedLoadouts.Length}개의 파일을 찾았습니다.");
+
             stageLoadouts = loadedLoadouts
-                .OrderBy(x => {
+                .Select(x =>
+                {
                     string name = x.name.Replace("Stage_", "");
                     string[] parts = name.Split('-');
-                    return parts.Length > 0 && int.TryParse(parts[0], out int a) ? a : 0;
-                }).ToList();
+                    
+                    int sIndex = -1;
+                    int stIndex = -1;
+
+                    if (parts.Length >= 2)
+                    {
+                        int.TryParse(parts[0], out sIndex);
+                        int.TryParse(parts[1], out stIndex);
+                    }
+                    
+                    // 🔍 파싱 로그 (너무 많으면 주석 처리)
+                    // Debug.Log($"[Parsing] 파일명: {x.name} -> Scene: {sIndex}, Stage: {stIndex}");
+
+                    return new { Asset = x, SceneIdx = sIndex, StageIdx = stIndex };
+                })
+                .Where(item => 
+                {
+                    bool match = item.SceneIdx == this.sceneIndex;
+                    if (!match && item.SceneIdx == 2) 
+                    {
+                        // 혹시 Scene 2 데이터인데 걸러지는지 확인용 로그
+                        Debug.LogWarning($"[Filter] {item.Asset.name} (Scene {item.SceneIdx})이 현재 설정된 Scene Index ({this.sceneIndex})와 달라 제외됨.");
+                    }
+                    return match;
+                })
+                .OrderBy(item => item.StageIdx)
+                .Select(item => item.Asset)
+                .ToList();
+            
+            Debug.Log($"<color=green>[Init] 최종 로드된 리스트 개수: {stageLoadouts.Count}개 (Target Scene: {this.sceneIndex})</color>");
+            for(int i=0; i<stageLoadouts.Count; i++)
+            {
+                Debug.Log($"   [{i}번 인덱스] : {stageLoadouts[i].name}");
+            }
+        }
+        else
+        {
+            stageLoadouts = new List<StageLoadout>();
+            Debug.LogError("[Init] Resources/StageLoadouts 폴더에서 파일을 찾을 수 없습니다!");
         }
     }
 
     // =========================================================
     // 탄약 및 스테이지 관리
     // =========================================================
+    bool forceFlag = false;
+
     private void ReloadAmmo(int stageIndex)
     {
-        if (visitedStages.Contains(stageIndex)) return; 
-        visitedStages.Add(stageIndex);
+        // visitedStages 체크는 현재 씬 내에서의 중복 방문 방지용으로 유지하거나, 
+        // 씬까지 포함하여 체크하려면 HashSet<(int, int)>로 바꿔야 할 수도 있습니다.
+        // 일단 기존 로직(현재 씬 기준 stageIndex)을 유지합니다.
+        if (!forceFlag && visitedStages.Contains(stageIndex)) return; 
+        if (!forceFlag) visitedStages.Add(stageIndex);
+        if (forceFlag) forceFlag = false;
 
-        if (stageAmmoSettings.TryGetValue(stageIndex, out int maxAmmo)) CurrentAmmo = maxAmmo;
-        else CurrentAmmo = 0;
+        // ✅ 수정된 부분: (현재 씬 번호, 현재 스테이지 번호)로 딕셔너리 조회
+        if (stageAmmoSettings.TryGetValue((sceneIndex, stageIndex), out int maxAmmo)) 
+        {
+            CurrentAmmo = maxAmmo;
+        }
+        else 
+        {
+            // 설정값이 없으면 기본값 0 (혹은 원하는 기본값)
+            CurrentAmmo = 0; 
+        }
         
         OnAmmoChanged?.Invoke(CurrentAmmo);
     }
 
-    public void CheckStageTransitionOnExit(Vector3 playerPos, Vector2 moveDir)
+    // StageManager.cs
+
+    // 기존의 복잡한 체크 로직 대신, GeneratorManager의 데이터를 직접 활용합니다.
+    // StageManager.cs
+
+    public void CheckStageTransition(Vector3 targetWorldPos)
     {
-        if (Mathf.Abs(moveDir.y) > 0.01f) return;
-        if (!IsClearTile(playerPos)) return;
+        if (GeneratorManager.Instance == null) 
+        {
+            Debug.LogError("<color=red>[StageManager]</color> GeneratorManager 인스턴스를 찾을 수 없습니다!");
+            return;
+        }
 
-        int nextStage = currentStage;
-        if (moveDir.x > 0.01f) nextStage = currentStage + 1;
-        else if (moveDir.x < -0.01f) nextStage = currentStage - 1;
-        else return;
+        int targetStageIndex = GeneratorManager.Instance.GetStageIndexFromWorldPos(targetWorldPos);
 
-        ChangeStage(nextStage);
+        // 🔍 로그 4: 전환 체크 시점 로그
+        if (targetStageIndex != -1)
+        {
+            if (targetStageIndex != currentStage)
+            {
+                Debug.Log($"<color=lime>🎬 [Transition Success]</color> 목적지 스테이지({targetStageIndex})가 현재({currentStage})와 달라 카메라를 이동합니다.");
+                ChangeStage(targetStageIndex);
+            }
+        }
+        else
+        {
+            Debug.Log($"<color=gray>[Transition Ignore]</color> 목적지 {targetWorldPos}는 어떤 스테이지에도 속해있지 않습니다.");
+        }
     }
 
     private void ChangeStage(int targetStage)
     {
-        if (targetStage < 0 || targetStage >= cameraPositions.Count) return;
-        
-        if (targetStage > maxClearedStage) maxClearedStage = targetStage;
-        if (targetStage > highestReachedStage) highestReachedStage = targetStage;
-
-        if (currentStage != targetStage)
+        if (targetStage < 0 || targetStage >= cameraPositions.Count) 
         {
-            currentStage = targetStage;
-            ReloadAmmo(targetStage);
-            pendingPaletteRefresh = true;
+            Debug.LogError($"<color=red>[Stage Error]</color> 스테이지 {targetStage}에 해당하는 카메라 좌표가 없습니다!");
+            return;
         }
+        
+        int previousStage = currentStage;
+        currentStage = targetStage;
+
+        // 🔍 로그 추가: 목적지 좌표를 직접 확인하세요.
+        Debug.Log($"<color=yellow>📸 [Camera Destination]</color> 스테이지 변경: {previousStage} -> {currentStage} | 이동 목표: {cameraPositions[currentStage]}");
+
+        if (currentStage > highestReachedStage) highestReachedStage = currentStage;
+
+        ReloadAmmo(currentStage);
+        pendingPaletteRefresh = true;
     }
 
     // =========================================================
@@ -333,27 +432,53 @@ public class StageManager : MonoBehaviour
 
     private void RefreshStagePalette()
     {
-        if (paletteUI == null) return;
+        if (paletteUI == null)
+        {
+            Debug.LogError("[Palette] PaletteUI가 연결되지 않았습니다.");
+            return;
+        }
+
         StageLoadout loadoutToUse = null;
+
+        // 🔍 상태 확인 로그
+        Debug.Log($"<color=yellow>[Refresh] 팔레트 갱신 요청 - currentStage: {currentStage}, List Count: {stageLoadouts?.Count ?? 0}</color>");
 
         if (stageLoadouts != null && currentStage >= 0 && currentStage < stageLoadouts.Count)
         {
             if (runtimeLoadoutCache.ContainsKey(currentStage))
             {
+                Debug.Log($"[Refresh] 캐시된 데이터 사용 (Stage {currentStage})");
                 loadoutToUse = runtimeLoadoutCache[currentStage];
             }
             else
             {
                 if (stageLoadouts[currentStage] != null)
                 {
+                    Debug.Log($"[Refresh] 원본 에셋 복제하여 신규 생성 (Index {currentStage}: {stageLoadouts[currentStage].name})");
                     loadoutToUse = Instantiate(stageLoadouts[currentStage]);
                     runtimeLoadoutCache.Add(currentStage, loadoutToUse);
                 }
+                else
+                {
+                    Debug.LogError($"[Error] 리스트의 {currentStage}번 인덱스 요소가 null입니다!");
+                }
             }
         }
+        else
+        {
+            // 🚨 여기가 실행된다면 조건 불일치
+            if (stageLoadouts == null) Debug.LogError("[Fail] stageLoadouts 리스트가 null입니다.");
+            else if (currentStage < 0) Debug.LogError($"[Fail] currentStage({currentStage})가 음수입니다.");
+            else if (currentStage >= stageLoadouts.Count) 
+            {
+                Debug.LogError($"<color=red>[Fail] 인덱스 초과! currentStage({currentStage})가 리스트 크기({stageLoadouts.Count})보다 크거나 같습니다.</color>");
+                Debug.LogError("힌트: 씬 인덱스 설정이 잘못되었거나, 스테이지 번호가 0부터 시작하지 않을 수 있습니다.");
+            }
+        }
+
         paletteUI.Build(loadoutToUse);
     }
-
+    
     public void ConsumeTile(int tileIndexInLoadout)
     {
         if (runtimeLoadoutCache.ContainsKey(currentStage))
@@ -376,9 +501,22 @@ public class StageManager : MonoBehaviour
     // =========================================================
     public Vector3 GetCurrentStageCheckpoint()
     {
-        if (spawnTilePositions == null || spawnTilePositions.Count == 0) return startPosition;
-        if (currentStage >= 0 && currentStage < spawnTilePositions.Count) return spawnTilePositions[currentStage];
-        return spawnTilePositions.Last(); 
+        // 리스트가 비어있는지 확인
+        if (spawnTilePositions == null || spawnTilePositions.Count == 0) 
+        {
+            Debug.LogError("스폰 타일 리스트가 비어있습니다!");
+            return startPosition;
+        }
+
+        // 인덱스 범위 초과 방지
+        int targetIndex = Mathf.Clamp(currentStage, 0, spawnTilePositions.Count - 1);
+        
+        Vector3 targetPos = spawnTilePositions[targetIndex];
+        
+        // Z값 보정 (2D 게임이라면 보통 0)
+        targetPos.z = 0f; 
+        
+        return targetPos;
     }
 
     public bool IsClearTile(Vector3 worldPos)
@@ -425,8 +563,7 @@ public class StageManager : MonoBehaviour
         // 🧩 [NEW] 퍼즐 및 맵 데이터 초기화 (재등록을 위해 리스트 비움)
         stagePuzzleBlocks.Clear();
         stageDoors.Clear();
-        spawnTilePositions.Clear(); 
-        clearTilePositions.Clear();
+        
 
         // 🛠️ 2. 맵 환경(MapEnvironment) 초기화 및 복구
         if (mapEnvironmentRoot != null && mapBackup != null)
@@ -457,7 +594,7 @@ public class StageManager : MonoBehaviour
         }
         runtimeLoadoutCache.Clear();
         
-        visitedStages.Clear();
+        forceFlag = true;
         ReloadAmmo(currentStage);
 
         RefreshStagePalette();

@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 225802418570719517}
   - component: {fileID: -7071922344537619389}
   - component: {fileID: 7373310371461265477}
-  m_Layer: 7
+  m_Layer: 10
   m_Name: Wall
-  m_TagString: Untagged
+  m_TagString: wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 20
+  m_SortingOrder: 100
   m_Sprite: {fileID: -3838113514846946, guid: ddc8983a024c21742a66f69f01100620, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -180,6 +180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DynamicYDepthSort
   baseSortingOrder: 29999
+  sortOffset: 0
 --- !u!114 &7373310371461265477
 MonoBehaviour:
   m_ObjectHideFlags: 0

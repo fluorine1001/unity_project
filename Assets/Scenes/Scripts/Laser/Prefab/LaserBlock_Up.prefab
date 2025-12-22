@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3881113109383842916}
   - component: {fileID: 6690734672891122556}
-  m_Layer: 7
+  m_Layer: 10
   m_Name: laser-fount-up-reboot_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -104,7 +104,8 @@ GameObject:
   - component: {fileID: -6262080236997462991}
   - component: {fileID: 2094998932837578565}
   - component: {fileID: -7759254773542541796}
-  m_Layer: 7
+  - component: {fileID: -1138617197677183187}
+  m_Layer: 10
   m_Name: LaserBlock_Up
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -144,7 +145,7 @@ MonoBehaviour:
   maxBounces: 20
   hitMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 7432
   lineRendererPrefab: {fileID: 1673289985074945238, guid: e71aca90d20f71546ad6e3e58754fb6d, type: 3}
   laserWidth: 0.6
 --- !u!61 &-673418216246320426
@@ -184,8 +185,8 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 6.4, y: 11.2}
+    pivot: {x: 0.5, y: 0.2857143}
+    oldSize: {x: 5.12, y: 8.96}
     newSize: {x: 6.4, y: 11.2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -292,3 +293,16 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &-1138617197677183187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8767513383459357407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d7d054f3ec662745b51fed6160a1bc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LaserObstacle
+  isTransparent: 0

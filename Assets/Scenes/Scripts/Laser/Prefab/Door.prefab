@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5637328330731205179}
   - component: {fileID: 1497865840574790429}
   - component: {fileID: 641994852458752088}
+  - component: {fileID: 4225284252396800770}
   m_Layer: 10
   m_Name: Door
   m_TagString: Untagged
@@ -165,3 +166,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DynamicYDepthSort
   baseSortingOrder: 29999
   sortOffset: 0
+--- !u!114 &4225284252396800770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3863347757216097259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d7d054f3ec662745b51fed6160a1bc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LaserObstacle
+  isTransparent: 0

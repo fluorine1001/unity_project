@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: -6590461134037439863}
   - component: {fileID: 2615407218952193013}
   - component: {fileID: 4356097574972369611}
-  - component: {fileID: -5614808154022066203}
-  m_Layer: 7
+  - component: {fileID: 6756871882371104938}
+  m_Layer: 10
   m_Name: LaserBlock_Down
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55,7 +55,7 @@ MonoBehaviour:
   maxBounces: 20
   hitMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 7432
   lineRendererPrefab: {fileID: 1673289985074945238, guid: e71aca90d20f71546ad6e3e58754fb6d, type: 3}
   laserWidth: 0.6
 --- !u!61 &1202714607241367196
@@ -95,7 +95,7 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0.5, y: 0.4642857}
     oldSize: {x: 5.12, y: 8.96}
     newSize: {x: 6.4, y: 11.2}
     adaptiveTilingThreshold: 0.5
@@ -203,7 +203,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &-5614808154022066203
+--- !u!114 &6756871882371104938
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -212,16 +212,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2271500927025860581}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 019ccce2a25b5554f89e3817deaf59c9, type: 3}
+  m_Script: {fileID: 11500000, guid: 8d7d054f3ec662745b51fed6160a1bc5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PixelPrecisionFixer
-  cellSize: 5.12
-  gridOrigin: {x: 0, y: 0}
-  pixelsPerUnit: 125
-  pixelOffset: {x: 0, y: -9}
-  enableArrowKeys: 0
-  currentGridPos: {x: 0, y: 0}
-  useFixedGridPos: 0
+  m_EditorClassIdentifier: Assembly-CSharp::LaserObstacle
+  isTransparent: 0
 --- !u!1 &8469824553928459468
 GameObject:
   m_ObjectHideFlags: 0
@@ -232,7 +226,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7709335160643196848}
   - component: {fileID: 4313540798084405971}
-  m_Layer: 7
+  m_Layer: 10
   m_Name: laser-fount-down_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}

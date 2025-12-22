@@ -152,6 +152,9 @@ public class GeneratorManager : MonoBehaviour
             if (spawnTileNames.Contains(tileName))
             {
                 allSpawnPositions.Add(pos);
+
+                // ✅ [출력 추가] 타일 이름, 타일맵 좌표, 실제 월드 좌표 출력
+                Debug.Log($"<color=green>[SpawnTile 발견]</color> 이름: {tileName} | 타일좌표: {pos} | 월드좌표: {worldPos}");
                 if (StageManager.Instance != null) StageManager.Instance.RegisterSpawnTile(worldPos);
             }
             else if (clearTileNames.Contains(tileName))
@@ -208,7 +211,7 @@ public class GeneratorManager : MonoBehaviour
     {
         if (allSpawnPositions.Count == 0) return;
 
-        // X좌표 오름차순 정렬
+        // X좌표 순으로 정렬된 스폰 지점들
         var sortedSpawns = allSpawnPositions.OrderBy(p => p.x).ToList();
 
         for (int i = 0; i < sortedSpawns.Count; i++)
@@ -217,33 +220,32 @@ public class GeneratorManager : MonoBehaviour
             int minX, maxX;
             bool isMinInclusive = false;
 
-            if (i == 0) // 0번 스테이지 (조건 3)
+            // ✅ [수정] 내 위치(spawnPos.x)를 기준으로 좌/우 클리어 타일을 분리해서 찾음
+            var leftClears = allClearPositions.Where(c => c.x < spawnPos.x).OrderByDescending(c => c.x).ToList();
+            var rightClears = allClearPositions.Where(c => c.x > spawnPos.x).OrderBy(c => c.x).ToList();
+
+            if (i == 0) // 0번 스테이지
             {
                 minX = generatorTilemap.cellBounds.xMin;
-                isMinInclusive = true; // a 이상
-
-                var closestClears = allClearPositions
-                    .OrderBy(c => Mathf.Abs(c.x - spawnPos.x))
-                    .Take(2);
-                maxX = closestClears.Any() ? closestClears.Max(c => c.x) : generatorTilemap.cellBounds.xMax;
+                isMinInclusive = true; 
+                // 오른쪽의 첫 번째 클리어 타일이 경계
+                maxX = rightClears.Any() ? rightClears[0].x : generatorTilemap.cellBounds.xMax;
             }
-            else // 그 외 스테이지 (조건 4)
+            else // 1번 이상의 스테이지
             {
-                var closestBlockers = allBlockerPositions
-                    .OrderBy(b => Mathf.Abs(b.x - spawnPos.x))
-                    .Take(4);
-                minX = closestBlockers.Any() ? closestBlockers.Min(b => b.x) : generatorTilemap.cellBounds.xMin;
-                isMinInclusive = false; // a 초과
+                // 왼쪽에서 가장 가까운 클리어 타일의 x가 시작점
+                minX = leftClears.Any() ? leftClears[0].x : generatorTilemap.cellBounds.xMin;
+                isMinInclusive = false; // 클리어 타일 "초과" 부터 내 구역
 
-                var closestClears = allClearPositions
-                    .OrderBy(c => Mathf.Abs(c.x - spawnPos.x))
-                    .Take(4);
-                maxX = closestClears.Any() ? closestClears.Max(c => c.x) : generatorTilemap.cellBounds.xMax;
+                // 오른쪽에서 가장 가까운 클리어 타일의 x가 끝점
+                maxX = rightClears.Any() ? rightClears[0].x : generatorTilemap.cellBounds.xMax;
             }
 
-            // BFS 실행
+            Debug.Log($"<color=white>[Stage {i} 분석 범위 설정]</color> {minX} < x <= {maxX} (중심점: {spawnPos.x})");
+
             RunBFS(spawnPos, i, minX, maxX, isMinInclusive);
         }
+
         generatorTilemap.gameObject.SetActive(false);
     }
 
@@ -255,66 +257,98 @@ public class GeneratorManager : MonoBehaviour
         HashSet<Vector3Int> visited = new HashSet<Vector3Int>();
         visited.Add(startPos);
 
-        if (!tileStageMap.ContainsKey(startPos)) tileStageMap.Add(startPos, stageID);
+        // 이미 할당된 타일이면 덮어쓰지 않거나, 현재 스테이지가 우선순위가 높다면 갱신
+        if (!tileStageMap.ContainsKey(startPos)) 
+            tileStageMap.Add(startPos, stageID);
+        else 
+            tileStageMap[startPos] = stageID;
 
         Vector3Int[] directions = { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right };
 
         while (queue.Count > 0)
         {
             Vector3Int current = queue.Dequeue();
+            bool isCurrentClear = allClearPositions.Contains(current);
 
             foreach (var dir in directions)
             {
                 Vector3Int next = current + dir;
 
                 if (visited.Contains(next)) continue;
-
-                // [조건 6] 타일이 없는 곳(Null)은 갈 수 없음
-                // [추가] 하지만 walkableTileNames에 등록된 '벽', '프리팹' 등은 모두 통과 가능
                 if (!IsValidPath(next)) continue;
 
-                // [조건 3, 4] X좌표 범위 제약 (b 미만)
-                if (next.x >= maxX) continue;
+                // X좌표 범위 체크
+                if (next.x > maxX) continue;
+                if (isMinInclusive) { if (next.x < minX) continue; }
+                else { if (next.x <= minX) continue; }
 
-                // [조건 3, 4] a 이상/초과 제약
-                if (isMinInclusive) {
-                    if (next.x < minX) continue; // 0번 스테이지: a 이상
-                } else {
-                    if (next.x <= minX) continue; // 그 외: a 초과
-                }
+                // ✅ 핵심: 클리어 타일(경계선)에 도달하면 해당 타일까지만 ID를 부여하고 더 이상 전진하지 않음
+                if (isCurrentClear) continue; 
 
-                // [조건 5] 위 조건을 만족하면 어떤 제약도 없이 탐색(BFS 확장)
                 visited.Add(next);
                 queue.Enqueue(next);
 
-                // [조건 7] 탐색된 모든 타일에 스테이지 ID 할당
-                if (!tileStageMap.ContainsKey(next)) 
-                    tileStageMap.Add(next, stageID);
-                else 
-                    tileStageMap[next] = stageID; 
+                // 데이터 할당
+                tileStageMap[next] = stageID; 
             }
         }
     }
 
+    // GeneratorManager.cs
+
     public int GetStageIndexFromWorldPos(Vector3 worldPos)
     {
-        if (generatorTilemap == null) return -1;
+        if (generatorTilemap == null) 
+        {
+            Debug.LogError("<color=red>[Generator]</color> generatorTilemap이 연결되지 않았습니다!");
+            return -1;
+        }
 
+        // 1. 월드 좌표를 셀 좌표로 변환
         Vector3Int cellPos = generatorTilemap.WorldToCell(worldPos);
         
-        // generatorTilemap에 없으면 groundTilemap에서 타일을 찾음
-        TileBase tile = generatorTilemap.GetTile(cellPos);
-        if (tile == null && groundTilemap != null) tile = groundTilemap.GetTile(cellPos);
-        
-        string tileName = (tile != null) ? tile.name : "None (공백)";
+        // 🔍 [디버그] 현재 플레이어가 밟고 있는 좌표 정보 출력
+        // Debug.Log($"<color=white>[Pos Check]</color> World: {worldPos} -> Cell: {cellPos}");
 
+        // 2. 해당 좌표에 어떤 타일이 있는지 확인 (어떤 타일맵에서 읽히는지 확인용)
+        TileBase genTile = generatorTilemap.GetTile(cellPos);
+        TileBase grndTile = (groundTilemap != null) ? groundTilemap.GetTile(cellPos) : null;
+        string foundTileName = (genTile != null) ? genTile.name : (grndTile != null ? grndTile.name : "None");
+
+        // 3. tileStageMap에서 데이터 조회
         if (tileStageMap.TryGetValue(cellPos, out int stageIndex))
         {
-            
+            // 성공 로그 (ClearTile인 경우 별도 표시)
+            if (clearTileNames.Contains(foundTileName))
+            {
+                Debug.Log($"<color=cyan>[Stage Found]</color> ClearTile({foundTileName}) 위에서 스테이지 {stageIndex} 확인됨! (Cell: {cellPos})");
+            }
             return stageIndex;
         }
-        
-        
+        else
+        {
+            // 🔍 [실패 분석 로그] 
+            // BFS에서 감지했다면 무조건 맵에 있어야 함. 없다면 좌표가 어긋난 것임.
+            Debug.LogWarning($"<color=yellow>[Stage Missing]</color> 좌표 {cellPos}에는 할당된 번호가 없습니다. (밟고 있는 타일: {foundTileName})");
+            
+            // 주변 1칸을 뒤져서 가장 가까운 스테이지 번호를 찾는 보정 로직 (옵션)
+            return FindNearbyStageIndex(cellPos);
+        }
+    }
+
+    // 만약 좌표 오차로 인해 못 찾는 경우 주변을 검색하는 보조 함수
+    private int FindNearbyStageIndex(Vector3Int cellPos)
+    {
+        Vector3Int[] neighbors = { Vector3Int.left, Vector3Int.right, Vector3Int.up, Vector3Int.down };
+        foreach (var offset in neighbors)
+        {
+            if (tileStageMap.TryGetValue(cellPos + offset, out int idx))
+            {
+                Debug.Log($"<color=magenta>[Stage Compensated]</color> 본래 좌표 {cellPos}엔 없으나 인접한 {cellPos + offset}에서 스테이지 {idx}를 찾았습니다.");
+                return idx;
+            }
+        }
         return -1;
     }
+
 }
