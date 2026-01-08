@@ -145,32 +145,26 @@ public class BulletFire : MonoBehaviour
             return false; 
         }
 
-        // ✅ 2. [신규] 플레이어가 Blocker 타일 위에 있으면 발사 불가
+        // 2. 플레이어가 Blocker 타일 위에 있으면 발사 불가
         if (playerTransform != null && GeneratorManager.Instance != null)
         {
-            // 플레이어의 현재 위치가 블로커 타일인지 확인
             if (GeneratorManager.Instance.IsBlockerTile(playerTransform.position))
             {
-                // Debug.Log("벽 안에서는 총알을 발사할 수 없습니다.");
                 return false;
             }
         }
 
-        // 3. UI를 클릭 중이라면 발사하지 않음
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-        {
-            return false;
-        }
+        // ❌ [삭제됨] UI 위 마우스 오버 체크
+        // 스페이스바는 마우스 위치와 상관없이 발사되어야 하므로 이 체크는 제거합니다.
+        // if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) ...
 
 #if ENABLE_INPUT_SYSTEM
-        // New Input System 사용 시
-        bool isMouseClick = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+        // ✅ [수정] New Input System: 오직 스페이스바만 체크
         bool isSpacePressed = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
-        
-        return isMouseClick || isSpacePressed;
+        return isSpacePressed;
 #else
-        // Legacy Input Manager 사용 시
-        return Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space);
+        // ✅ [수정] Legacy Input Manager: 오직 스페이스바만 체크
+        return Input.GetKeyDown(KeyCode.Space);
 #endif
     }
 

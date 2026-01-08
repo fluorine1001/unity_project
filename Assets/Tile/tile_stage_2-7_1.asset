@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: tile_stage_2-7_1
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
   id: 
-  cells: []
+  cells:
+  - offset: {x: 0, y: 0}
+    kind: 0

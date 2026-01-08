@@ -119,8 +119,9 @@ public class MirrorPushable : FunctionalTile
         int actualSteps = 0;
         
         Vector2 halfExtents = GetHalfExtents(); 
+        HoleTile targetHole = null; // 🕳️ 이동 도중 발견한 구멍 저장용
 
-        // 1. 이동 시뮬레이션 (구멍은 무시하고 통과)
+        // 1. 이동 시뮬레이션
         for (int i = 0; i < steps; i++)
         {
             Vector2Int nextCoord = gridCoord + dirInt;
@@ -134,22 +135,36 @@ public class MirrorPushable : FunctionalTile
 
             // (C) 물리적 장애물 확인 (OverlapBox)
             Collider2D hit = Physics2D.OverlapBox(nextWorldPos, halfExtents * 2f, 0f, blockingMask);
+            
             if (hit != null && hit.gameObject != gameObject && hit.gameObject != bulletGO)
             {
-                // [수정 포인트] 구멍(HoleTile)이면 장애물로 취급하지 않고 통과
-                if (hit.GetComponent<HoleTile>() != null)
+                HoleTile hole = hit.GetComponent<HoleTile>();
+
+                // ✅ [수정됨] 구멍 처리 로직 변경
+                if (hole != null)
                 {
-                    // Pass (구멍 위로 미끄러짐)
+                    if (hole.IsEmpty())
+                    {
+                        // 1. 비어있는 구멍 발견 -> 이동 목표를 여기로 설정하고 멈춤
+                        targetHole = hole;
+                        gridCoord = nextCoord;
+                        actualSteps++;
+                        break; // 루프 종료 (더 이상 못 감)
+                    }
+                    // 2. 채워진 구멍 -> 그냥 바닥이므로 통과 (continue)
                 }
                 else
                 {
-                    // 진짜 벽/다른 거울 등 -> 멈춤
+                    // 3. 구멍이 아닌 진짜 벽/장애물 -> 멈춤
                     break;
                 }
             }
-
-            gridCoord = nextCoord;
-            actualSteps++;
+            else
+            {
+                // 장애물 없음 -> 이동 확정
+                gridCoord = nextCoord;
+                actualSteps++;
+            }
         }
 
         // 2. 실제 이동 및 최종 위치 처리
@@ -161,11 +176,22 @@ public class MirrorPushable : FunctionalTile
             Vector3 finalPos = GridToWorld(gridCoord);
             MoveTo(finalPos);
 
-            // [NEW] 최종 위치에서 구멍 체크
-            CheckFinalPositionForHole(finalPos, bulletGO);
+            // ✅ [수정됨] 이동 후 구멍 처리
+            // 루프 안에서 비어있는 구멍을 만났다면 여기서 처리
+            if (targetHole != null)
+            {
+                targetHole.FillHole(); // 구멍 채우기
+                Destroy(gameObject);   // 거울 파괴
+
+                // 총알도 즉시 제거
+                if (consumeBullet && bulletGO != null) 
+                    Destroy(bulletGO);
+
+                return; // 함수 종료
+            }
         }
 
-        // 총알 파괴 (구멍에 빠지지 않은 경우 여기서 안전하게 제거)
+        // 구멍에 빠지지 않고 이동만 마쳤을 경우 총알 제거
         if (consumeBullet && bulletGO != null) Destroy(bulletGO);
     }
 

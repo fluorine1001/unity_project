@@ -106,8 +106,9 @@ public class PushableBox2D : FunctionalTile
         Vector2 halfExtents = GetHalfExtents();
 
         int actualSteps = 0;
+        HoleTile targetHole = null; // 🕳️ 이동 도중 발견한 구멍을 저장할 변수
 
-        // 4️⃣ 이동 시뮬레이션 (벽 체크만 수행, 구멍은 무시)
+        // 4️⃣ 이동 시뮬레이션
         for (int i = 0; i < steps; i++)
         {
             Vector2Int nextCoord = gridCoord + new Vector2Int((int)Mathf.Round(dir.x), (int)Mathf.Round(dir.y));
@@ -127,28 +128,44 @@ public class PushableBox2D : FunctionalTile
                 break; 
             }
 
-            // (C) 일반 장애물(벽, 다른 상자) 체크
+            // (C) 장애물 충돌 체크 (구멍 포함)
             Collider2D hit = Physics2D.OverlapBox(nextWorld, halfExtents * 2f, 0f, blockingMask);
+            
             if (hit != null && hit.gameObject != this.gameObject)
             {
-                // [중요 수정] 장애물이 'HoleTile'이라면, 벽이 아니므로 멈추지 않고 통과합니다.
-                if (hit.GetComponent<HoleTile>() != null)
+                HoleTile hole = hit.GetComponent<HoleTile>();
+                
+                // ✅ [수정됨] 구멍(Hole)을 만났을 때 로직 변경
+                if (hole != null)
                 {
-                    // 구멍은 장애물이 아님 -> 통과 (Loop 계속 진행)
+                    if (hole.IsEmpty())
+                    {
+                        // 1. 비어있는 구멍이라면 이동을 여기서 멈춤 (빠져야 하므로)
+                        targetHole = hole;
+                        
+                        // 2. 구멍 위치까지는 이동해야 하므로 좌표 업데이트
+                        gridCoord = nextCoord;
+                        actualSteps++;
+                        
+                        // 3. 더 이상 뒤로 이동하지 않도록 루프 종료
+                        break; 
+                    }
+                    // 꽉 찬 구멍(Filled)이라면 그냥 바닥처럼 취급하여 계속 진행 (Continue)
                 }
                 else
                 {
+                    // 구멍이 아닌 다른 장애물(벽, 다른 상자)이라면 즉시 멈춤
                     Debug.Log($"[Box] 장애물에 막힘: {hit.gameObject.name}");
-                    break; // 진짜 벽이면 멈춤
+                    break; 
                 }
             }
 
-            // 이동 가능 확정
+            // 장애물이 없거나(혹은 채워진 구멍이어서) 이동 가능함
             gridCoord = nextCoord;
             actualSteps++;
         }
 
-        // 5️⃣ 실제 이동 처리 및 최종 위치 구멍 체크
+        // 5️⃣ 실제 이동 처리
         if (actualSteps > 0)
         {
             AudioManager.instance.PlayOneShot(FMODEvents.instance.BoxPushed, this.transform.position);
@@ -158,16 +175,26 @@ public class PushableBox2D : FunctionalTile
             MoveTo(snappedPos);
             Debug.Log($"[Box] {actualSteps}칸 이동 완료");
 
-            // [NEW] 이동 완료 후 최종 위치에서 구멍(Hole) 체크
-            CheckFinalPositionForHole(snappedPos, bulletGO);
+            // ✅ [수정됨] 이동 후 구멍 처리 로직
+            // 루프 안에서 구멍을 발견했다면 빠지는 처리를 수행
+            if (targetHole != null)
+            {
+                targetHole.FillHole(); // 구멍 채우기
+                Destroy(gameObject);   // 상자 파괴
+
+                // 총알 제거 (상자가 빠지면서 총알도 같이 소멸)
+                if (consumeBulletOnPush && bulletGO != null) 
+                    Destroy(bulletGO);
+
+                return; // 함수 종료
+            }
         }
         else
         {
              Debug.Log($"[Box] 이동 불가 (Steps: {steps}, Actual: 0)");
         }
 
-        // 총알 제거 (구멍에 빠지지 않았을 때만 여기서 제거, 빠졌으면 CheckFinalPositionForHole 내부에서 처리됨)
-        // 안전하게 처리하기 위해 bulletGO가 null이 아닌 경우만 파괴
+        // 구멍에 빠지지 않고 이동만 마쳤을 경우에만 총알 제거
         if (consumeBulletOnPush && bulletGO != null) Destroy(bulletGO);
     }
 

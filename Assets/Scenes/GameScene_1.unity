@@ -26422,12 +26422,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa2ce1607d8a2e4bae8406fddb8e405, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TilePlacementManager
-  targetTilemap: {fileID: 0}
-  groundTilemap: {fileID: 0}
-  objectRoot: {fileID: 0}
-  playerTransform: {fileID: 0}
-  speedPrefab: {fileID: 0}
-  deSpeedPrefab: {fileID: 0}
+  targetTilemap: {fileID: 120105620}
+  groundTilemap: {fileID: 408808791}
+  objectRoot: {fileID: 1986477538}
+  playerTransform: {fileID: 1823501766}
+  speedPrefab: {fileID: 7825602511852947053, guid: de2ff9d09bbcb8c4c9d7bfcd9f55d9c1, type: 3}
+  deSpeedPrefab: {fileID: 7825602511852947053, guid: f1e7959a9014f554c89207d0154594a0, type: 3}
 --- !u!4 &639901140
 Transform:
   m_ObjectHideFlags: 0

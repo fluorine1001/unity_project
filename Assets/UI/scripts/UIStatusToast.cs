@@ -10,7 +10,13 @@ public class UIStatusToast : MonoBehaviour
 
     void Awake()
     {
-        if (text != null) text.gameObject.SetActive(false);
+        if (text != null)
+        {
+            text.gameObject.SetActive(false);
+            
+            // ✅ [수정됨] 토스트 메시지가 게임 조작을 방해하지 않도록 설정
+            text.raycastTarget = false; 
+        }
     }
 
     public void Show(string msg)

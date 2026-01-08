@@ -8,6 +8,12 @@ public class AmmoHUD : MonoBehaviour
 
     void Start()
     {
+        // ✅ [수정됨] 텍스트가 마우스 클릭을 가로채지 않도록 설정
+        if (ammoText != null)
+        {
+            ammoText.raycastTarget = false;
+        }
+
         if (StageManager.Instance != null)
         {
             StageManager.Instance.OnAmmoChanged += UpdateAmmoDisplay;
@@ -27,15 +33,12 @@ public class AmmoHUD : MonoBehaviour
     {
         if (ammoText != null)
         {
-            // 🔥 [수정] 혹시 꺼져있을 수 있으니 강제로 켭니다!
             if (!ammoText.gameObject.activeSelf) 
             {
                 ammoText.gameObject.SetActive(true);
             }
 
             ammoText.text = $"Bullets: {currentAmmo}";
-            
-            // 색상 변경 (선택사항)
             ammoText.color = currentAmmo > 0 ? Color.white : Color.red;
         }
     }
