@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85b46d42d61cf21489cd7f389fefef61, type: 3}
+  m_Name: Stage_1-9
+  m_EditorClassIdentifier: Assembly-CSharp::StageLoadout
+  entries:
+  - tile: {fileID: 11400000, guid: 325491d2e8cf1444480c68bab34b8b4d, type: 2}
+    count: 1
+  - tile: {fileID: 11400000, guid: def2df7d23e0ee141aced4ac227374cf, type: 2}
+    count: 1
+  - tile: {fileID: 11400000, guid: fad5dc371e31cb0479eebf045f6273d3, type: 2}
+    count: 1
+  - tile: {fileID: 11400000, guid: e24a51e76f2dbfc40b5332ef34a77132, type: 2}
+    count: 1
