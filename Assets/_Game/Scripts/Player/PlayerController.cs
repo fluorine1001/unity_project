@@ -30,6 +30,10 @@ public class PlayerController : MonoBehaviour
     private bool prevInputWasZero = true;        
     private Vector2 lastMoveDir = Vector2.down;  
 
+    // ✅ [요청 4] UI 상태 확인을 위한 UIManager 참조 추가
+    [Header("UI Reference")]
+    public UIManager uiManager;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -48,8 +52,29 @@ public class PlayerController : MonoBehaviour
         movementFilter.useTriggers = true;
     }
 
+    public void ForceStop()
+    {
+        StopAllCoroutines(); // 이동 코루틴 강제 종료
+        isMoving = false;    // 이동 상태 해제
+        prevInputWasZero = true; // 입력 초기화
+        
+        // 애니메이션 멈춤 (선택 사항)
+        if (animator != null) animator.SetBool("isWalk", false);
+    }
+
     void OnMove(InputValue movementValue)
     {
+        // ✅ [요청 4] UI 패널(책)이 열려있으면 이동 입력 무시
+        if (uiManager != null && uiManager.IsPanelOpen)
+        {
+            // 그냥 return 해버리면 안 됩니다! 
+            // "입력이 0이 되었다"는 상태를 강제로 맞춰주어야, 
+            // UI를 닫았을 때 다음 입력을 정상적으로 인식합니다.
+            movementInput = Vector2.zero;
+            prevInputWasZero = true; 
+            return;
+        }
+
         movementInput = movementValue.Get<Vector2>();
 
         if (!isMoving && movementInput != Vector2.zero && prevInputWasZero)

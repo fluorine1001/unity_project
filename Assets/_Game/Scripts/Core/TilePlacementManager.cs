@@ -33,6 +33,8 @@ public class TilePlacementManager : MonoBehaviour
 
     private int startStageIndex; // 드래그 시작 시점의 스테이지 번호 저장
 
+    private UIManager uiManager; // 🔥 [추가] UI 매니저 참조
+
     private void Awake() 
     { 
         Instance = this; 
@@ -47,6 +49,9 @@ public class TilePlacementManager : MonoBehaviour
     // 필수 컴포넌트 자동 할당
     private void AutoAssignSettings()
     {
+        if (uiManager == null)
+            uiManager = FindObjectOfType<UIManager>();
+        
         if (targetTilemap == null || groundTilemap == null)
         {
             GameObject grid = GameObject.Find("Grid");
@@ -125,6 +130,12 @@ public class TilePlacementManager : MonoBehaviour
 
     public void StartDrag(TileDefinition def, PaletteItemUI ui, Vector3 startScreenPos)
     {
+
+        if (uiManager != null && uiManager.IsPanelOpen)
+        {
+            // 드래그가 시작되지 않았으므로 리턴
+            return; 
+        }
         // 사운드 재생
         if (AudioManager.instance != null && FMODEvents.instance != null)
             AudioManager.instance.PlayOneShot(FMODEvents.instance.TilesSelected, this.transform.position);

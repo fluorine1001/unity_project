@@ -1,73 +1,66 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using UnityEngine.InputSystem; // New Input System 필수
-using System.Collections; // 코루틴을 위해 필요
 
 public class MainMenuController : MonoBehaviour
 {
-    [Header("Buttons")]
-    public Button[] buttons; // Play, Credit, Quit 순서대로
-    public RectTransform cursor; // 파란 삼각형
-    public Vector3 cursorOffset = new Vector3(-150, 0, 0); // 위치가 이상하면 이 값을 조절
+    [Header("References")]
+    // 로드 메뉴 UI (SavePage 프리팹) 연결
+    public SaveMenuUI loadMenuUI; 
 
-    private int currentIndex = 0;
+    // ✅ 키보드 커서 로직 삭제됨 (Update 제거)
 
-    // void Start 대신 IEnumerator Start를 사용하여 한 프레임 대기합니다.
-    IEnumerator Start()
+    private void Start()
     {
-        // UI 배치가 완전히 끝날 때까지 한 프레임 기다립니다 (시작 위치 오류 해결)
-        yield return null;
-        UpdateCursorPosition();
+        // 시작 시 로드 메뉴가 켜져있다면 끔
+        if (loadMenuUI != null) loadMenuUI.Close();
     }
 
-    void Update()
-    {
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return;
+    // === 버튼 연결 함수들 ===
 
-        // 1. 위쪽 화살표
-        if (keyboard.upArrowKey.wasPressedThisFrame)
+    // 1. Play 버튼 (새 게임 시작)
+    public void PlayGame()
+    {
+        // 새 게임은 그냥 1번 씬(GameScene)으로 이동
+        // (PendingLoadData가 null이므로 StageManager가 알아서 초기화함)
+        SceneManager.LoadScene("GameScene_1");
+    }
+
+    // 2. Load 버튼 (이어하기)
+    public void OpenLoadMenu()
+    {
+        if (loadMenuUI != null)
         {
-            currentIndex--;
-            if (currentIndex < 0) currentIndex = buttons.Length - 1;
-            UpdateCursorPosition();
+            // true = 로드 모드로 열기
+            loadMenuUI.Open(true);
         }
-        // 2. 아래쪽 화살표
-        else if (keyboard.downArrowKey.wasPressedThisFrame)
+        else
         {
-            currentIndex++;
-            if (currentIndex >= buttons.Length) currentIndex = 0;
-            UpdateCursorPosition();
-        }
-        // 3. 엔터키 (메인 엔터와 숫자패드 엔터 모두 감지)
-        else if (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame)
-        {
-            ExecuteButton();
+            Debug.LogError("Load Menu UI가 연결되지 않았습니다!");
         }
     }
 
-    void UpdateCursorPosition()
+    // 3. Manual 버튼 (새로 추가)
+    public void OpenManual()
     {
-        if (cursor != null && buttons.Length > 0 && buttons[currentIndex] != null)
+        UIManager ui = FindObjectOfType<UIManager>();
+        if (ui != null)
         {
-            // 버튼의 world position을 가져와 오프셋을 더합니다.
-            cursor.position = buttons[currentIndex].transform.position + cursorOffset;
+            ui.ShowManualMenu();
         }
     }
 
-    void ExecuteButton()
+    // 3. Quit 버튼
+    public void QuitGame()
     {
-        // 현재 인덱스의 버튼 클릭 이벤트를 강제로 실행
-        if (buttons[currentIndex] != null)
-        {
-            Debug.Log(buttons[currentIndex].name + " 버튼 실행!");
-            buttons[currentIndex].onClick.Invoke();
-        }
+        Debug.Log("게임 종료");
+        Application.Quit();
     }
 
-    // 버튼 연결용 함수들 (기존과 동일)
-    public void PlayGame() { SceneManager.LoadScene("GameScene_1"); }
-    public void QuitGame() { Application.Quit(); }
-    public void OpenCredit() { /* Credit 패널 활성화 */ }
+    // 4. Credit 버튼
+    public void OpenCredit()
+    {
+        // 크레딧 패널 로직 (필요 시 구현)
+        Debug.Log("크레딧 열기");
+    }
 }

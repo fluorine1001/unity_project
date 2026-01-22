@@ -2,10 +2,13 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq; 
 using System;
+using UnityEngine.EventSystems; // 👈 [필수] 이거 꼭 추가해야 합니다!
 
 public class StageManager : MonoBehaviour
 {
     public static StageManager Instance { get; private set; }
+
+    public static SaveData PendingLoadData = null;
 
     [Header("Stage Control")]
     // ✅ 현재 씬의 번호를 저장하는 변수
@@ -151,6 +154,55 @@ public class StageManager : MonoBehaviour
 
         SortTilesAndRefresh();
         ResetGamePartial();
+
+        if (PendingLoadData != null)
+        {
+            ApplyLoadedData(PendingLoadData);
+            PendingLoadData = null; // 사용 후 비우기
+        }
+    }
+
+    // ✅ [추가] 저장된 데이터를 게임에 적용하는 함수
+    private void ApplyLoadedData(SaveData data)
+    {
+        Debug.Log($"<color=green>[Load] 저장된 데이터 적용 중... (Stage {data.currentStage})</color>");
+
+        // 1. 데이터 덮어쓰기
+        this.currentStage = data.currentStage;
+        this.highestReachedStage = data.highestReachedStage;
+        // (sceneIndex는 이미 SceneManager를 통해 맞춰져 있음)
+
+        // 2. 탄약 및 UI 갱신 (ResetGamePartial이 엉뚱한 스테이지로 설정했을 수 있으므로 다시 실행)
+        forceFlag = true; // 강제 갱신 플래그
+        ReloadAmmo(currentStage);
+        RefreshStagePalette();
+
+        // 3. 플레이어 및 카메라 위치 강제 이동
+        if (player != null)
+        {
+            // 저장된 스테이지의 체크포인트로 이동
+            player.position = GetCurrentStageCheckpoint();
+            
+            // 물리 속도 초기화 (안전장치)
+            var rb = player.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+#if UNITY_6000_0_OR_NEWER
+                rb.linearVelocity = Vector2.zero; 
+#else
+                rb.velocity = Vector2.zero;
+#endif
+                rb.angularVelocity = 0f;
+            }
+        }
+        
+        // 4. 카메라도 즉시 해당 위치로 이동 (부드러운 이동 대신 즉시 이동)
+        if (_mainCamera != null && cameraPositions != null && currentStage < cameraPositions.Count)
+        {
+            Vector3 targetPos = cameraPositions[currentStage];
+            targetPos.z = -10f;
+            _mainCamera.transform.position = targetPos;
+        }
     }
 
     private void Update()
@@ -557,6 +609,23 @@ public class StageManager : MonoBehaviour
     {
         Debug.Log($"🔄 [Reset] 체크포인트(Stage {highestReachedStage})로 복귀 및 전체 초기화");
 
+        // ✅ [추가 1] UI 포커스 해제 (이게 핵심 해결책입니다)
+        // 리셋 버튼을 눌렀을 때 버튼에 남아있는 포커스를 없애서 키보드 입력이 플레이어에게 가도록 함
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+
+        UIManager ui = FindObjectOfType<UIManager>(); 
+        if (ui != null)
+        {
+            // false를 넣어주면: 
+            // 1. Panel.SetActive(false) 실행 (시각적으로 끔)
+            // 2. IsPanelOpen = false 실행 (플레이어 이동 잠금 해제)
+            // 3. EventSystem 포커스 해제 (키보드 입력 뺏김 방지)
+            ui.bookPanel(false); 
+        }
+
         // 1. 플레이어 설치물 제거 (ObjectRoot)
         if (objectRoot != null) foreach (Transform child in objectRoot) Destroy(child.gameObject);
         
@@ -608,6 +677,14 @@ public class StageManager : MonoBehaviour
 
         if (player != null)
         {
+            // ✅ [추가 2] 플레이어 내부 상태(isMoving 등) 강제 초기화
+            // 이동 중에 리셋되면 isMoving이 true로 남아서 굳는 현상을 방지
+            PlayerController pc = player.GetComponent<PlayerController>();
+            if (pc != null) 
+            {
+                pc.ForceStop(); // 아까 만든 함수 호출
+            }
+
             player.position = GetCurrentStageCheckpoint();
             Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
             if (rb != null)

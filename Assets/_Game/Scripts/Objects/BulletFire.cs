@@ -139,6 +139,18 @@ public class BulletFire : MonoBehaviour
 
     private bool IsFirePressed()
     {
+
+        // 0. 🔥 [추가] UI 패널이 열려있으면 발사 불가
+        if (uIManager != null)
+        {
+            // 패널 자체가 닫혀있으면(IsPanelOpen == false) 발사 허용 (아래 return false를 실행하지 않음)
+            // 패널이 열려있고(IsPanelOpen == true) + 메뉴가 켜져있을 때만 발사 금지
+            if (uIManager.IsPanelOpen) 
+            {
+                return false;
+            }
+        }
+
         // 1. 탄약이 없으면 발사 불가
         if (StageManager.Instance != null && !StageManager.Instance.HasAmmo())
         {
