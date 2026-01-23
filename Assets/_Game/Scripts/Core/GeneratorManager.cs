@@ -32,7 +32,14 @@ public class GeneratorManager : MonoBehaviour
 
     [Header("Blocker Settings")]
     public List<string> blockerTileNames = new(); 
-    public GameObject blockerPrefab;              
+    public GameObject blockerPrefab;      
+
+    [Header("Logic Blocking Settings")]
+    [Tooltip("에디터에서 직접 만든 로직용 타일맵을 여기에 할당하세요.")]
+    public Tilemap logicTilemap; 
+
+    [Tooltip("BFS 탐색을 막을 타일 에셋을 여기에 할당하세요. (이 타일이 로직 타일맵에 찍혀 있으면 탐색을 멈춥니다)")]
+    public TileBase logicBlockerTile;           
 
     [Header("Parent for spawned objects")]
     public Transform spawnParent;
@@ -79,6 +86,12 @@ public class GeneratorManager : MonoBehaviour
 
         BuildPrefabDictionary();
         GenerateObjectsFromTilemap();
+
+        if (logicTilemap != null)
+        {
+            var renderer = logicTilemap.GetComponent<TilemapRenderer>();
+            if (renderer != null) renderer.enabled = false;
+        }
 
         // ✅ [추가] 맵 생성이 끝난 후, 스테이지 구역 분석 실행
         AnalyzeStageAreas();
@@ -211,89 +224,83 @@ public class GeneratorManager : MonoBehaviour
     {
         if (allSpawnPositions.Count == 0) return;
 
-        // X좌표 순으로 정렬된 스폰 지점들
+        // X좌표 순으로 정렬 (스테이지 번호 부여 순서 보장용)
         var sortedSpawns = allSpawnPositions.OrderBy(p => p.x).ToList();
 
+        // 기존의 범위 계산 로직(minX, maxX)을 모두 삭제하고 단순화합니다.
         for (int i = 0; i < sortedSpawns.Count; i++)
         {
             Vector3Int spawnPos = sortedSpawns[i];
-            int minX, maxX;
-            bool isMinInclusive = false;
-
-            // ✅ [수정] 내 위치(spawnPos.x)를 기준으로 좌/우 클리어 타일을 분리해서 찾음
-            var leftClears = allClearPositions.Where(c => c.x < spawnPos.x).OrderByDescending(c => c.x).ToList();
-            var rightClears = allClearPositions.Where(c => c.x > spawnPos.x).OrderBy(c => c.x).ToList();
-
-            if (i == 0) // 0번 스테이지
-            {
-                minX = generatorTilemap.cellBounds.xMin;
-                isMinInclusive = true; 
-                // 오른쪽의 첫 번째 클리어 타일이 경계
-                maxX = rightClears.Any() ? rightClears[0].x : generatorTilemap.cellBounds.xMax;
-            }
-            else // 1번 이상의 스테이지
-            {
-                // 왼쪽에서 가장 가까운 클리어 타일의 x가 시작점
-                minX = leftClears.Any() ? leftClears[0].x : generatorTilemap.cellBounds.xMin;
-                isMinInclusive = false; // 클리어 타일 "초과" 부터 내 구역
-
-                // 오른쪽에서 가장 가까운 클리어 타일의 x가 끝점
-                maxX = rightClears.Any() ? rightClears[0].x : generatorTilemap.cellBounds.xMax;
-            }
-
-            Debug.Log($"<color=white>[Stage {i} 분석 범위 설정]</color> {minX} < x <= {maxX} (중심점: {spawnPos.x})");
-
-            RunBFS(spawnPos, i, minX, maxX, isMinInclusive);
+            
+            // 좌표 제한 없이 시작점과 스테이지 ID만 넘깁니다.
+            RunBFS(spawnPos, i);
         }
 
-        generatorTilemap.gameObject.SetActive(false);
+        // 분석이 끝났으므로 생성용 타일맵은 숨김 처리
+        if (generatorTilemap != null) generatorTilemap.gameObject.SetActive(false);
     }
 
-    private void RunBFS(Vector3Int startPos, int stageID, int minX, int maxX, bool isMinInclusive)
+    // GeneratorManager.cs 내부
+
+    private void RunBFS(Vector3Int startPos, int stageID)
     {
         Queue<Vector3Int> queue = new Queue<Vector3Int>();
         queue.Enqueue(startPos);
 
-        HashSet<Vector3Int> visited = new HashSet<Vector3Int>();
-        visited.Add(startPos);
+        HashSet<Vector3Int> visitedInThisPass = new HashSet<Vector3Int>();
+        visitedInThisPass.Add(startPos);
 
-        // 이미 할당된 타일이면 덮어쓰지 않거나, 현재 스테이지가 우선순위가 높다면 갱신
-        if (!tileStageMap.ContainsKey(startPos)) 
-            tileStageMap.Add(startPos, stageID);
-        else 
-            tileStageMap[startPos] = stageID;
+        if (!tileStageMap.ContainsKey(startPos)) tileStageMap.Add(startPos, stageID);
+        else tileStageMap[startPos] = stageID;
 
         Vector3Int[] directions = { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right };
 
         while (queue.Count > 0)
         {
             Vector3Int current = queue.Dequeue();
-            bool isCurrentClear = allClearPositions.Contains(current);
 
             foreach (var dir in directions)
             {
                 Vector3Int next = current + dir;
 
-                if (visited.Contains(next)) continue;
-                if (!IsValidPath(next)) continue;
+                if (visitedInThisPass.Contains(next)) continue;
+                if (!IsValidPath(next)) continue; 
 
-                // X좌표 범위 체크
-                if (next.x > maxX) continue;
-                if (isMinInclusive) { if (next.x < minX) continue; }
-                else { if (next.x <= minX) continue; }
+                // 🛑 1. [기존] 물리적 벽(Blocker) 체크
+                if (allBlockerPositions.Contains(next)) continue; 
 
-                // ✅ 핵심: 클리어 타일(경계선)에 도달하면 해당 타일까지만 ID를 부여하고 더 이상 전진하지 않음
-                if (isCurrentClear) continue; 
+                // 🛑 2. [NEW] 로직 타일맵 체크 (투명 벽)
+                // 플레이어는 지나갈 수 있지만, 스테이지 구역 확장은 여기서 멈춥니다.
+                if (logicTilemap != null && logicBlockerTile != null)
+                {
+                    // 해당 좌표에 있는 타일 가져오기
+                    TileBase tileOnLogic = logicTilemap.GetTile(next);
+                    
+                    // 우리가 지정한 '차단 타일'과 똑같은 타일이면 탐색 중단
+                    if (tileOnLogic == logicBlockerTile) 
+                    {
+                        continue; 
+                    }
+                }
 
-                visited.Add(next);
+                // 🛑 3. [다른 스테이지 체크]
+                if (!tileStageMap.ContainsKey(next))
+                {
+                    tileStageMap.Add(next, stageID);
+                }
+                
+                // 🛑 4. [ClearTile 체크]
+                if (allClearPositions.Contains(next))
+                {
+                    visitedInThisPass.Add(next);
+                    continue; 
+                }
+
+                visitedInThisPass.Add(next);
                 queue.Enqueue(next);
-
-                // 데이터 할당
-                tileStageMap[next] = stageID; 
             }
         }
     }
-
     // GeneratorManager.cs
 
     public int GetStageIndexFromWorldPos(Vector3 worldPos)
@@ -306,11 +313,8 @@ public class GeneratorManager : MonoBehaviour
 
         // 1. 월드 좌표를 셀 좌표로 변환
         Vector3Int cellPos = generatorTilemap.WorldToCell(worldPos);
-        
-        // 🔍 [디버그] 현재 플레이어가 밟고 있는 좌표 정보 출력
-        // Debug.Log($"<color=white>[Pos Check]</color> World: {worldPos} -> Cell: {cellPos}");
 
-        // 2. 해당 좌표에 어떤 타일이 있는지 확인 (어떤 타일맵에서 읽히는지 확인용)
+        // 2. 해당 좌표에 어떤 타일이 있는지 확인 (디버깅용)
         TileBase genTile = generatorTilemap.GetTile(cellPos);
         TileBase grndTile = (groundTilemap != null) ? groundTilemap.GetTile(cellPos) : null;
         string foundTileName = (genTile != null) ? genTile.name : (grndTile != null ? grndTile.name : "None");
@@ -318,37 +322,18 @@ public class GeneratorManager : MonoBehaviour
         // 3. tileStageMap에서 데이터 조회
         if (tileStageMap.TryGetValue(cellPos, out int stageIndex))
         {
-            // 성공 로그 (ClearTile인 경우 별도 표시)
             if (clearTileNames.Contains(foundTileName))
             {
-                Debug.Log($"<color=cyan>[Stage Found]</color> ClearTile({foundTileName}) 위에서 스테이지 {stageIndex} 확인됨! (Cell: {cellPos})");
+                // Debug.Log($"<color=cyan>[Stage Found]</color> ClearTile({foundTileName}) 위에서 스테이지 {stageIndex} 확인됨! (Cell: {cellPos})");
             }
             return stageIndex;
         }
         else
         {
-            // 🔍 [실패 분석 로그] 
-            // BFS에서 감지했다면 무조건 맵에 있어야 함. 없다면 좌표가 어긋난 것임.
-            Debug.LogWarning($"<color=yellow>[Stage Missing]</color> 좌표 {cellPos}에는 할당된 번호가 없습니다. (밟고 있는 타일: {foundTileName})");
-            
-            // 주변 1칸을 뒤져서 가장 가까운 스테이지 번호를 찾는 보정 로직 (옵션)
-            return FindNearbyStageIndex(cellPos);
+            // 🛑 [수정됨] 인접한 스테이지를 찾는 로직(FindNearbyStageIndex)을 제거했습니다.
+            // 정확히 타일 위에 있지 않다면 -1을 반환합니다.
+            return -1; 
         }
-    }
-
-    // 만약 좌표 오차로 인해 못 찾는 경우 주변을 검색하는 보조 함수
-    private int FindNearbyStageIndex(Vector3Int cellPos)
-    {
-        Vector3Int[] neighbors = { Vector3Int.left, Vector3Int.right, Vector3Int.up, Vector3Int.down };
-        foreach (var offset in neighbors)
-        {
-            if (tileStageMap.TryGetValue(cellPos + offset, out int idx))
-            {
-                Debug.Log($"<color=magenta>[Stage Compensated]</color> 본래 좌표 {cellPos}엔 없으나 인접한 {cellPos + offset}에서 스테이지 {idx}를 찾았습니다.");
-                return idx;
-            }
-        }
-        return -1;
     }
 
 }

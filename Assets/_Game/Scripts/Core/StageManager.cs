@@ -21,12 +21,27 @@ public class StageManager : MonoBehaviour
     // ✅ 최고 도달 스테이지 (체크포인트 역할)
     public int highestReachedStage = 0; 
     public int maxClearedStage = 10;
-    
-    [Tooltip("스테이지별 카메라 위치 리스트.")]
-    public List<Vector3> cameraPositions;
+
     
     [Tooltip("카메라 이동 속도")]
     public float cameraMoveSpeed = 5f; 
+
+    // =================================================================
+    // 🛠️ [FIX] 누락된 카메라 변수 추가 (여기부터 복사하세요)
+    // =================================================================
+    [Header("Camera Settings")]
+    [Tooltip("기본 카메라 줌 사이즈 (앵커가 없을 때 사용)")]
+    public float defaultOrthoSize = 5f;       // 기본값 5 추천
+
+    [Tooltip("카메라 이동 부드러움 정도 (작을수록 빠름, 0.1 ~ 0.3 추천)")]
+    public float cameraSmoothTime = 0.25f;    
+    
+    [Tooltip("카메라 줌 변경 속도")]
+    public float cameraZoomSpeed = 3f;        
+
+    // SmoothDamp 함수가 내부적으로 사용하는 속도 참조 변수 (private이어야 함)
+    private Vector3 currentCameraVelocity;    
+    // =================================================================
 
     [Header("Player & Reset")]
     public Transform player;
@@ -66,6 +81,9 @@ public class StageManager : MonoBehaviour
 
     public event Action<int> OnAmmoChanged;
 
+    // ✅ [NEW] 카메라 앵커 관리용 딕셔너리 (Key: StageIndex, Value: Anchors List)
+    private Dictionary<int, List<CameraAnchor>> stageAnchors = new Dictionary<int, List<CameraAnchor>>();
+
     private Dictionary<(int, int), int> stageAmmoSettings = new Dictionary<(int, int), int>()
     {
         // --- Scene 0 설정 ---
@@ -100,25 +118,8 @@ public class StageManager : MonoBehaviour
 
         highestReachedStage = currentStage;
 
-        // ✅ [복구 완료] 카메라 좌표가 없으면 하드코딩된 값 사용
-        if (cameraPositions == null || cameraPositions.Count == 0)
-        {
-            Debug.Log("<color=yellow>[StageManager]</color> 카메라 좌표가 비어있어 기본값을 로드합니다.");
-            cameraPositions = new List<Vector3>
-            {
-                new Vector3(0f, 0f, 0f), 
-                new Vector3(104.96f, 0f, 0f), 
-                new Vector3(212.48f, 0f, 0f),
-                new Vector3(319.99f, 0f, 0f), 
-                new Vector3(427.52f, 0f, 0f), 
-                new Vector3(535.04f, 0f, 0f),
-                new Vector3(642.56f, 0f, 0f), 
-                new Vector3(750.08f, 0f, 0f), 
-                new Vector3(857.60f, 5.12f, 0f),
-                new Vector3(965.12f, 5.12f, 0f),
-                new Vector3(0f, 0f, 0f) 
-            };
-        }
+        // ✅ [NEW] 씬에 있는 모든 앵커 수집
+        CollectCameraAnchors();
 
         if (objectRoot == null)
         {
@@ -130,6 +131,23 @@ public class StageManager : MonoBehaviour
         InitializeStageLoadouts();
         
         ReloadAmmo(currentStage);
+    }
+
+    public void CollectCameraAnchors()
+    {
+        stageAnchors.Clear();
+        CameraAnchor[] anchors = FindObjectsOfType<CameraAnchor>();
+        
+        foreach (var anchor in anchors)
+        {
+            if (!stageAnchors.ContainsKey(anchor.stageIndex))
+            {
+                stageAnchors[anchor.stageIndex] = new List<CameraAnchor>();
+            }
+            stageAnchors[anchor.stageIndex].Add(anchor);
+        }
+        
+        // Debug.Log($"<color=cyan>[Camera] {anchors.Length}개의 카메라 앵커를 찾았습니다.</color>");
     }
 
     // 🛠️ [추가됨] GeneratorManager가 맵 생성을 끝내면 호출
@@ -151,6 +169,9 @@ public class StageManager : MonoBehaviour
             DontDestroyOnLoad(mapBackup); 
             Debug.Log("<color=green>[StageManager]</color> 맵 백업 완료.");
         }
+
+        // 맵이 재생성되었을 수 있으므로 앵커 다시 수집 (앵커가 MapEnvironment 자식일 경우 대비)
+        CollectCameraAnchors();
 
         SortTilesAndRefresh();
         ResetGamePartial();
@@ -196,13 +217,70 @@ public class StageManager : MonoBehaviour
             }
         }
         
-        // 4. 카메라도 즉시 해당 위치로 이동 (부드러운 이동 대신 즉시 이동)
-        if (_mainCamera != null && cameraPositions != null && currentStage < cameraPositions.Count)
+        // ✅ [수정] 즉시 이동: 타겟 위치 계산 후 이동
+        if (_mainCamera != null)
         {
-            Vector3 targetPos = cameraPositions[currentStage];
-            targetPos.z = -10f;
+            (Vector3 targetPos, float targetSize) = CalculateCameraTarget();
             _mainCamera.transform.position = targetPos;
+            _mainCamera.orthographicSize = targetSize;
         }
+    }
+
+    private (Vector3 position, float size) CalculateCameraTarget()
+    {
+        Vector3 targetPos = _mainCamera.transform.position;
+        float targetSize = defaultOrthoSize;
+
+        // 1. 플레이어 위치 확인
+        if (player == null) return (targetPos, targetSize);
+
+        // 2. 현재 플레이어가 위치한 스테이지 인덱스 확인 (GeneratorManager 이용)
+        int playerStageIndex = -1;
+        if (GeneratorManager.Instance != null)
+        {
+            playerStageIndex = GeneratorManager.Instance.GetStageIndexFromWorldPos(player.transform.position);
+        }
+
+        // 3. 조건 처리
+        // 플레이어가 스테이지 위에 없거나(-1), 해당 스테이지에 등록된 앵커가 없는 경우
+        if (playerStageIndex == -1 || !stageAnchors.ContainsKey(playerStageIndex))
+        {
+            // -> 플레이어 위로 이동, 줌 1.0 (default)
+            targetPos = player.position;
+            targetSize = defaultOrthoSize;
+        }
+        else
+        {
+            // -> 해당 스테이지의 앵커들 중 플레이어와 가장 가까운 것 찾기
+            List<CameraAnchor> anchors = stageAnchors[playerStageIndex];
+            CameraAnchor closestAnchor = null;
+            float minDistance = float.MaxValue;
+
+            foreach (var anchor in anchors)
+            {
+                if (anchor == null) continue;
+                float dist = Vector3.Distance(player.position, anchor.transform.position);
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    closestAnchor = anchor;
+                }
+            }
+
+            if (closestAnchor != null)
+            {
+                targetPos = closestAnchor.transform.position;
+                
+                // 줌 계산: 1보다 크면 확대(Size 작아짐), 1보다 작으면 축소(Size 커짐)
+                // 예: Scale 2.0 -> Size = Default / 2.0 (절반 크기 = 2배 확대)
+                float scale = Mathf.Max(0.01f, closestAnchor.zoomScale); // 0 나누기 방지
+                targetSize = defaultOrthoSize / scale;
+            }
+        }
+
+        // Z축 고정
+        targetPos.z = -10f;
+        return (targetPos, targetSize);
     }
 
     private void Update()
@@ -222,22 +300,27 @@ public class StageManager : MonoBehaviour
     // =========================================================
     private void MoveCameraToTarget()
     {
-        if (_mainCamera == null) return;
-        if (cameraPositions == null || cameraPositions.Count == 0) return;
+        if (_mainCamera == null || player == null) return;
 
-        int targetIndex = Mathf.Clamp(currentStage, 0, cameraPositions.Count - 1);
-        
-        Vector3 targetPos = cameraPositions[targetIndex];
-        targetPos.z = -10f; 
+        // 목표 위치 및 사이즈 계산
+        (Vector3 targetPos, float targetSize) = CalculateCameraTarget();
 
-        float distance = Vector3.Distance(_mainCamera.transform.position, targetPos);
-        if (distance > 0.01f)
+        // 1. 위치 이동 (SmoothDamp로 부드럽게 자연스러운 이동)
+        _mainCamera.transform.position = Vector3.SmoothDamp(
+            _mainCamera.transform.position, 
+            targetPos, 
+            ref currentCameraVelocity, 
+            cameraSmoothTime
+        );
+
+        // 2. 줌 변경 (Lerp)
+        if (Mathf.Abs(_mainCamera.orthographicSize - targetSize) > 0.01f)
         {
-            _mainCamera.transform.position = Vector3.Lerp(_mainCamera.transform.position, targetPos, Time.deltaTime * cameraMoveSpeed);
-        }
-        else
-        {
-            _mainCamera.transform.position = targetPos;
+            _mainCamera.orthographicSize = Mathf.Lerp(
+                _mainCamera.orthographicSize, 
+                targetSize, 
+                Time.deltaTime * cameraZoomSpeed
+            );
         }
     }
 
@@ -344,42 +427,37 @@ public class StageManager : MonoBehaviour
 
     public void CheckStageTransition(Vector3 targetWorldPos)
     {
-        if (GeneratorManager.Instance == null) 
-        {
-            Debug.LogError("<color=red>[StageManager]</color> GeneratorManager 인스턴스를 찾을 수 없습니다!");
-            return;
-        }
+        if (GeneratorManager.Instance == null) return;
 
+        // 현재 밟고 있는 땅의 스테이지 번호 가져오기
         int targetStageIndex = GeneratorManager.Instance.GetStageIndexFromWorldPos(targetWorldPos);
 
-        // 🔍 로그 4: 전환 체크 시점 로그
-        if (targetStageIndex != -1)
+        // ✅ [수정] 스테이지 번호가 바뀌었다면 무조건 처리 ( -1 포함 )
+        if (targetStageIndex != currentStage)
         {
-            if (targetStageIndex != currentStage)
+            // 1. 스테이지 밖(-1)으로 나간 경우
+            if (targetStageIndex == -1)
             {
-                Debug.Log($"<color=lime>🎬 [Transition Success]</color> 목적지 스테이지({targetStageIndex})가 현재({currentStage})와 달라 카메라를 이동합니다.");
+                currentStage = -1; // 현재 스테이지 없음으로 설정
+                RefreshStagePalette(); // 팔레트 비우기 호출
+                
+                Debug.Log("<color=gray>[Stage] 스테이지 영역을 벗어났습니다. (UI 숨김)</color>");
+            }
+            // 2. 새로운 스테이지로 진입한 경우
+            else
+            {
                 ChangeStage(targetStageIndex);
             }
-        }
-        else
-        {
-            Debug.Log($"<color=gray>[Transition Ignore]</color> 목적지 {targetWorldPos}는 어떤 스테이지에도 속해있지 않습니다.");
         }
     }
 
     private void ChangeStage(int targetStage)
     {
-        if (targetStage < 0 || targetStage >= cameraPositions.Count) 
-        {
-            Debug.LogError($"<color=red>[Stage Error]</color> 스테이지 {targetStage}에 해당하는 카메라 좌표가 없습니다!");
-            return;
-        }
+        // ❌ 기존 인덱스 범위 체크 제거 (카메라 리스트가 없어졌으므로)
+        // 대신 앵커가 존재하는지만 체크할 수도 있으나, 앵커가 없어도 플레이어 팔로우로 동작하므로 허용
         
         int previousStage = currentStage;
         currentStage = targetStage;
-
-        // 🔍 로그 추가: 목적지 좌표를 직접 확인하세요.
-        Debug.Log($"<color=yellow>📸 [Camera Destination]</color> 스테이지 변경: {previousStage} -> {currentStage} | 이동 목표: {cameraPositions[currentStage]}");
 
         if (currentStage > highestReachedStage) highestReachedStage = currentStage;
 
@@ -487,6 +565,13 @@ public class StageManager : MonoBehaviour
         if (paletteUI == null)
         {
             Debug.LogError("[Palette] PaletteUI가 연결되지 않았습니다.");
+            return;
+        }
+
+        // ✅ [추가] 현재 스테이지가 -1(없음)이거나 범위를 벗어나면 팔레트를 비움
+        if (currentStage == -1 || stageLoadouts == null || currentStage < 0 || currentStage >= stageLoadouts.Count)
+        {
+            paletteUI.Build(null); // UI 초기화 (아이콘 삭제)
             return;
         }
 
@@ -605,70 +690,45 @@ public class StageManager : MonoBehaviour
     // =========================================================
     // ✅ 리셋 기능 (맵 복구 기능 + [NEW] 퍼즐 리셋 추가)
     // =========================================================
+    // =========================================================
+    // ✅ 리셋 기능 (앵커 재수집 포함)
+    // =========================================================
     public void ResetGamePartial()
     {
-        Debug.Log($"🔄 [Reset] 체크포인트(Stage {highestReachedStage})로 복귀 및 전체 초기화");
-
-        // ✅ [추가 1] UI 포커스 해제 (이게 핵심 해결책입니다)
-        // 리셋 버튼을 눌렀을 때 버튼에 남아있는 포커스를 없애서 키보드 입력이 플레이어에게 가도록 함
-        if (EventSystem.current != null)
-        {
-            EventSystem.current.SetSelectedGameObject(null);
-        }
-
+        // UI 포커스 및 패널 닫기 (이전 요청사항 유지)
+        if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
         UIManager ui = FindObjectOfType<UIManager>(); 
-        if (ui != null)
-        {
-            // false를 넣어주면: 
-            // 1. Panel.SetActive(false) 실행 (시각적으로 끔)
-            // 2. IsPanelOpen = false 실행 (플레이어 이동 잠금 해제)
-            // 3. EventSystem 포커스 해제 (키보드 입력 뺏김 방지)
-            ui.bookPanel(false); 
-        }
+        if (ui != null) ui.bookPanel(false); 
 
-        // 1. 플레이어 설치물 제거 (ObjectRoot)
         if (objectRoot != null) foreach (Transform child in objectRoot) Destroy(child.gameObject);
         
-        // 🧩 [NEW] 퍼즐 및 맵 데이터 초기화 (재등록을 위해 리스트 비움)
         stagePuzzleBlocks.Clear();
         stageDoors.Clear();
-        
 
-        // 🛠️ 2. 맵 환경(MapEnvironment) 초기화 및 복구
         if (mapEnvironmentRoot != null && mapBackup != null)
         {
-            // 현재 망가진/변경된 맵 삭제
             Destroy(mapEnvironmentRoot.gameObject);
-            
-            // 백업본에서 새 맵 생성
             GameObject newMap = Instantiate(mapBackup);
             newMap.name = mapBackup.name.Replace("_Backup", ""); 
             newMap.SetActive(true);
-            
-            // 참조 갱신
             mapEnvironmentRoot = newMap.transform; 
             
-            // GeneratorManager의 참조도 갱신해줘야 혹시 모를 오류 방지 (선택사항)
             var gen = FindObjectOfType<GeneratorManager>();
             if (gen != null) gen.spawnParent = mapEnvironmentRoot;
-            // 여기서 GeneratorManager의 Start() 등이 실행되며 블록/스폰 타일이 다시 등록됩니다.
+
+            // ✅ 맵이 새로 생겼으므로, 맵 안에 앵커가 있다면 다시 수집해야 함
+            CollectCameraAnchors();
         }
 
-        // 3. 스테이지 및 데이터 리셋
         currentStage = highestReachedStage;
 
-        foreach(var loadout in runtimeLoadoutCache.Values)
-        {
-            if(loadout != null) Destroy(loadout); 
-        }
+        foreach(var loadout in runtimeLoadoutCache.Values) if(loadout != null) Destroy(loadout); 
         runtimeLoadoutCache.Clear();
         
         forceFlag = true;
         ReloadAmmo(currentStage);
-
         RefreshStagePalette();
 
-        // 4. 플레이어 위치 이동
         if (player == null)
         {
             GameObject pObj = GameObject.FindGameObjectWithTag("Player");
@@ -677,13 +737,8 @@ public class StageManager : MonoBehaviour
 
         if (player != null)
         {
-            // ✅ [추가 2] 플레이어 내부 상태(isMoving 등) 강제 초기화
-            // 이동 중에 리셋되면 isMoving이 true로 남아서 굳는 현상을 방지
             PlayerController pc = player.GetComponent<PlayerController>();
-            if (pc != null) 
-            {
-                pc.ForceStop(); // 아까 만든 함수 호출
-            }
+            if (pc != null) pc.ForceStop();
 
             player.position = GetCurrentStageCheckpoint();
             Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
@@ -695,11 +750,8 @@ public class StageManager : MonoBehaviour
                 rb.velocity = Vector2.zero;
 #endif
                 rb.angularVelocity = 0f;
-                rb.Sleep(); 
-                rb.WakeUp();
             }
         }
-        // 카메라는 Update()에서 currentStage를 따라 자동으로 이동함
     }
     
 }
