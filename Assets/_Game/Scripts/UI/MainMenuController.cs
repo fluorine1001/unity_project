@@ -1,66 +1,72 @@
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
-    [Header("References")]
-    // 로드 메뉴 UI (SavePage 프리팹) 연결
-    public SaveMenuUI loadMenuUI; 
-
-    // ✅ 키보드 커서 로직 삭제됨 (Update 제거)
+    [Header("Menu Pages")]
+    public SaveMenuUI loadMenuUI;       // 로드 메뉴
+    public LanguagePage languagePage;   // 언어 메뉴
+    public GameObject creditPage;       // 크레딧 페이지 (예시로 추가함)
 
     private void Start()
     {
-        // 시작 시 로드 메뉴가 켜져있다면 끔
+        // 게임 시작 시 모든 팝업 닫고 깔끔하게 시작
+        CloseAllMenus();
+    }
+
+    // 🔥 핵심 기능: 모든 메뉴를 일단 다 닫는 함수
+    private void CloseAllMenus()
+    {
         if (loadMenuUI != null) loadMenuUI.Close();
+        if (languagePage != null) languagePage.gameObject.SetActive(false);
+        if (creditPage != null) creditPage.SetActive(false);
     }
 
     // === 버튼 연결 함수들 ===
 
-    // 1. Play 버튼 (새 게임 시작)
     public void PlayGame()
     {
-        // 새 게임은 그냥 1번 씬(GameScene)으로 이동
-        // (PendingLoadData가 null이므로 StageManager가 알아서 초기화함)
         SceneManager.LoadScene("GameScene_1");
     }
 
-    // 2. Load 버튼 (이어하기)
     public void OpenLoadMenu()
     {
-        if (loadMenuUI != null)
-        {
-            // true = 로드 모드로 열기
-            loadMenuUI.Open(true);
-        }
-        else
-        {
-            Debug.LogError("Load Menu UI가 연결되지 않았습니다!");
-        }
+        // 1. 다 닫고
+        CloseAllMenus(); 
+        
+        // 2. 얘만 켬
+        if (loadMenuUI != null) loadMenuUI.Open(true);
+        else Debug.LogError("Load Menu UI가 연결되지 않았습니다!");
     }
 
-    // 3. Manual 버튼 (새로 추가)
-    public void OpenManual()
+    public void OpenLanguageMenu()
     {
-        UIManager ui = FindObjectOfType<UIManager>();
-        if (ui != null)
-        {
-            ui.ShowManualMenu();
-        }
+        // 1. 다 닫고
+        CloseAllMenus();
+
+        // 2. 얘만 켬
+        if (languagePage != null) languagePage.gameObject.SetActive(true);
     }
 
-    // 3. Quit 버튼
+    public void OpenCredit()
+    {
+        // 1. 다 닫고
+        CloseAllMenus();
+
+        // 2. 얘만 켬 (크레딧 페이지가 있다면)
+        if (creditPage != null) creditPage.SetActive(true);
+        else Debug.Log("크레딧 페이지가 연결되지 않았습니다.");
+    }
+
+    // 언어 메뉴나 크레딧의 [X] 버튼, [Back] 버튼에 연결할 공용 닫기 함수
+    public void CloseCurrentMenu()
+    {
+        CloseAllMenus();
+    }
+
     public void QuitGame()
     {
         Debug.Log("게임 종료");
         Application.Quit();
-    }
-
-    // 4. Credit 버튼
-    public void OpenCredit()
-    {
-        // 크레딧 패널 로직 (필요 시 구현)
-        Debug.Log("크레딧 열기");
     }
 }

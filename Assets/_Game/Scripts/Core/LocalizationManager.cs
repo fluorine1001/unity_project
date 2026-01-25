@@ -35,6 +35,9 @@ public class LocalizationManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             LoadCSV();
+
+            // ✅ [추가] 저장된 언어 불러오기 (없으면 기본값 "EN")
+            currentLanguage = PlayerPrefs.GetString("SelectedLanguage", "EN");
         }
         else
         {
@@ -124,6 +127,11 @@ public class LocalizationManager : MonoBehaviour
     public void ChangeLanguage(string newLangCode)
     {
         currentLanguage = newLangCode;
+
+        // ✅ [추가] 변경된 언어 저장
+        PlayerPrefs.SetString("SelectedLanguage", currentLanguage);
+        PlayerPrefs.Save();
+        
         OnLanguageChanged?.Invoke(); // 구독자들에게 알림
     }
 }

@@ -15,10 +15,10 @@ MonoBehaviour:
   Path: Audio/FMODStudio/audio-system/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639019569381364994
+  lastModified: 639049964983882897
   FileSizes:
   - Name: Desktop
-    Value: 1824
+    Value: 1946
   Exists: 1
 --- !u!114 &-8276919933241652476
 MonoBehaviour:
@@ -197,10 +197,10 @@ MonoBehaviour:
   Path: Audio/FMODStudio/audio-system/Build/Desktop/SFX.bank
   Name: SFX
   StudioPath: bank:/SFX
-  lastModified: 639019575003034995
+  lastModified: 639049964984803534
   FileSizes:
   - Name: Desktop
-    Value: 310368
+    Value: 311008
   Exists: 1
 --- !u!114 &-2011190126539491038
 MonoBehaviour:
@@ -355,7 +355,7 @@ MonoBehaviour:
   StringsBanks:
   - {fileID: -9055327062577207024}
   cacheVersion: 131856
-  cacheTime: 639019575003034995
+  cacheTime: 639049964984803534
   SerializableEventsDict:
   - key: event:/SFX/Player/Dash
     index: 0
@@ -630,10 +630,10 @@ MonoBehaviour:
   Path: Audio/FMODStudio/audio-system/Build/Desktop/BGM.bank
   Name: BGM
   StudioPath: bank:/BGM
-  lastModified: 639017560512869212
+  lastModified: 639049964983725474
   FileSizes:
   - Name: Desktop
-    Value: 5700992
+    Value: 5701056
   Exists: 1
 --- !u!114 &5305648433375500725
 MonoBehaviour:
@@ -677,10 +677,10 @@ MonoBehaviour:
   Path: Audio/FMODStudio/audio-system/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639019569381343927
+  lastModified: 639049964983870629
   FileSizes:
   - Name: Desktop
-    Value: 1074
+    Value: 2010
   Exists: 1
 --- !u!114 &6154514770583811255
 MonoBehaviour:
