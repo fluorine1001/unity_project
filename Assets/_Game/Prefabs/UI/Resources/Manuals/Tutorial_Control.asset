@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f882fb507c6785743b09d43776817124, type: 3}
   m_Name: Tutorial_Control
   m_EditorClassIdentifier: Assembly-CSharp::ManualEntrySO
-  entryTitle: Control
-  tags:
-  - Control
+  titleKey: MANUAL_TITLE_CONTROL
+  tagKeys:
+  - MANUAL_TAG_CONTROL
   blocks:
   - type: 0
-    textContent: Control
+    textKey: MANUAL_BODY_CONTROL_BLOCK_1
     imageContent: {fileID: 0}
     videoContent: {fileID: 0}
     alignment: 0

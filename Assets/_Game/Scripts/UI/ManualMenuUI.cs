@@ -9,14 +9,10 @@ public class ManualMenuUI : MonoBehaviour
 {
     [Header("System")]
     public UIManager uiManager;
-    
-    // ✅ Inspector 할당 해제해도 됨 (자동으로 채워짐)
     public List<ManualEntrySO> allEntries; 
 
     [Header("Auto Load Settings")]
-    [Tooltip("Resources 폴더 내의 경로 (예: 'ManualData'). 비워두면 Resources 루트에서 찾습니다.")]
     public string resourcePath = "Manuals"; 
-    [Tooltip("파일 이름에 이 문자열이 포함된 것만 로드합니다. (비워두면 모두 로드)")]
     public string nameFilter = ""; 
 
     [Header("Left Panel UI")]
@@ -25,6 +21,23 @@ public class ManualMenuUI : MonoBehaviour
     public TMP_InputField searchInput;    
     public Transform tagContainer;        
     public GameObject tagTogglePrefab;    
+
+    [Header("Localization Keys")]
+    public string searchPlaceholderKey = "UI_SEARCH_PLACEHOLDER";
+
+    // ✅ [추가] 폰트와 비율을 묶는 구조체
+    [System.Serializable]
+    public struct SearchFontData
+    {
+        public TMP_FontAsset fontAsset;
+        [Tooltip("이 폰트의 고유 스케일 비율 (기본값 1.0). 1.2면 20% 커짐.")]
+        public float scaleRatio; 
+    }
+
+    [Header("Font Settings")]
+    [Tooltip("검색창에서 사용할 폰트들과 각각의 비율을 설정하세요.")]
+    // ✅ [변경] 단순 리스트 -> 구조체 리스트
+    public List<SearchFontData> searchSupportFonts;
 
     [Header("Tag Style")]
     public Color tagNormalColor = new Color(0.2f, 0.2f, 0.2f, 1f); 
@@ -45,49 +58,66 @@ public class ManualMenuUI : MonoBehaviour
     public float h2Size = 32f;
     public float bodySize = 24f;
 
-    // 내부 상태 변수
     private string currentSearchText = "";
     private HashSet<string> selectedTags = new HashSet<string>(); 
     private ManualEntrySO currentSelectedEntry = null;
+    
+    private float originalPlaceholderSize = 0f;
+    private float originalInputTextSize = 0f;
 
-    // ✅ Awake는 OnEnable보다 먼저 실행되므로 여기서 데이터 로드
     void Awake()
     {
         LoadEntriesFromResources();
-    }
 
-    // ✅ 리소스 폴더에서 SO 자동 로드 및 정렬 함수
-    private void LoadEntriesFromResources()
-    {
-        // 1. Resources 폴더에서 로드
-        ManualEntrySO[] loadedData = Resources.LoadAll<ManualEntrySO>(resourcePath);
+        if (searchInput != null && searchInput.placeholder != null)
+        {
+            var placeholderText = searchInput.placeholder as TMP_Text;
+            if (placeholderText != null)
+                originalPlaceholderSize = placeholderText.fontSize;
+        }
 
-        // 2. 필터링 및 정렬 (LINQ)
-        allEntries = loadedData
-            .Where(entry => string.IsNullOrEmpty(nameFilter) || entry.name.Contains(nameFilter)) // 이름 필터
-            .OrderBy(entry => entry.entryTitle) // 제목 기준 가나다순 정렬
-            //.OrderBy(entry => entry.name)     // (옵션) 파일명 기준 정렬 원하면 이걸로 교체
-            .ToList();
-
-        Debug.Log($"[ManualMenuUI] {allEntries.Count}개의 매뉴얼 항목을 로드했습니다.");
+        if (searchInput != null && searchInput.textComponent != null)
+        {
+            originalInputTextSize = searchInput.textComponent.fontSize;
+        }
     }
 
     void OnEnable()
     {
-        // 데이터가 아직 없으면 로드 시도 (안전장치)
         if (allEntries == null || allEntries.Count == 0)
             LoadEntriesFromResources();
+
+        if (LocalizationManager.Instance != null)
+        {
+            LocalizationManager.Instance.OnLanguageChanged += OnLanguageChanged;
+        }
 
         ResetUI();
     }
 
-    // ✅ [추가] 메뉴가 꺼질 때 검색창 포커스 해제 (키보드 입력 먹통 방지)
     void OnDisable()
     {
+        if (LocalizationManager.Instance != null)
+        {
+            LocalizationManager.Instance.OnLanguageChanged -= OnLanguageChanged;
+        }
+
         if (searchInput != null)
         {
-            searchInput.text = ""; // 텍스트 비우기
-            searchInput.DeactivateInputField(); // 포커스 해제 (커서 없애기)
+            searchInput.text = "";
+            searchInput.DeactivateInputField();
+        }
+    }
+
+    void OnLanguageChanged()
+    {
+        InitializeTags(); 
+        RefreshList();    
+        UpdateSearchInputStyle();
+
+        if (currentSelectedEntry != null)
+        {
+            DisplayEntry(currentSelectedEntry);
         }
     }
 
@@ -100,14 +130,98 @@ public class ManualMenuUI : MonoBehaviour
         if (searchInput != null) 
         {
             searchInput.text = "";
-            // ✅ 초기화 시에도 포커스 해제
             searchInput.DeactivateInputField();
         }
+        
+        UpdateSearchInputStyle();
 
         InitializeTags(); 
         RefreshList();    
         ClearViewer();    
     }
+
+    // ✅ [수정] 폰트별 스케일 비율(r)을 적용하여 동적 폰트 생성
+    // ✅ [수정] var 키워드를 사용하여 타입 충돌 방지
+    private void UpdateSearchInputStyle()
+    {
+        if (searchInput == null) return;
+        if (LocalizationManager.Instance == null) return;
+
+        // 1. 현재 언어의 메인 폰트 에셋 찾기
+        var currentLangData = LocalizationManager.Instance.GetCurrentLanguageData();
+        TMP_FontAsset originalMainFont = currentLangData.fontAsset;
+        
+        float globalRatio = (currentLangData.fontRatio <= 0) ? 1.0f : currentLangData.fontRatio;
+
+        // 2. 검색창 지원 폰트 리스트에서 메인 폰트 비율 찾기
+        float mainFontSelfScale = 1.0f;
+        if (searchSupportFonts != null)
+        {
+            foreach (var data in searchSupportFonts)
+            {
+                if (data.fontAsset == originalMainFont)
+                {
+                    mainFontSelfScale = (data.scaleRatio <= 0) ? 1.0f : data.scaleRatio;
+                    break;
+                }
+            }
+        }
+
+        // 3. 메인 폰트 복제 및 스케일 적용
+        TMP_FontAsset dynamicMainFont = Instantiate(originalMainFont);
+        
+        // 🔥 [수정] FaceInfo -> var 로 변경
+        var mainFaceInfo = dynamicMainFont.faceInfo; 
+        mainFaceInfo.scale *= mainFontSelfScale;
+        dynamicMainFont.faceInfo = mainFaceInfo;
+
+        // 4. Fallback 리스트 구성
+        List<TMP_FontAsset> fallbackList = new List<TMP_FontAsset>();
+        
+        if (searchSupportFonts != null)
+        {
+            foreach (var data in searchSupportFonts)
+            {
+                if (data.fontAsset != null && data.fontAsset != originalMainFont) 
+                {
+                    TMP_FontAsset dynamicFallback = Instantiate(data.fontAsset);
+                    
+                    float fallbackScale = (data.scaleRatio <= 0) ? 1.0f : data.scaleRatio;
+
+                    // 🔥 [수정] FaceInfo -> var 로 변경
+                    var faceInfo = dynamicFallback.faceInfo;
+                    faceInfo.scale *= fallbackScale; 
+                    dynamicFallback.faceInfo = faceInfo;
+
+                    fallbackList.Add(dynamicFallback);
+                }
+            }
+        }
+        
+        dynamicMainFont.fallbackFontAssetTable = fallbackList;
+
+        // 5. Placeholder 업데이트
+        if (searchInput.placeholder != null)
+        {
+            var placeholderText = searchInput.placeholder as TMP_Text;
+            if (placeholderText != null)
+            {
+                placeholderText.text = GetLocalizedText(searchPlaceholderKey);
+                placeholderText.font = dynamicMainFont; 
+                placeholderText.fontSize = Mathf.Round(originalPlaceholderSize * globalRatio);
+            }
+        }
+
+        // 6. 입력 텍스트(Text Component) 업데이트
+        if (searchInput.textComponent != null)
+        {
+            searchInput.textComponent.font = dynamicMainFont;
+            searchInput.textComponent.fontSize = Mathf.Round(originalInputTextSize * globalRatio);
+        }
+    }
+
+    // ... (이하 기존 코드 동일: Start, InitializeTags, RefreshList 등) ...
+    // 생략된 부분은 수정할 필요 없이 그대로 두시면 됩니다.
 
     void Start()
     {
@@ -118,50 +232,42 @@ public class ManualMenuUI : MonoBehaviour
         }
     }
 
-    // ... (이하 기존 코드와 동일) ...
-    // InitializeTags, RefreshList, OnEntryClicked 등 나머지 함수들은 그대로 유지하세요.
-    
-    // =================================================================
-    // 1. 태그 관리 (색상 변경 기능 추가)
-    // =================================================================
     void InitializeTags()
     {
         foreach (Transform child in tagContainer) Destroy(child.gameObject);
-
-        HashSet<string> allTags = new HashSet<string>();
+        HashSet<string> allTagKeys = new HashSet<string>();
         foreach (var entry in allEntries)
         {
-            if (entry.tags != null)
-                foreach (var tag in entry.tags) allTags.Add(tag);
+            if (entry.tagKeys != null)
+                foreach (var tagKey in entry.tagKeys) allTagKeys.Add(tagKey);
         }
 
-        foreach (var tag in allTags)
+        foreach (var tagKey in allTagKeys)
         {
             GameObject go = Instantiate(tagTogglePrefab, tagContainer);
-            
             TextMeshProUGUI tmp = go.GetComponentInChildren<TextMeshProUGUI>();
-            if (tmp) tmp.text = tag;
-
+            if (tmp) 
+            {
+                tmp.text = GetLocalizedText(tagKey);
+                ApplyFontWithRatio(tmp); 
+            }
             Toggle toggle = go.GetComponent<Toggle>();
-            toggle.isOn = false; 
+            toggle.isOn = selectedTags.Contains(tagKey);
             toggle.group = null; 
-
             Image bgImage = toggle.targetGraphic as Image;
-            if (bgImage != null) bgImage.color = tagNormalColor;
-
+            if (bgImage != null) bgImage.color = toggle.isOn ? tagSelectedColor : tagNormalColor;
             toggle.onValueChanged.AddListener((isOn) => 
             {
-                OnTagToggled(tag, isOn);
+                OnTagToggled(tagKey, isOn);
                 if (bgImage != null) bgImage.color = isOn ? tagSelectedColor : tagNormalColor;
             });
         }
     }
 
-    void OnTagToggled(string tag, bool isOn)
+    void OnTagToggled(string tagKey, bool isOn)
     {
-        if (isOn) selectedTags.Add(tag);
-        else selectedTags.Remove(tag);
-
+        if (isOn) selectedTags.Add(tagKey);
+        else selectedTags.Remove(tagKey);
         RefreshList(); 
     }
 
@@ -174,27 +280,26 @@ public class ManualMenuUI : MonoBehaviour
     public void RefreshList()
     {
         foreach (Transform child in listContainer) Destroy(child.gameObject);
-
         var filteredList = allEntries.Where(entry => 
         {
             bool isSearchEmpty = string.IsNullOrEmpty(currentSearchText);
-            bool searchMatch = isSearchEmpty || entry.entryTitle.ToLower().Contains(currentSearchText.ToLower());
-
+            string translatedTitle = GetLocalizedText(entry.titleKey);
+            bool searchMatch = isSearchEmpty || translatedTitle.ToLower().Contains(currentSearchText.ToLower());
             bool isTagEmpty = selectedTags.Count == 0;
-            bool tagMatch = isTagEmpty || selectedTags.All(t => entry.tags.Contains(t));
-
+            bool tagMatch = isTagEmpty || selectedTags.All(t => entry.tagKeys.Contains(t));
             return searchMatch && tagMatch;
         }).ToList();
 
         foreach (var entry in filteredList)
         {
             GameObject btn = Instantiate(listButtonPrefab, listContainer);
-            
             TextMeshProUGUI btnText = btn.GetComponentInChildren<TextMeshProUGUI>();
-            if(btnText) btnText.text = entry.entryTitle;
-
+            if(btnText)
+            {
+                btnText.text = GetLocalizedText(entry.titleKey);
+                ApplyFontWithRatio(btnText);
+            }
             btn.transform.localScale = Vector3.one; 
-            
             btn.GetComponent<Button>().onClick.AddListener(() => OnEntryClicked(entry));
         }
     }
@@ -207,7 +312,6 @@ public class ManualMenuUI : MonoBehaviour
             currentSelectedEntry = null;
             return;
         }
-
         currentSelectedEntry = entry;
         DisplayEntry(entry);
     }
@@ -216,18 +320,19 @@ public class ManualMenuUI : MonoBehaviour
     {
         ClearViewer();
         contentScrollRect.verticalNormalizedPosition = 1f; 
-
-        foreach (var block in entry.blocks)
-        {
-            CreateBlock(block);
-        }
-        
+        foreach (var block in entry.blocks) CreateBlock(block);
         Canvas.ForceUpdateCanvases();
     }
 
     void CreateBlock(ManualBlock block)
     {
         GameObject go = null;
+        float ratio = 1.0f;
+        if (LocalizationManager.Instance != null)
+        {
+            ratio = LocalizationManager.Instance.GetCurrentLanguageData().fontRatio;
+            if (ratio <= 0) ratio = 1.0f;
+        }
 
         switch (block.type)
         {
@@ -236,43 +341,32 @@ public class ManualMenuUI : MonoBehaviour
             case ManualBlockType.BodyText:
                 go = Instantiate(textBlockPrefab, contentContainer);
                 TextMeshProUGUI tmp = go.GetComponentInChildren<TextMeshProUGUI>();
-                tmp.text = block.textContent;
-                
-                if (block.type == ManualBlockType.Heading1) { 
-                    tmp.fontSize = h1Size; 
-                    tmp.fontStyle = FontStyles.Bold; 
-                }
-                else if (block.type == ManualBlockType.Heading2) { 
-                    tmp.fontSize = h2Size; 
-                    tmp.fontStyle = FontStyles.Bold; 
-                }
-                else { 
-                    tmp.fontSize = bodySize; 
-                    tmp.fontStyle = FontStyles.Normal; 
-                }
+                tmp.text = GetLocalizedText(block.textKey);
+                ApplyFontOnly(tmp); 
+                float targetSize = bodySize;
+                if (block.type == ManualBlockType.Heading1) { targetSize = h1Size; tmp.fontStyle = FontStyles.Normal; }
+                else if (block.type == ManualBlockType.Heading2) { targetSize = h2Size; tmp.fontStyle = FontStyles.Normal; }
+                else { targetSize = bodySize; tmp.fontStyle = FontStyles.Normal; }
+                tmp.fontSize = Mathf.Round(targetSize * ratio);
                 ApplyAlignment(tmp, block.alignment);
                 break;
-
             case ManualBlockType.Image:
                 go = Instantiate(imageBlockPrefab, contentContainer);
                 Image img = go.GetComponentInChildren<Image>();
                 img.sprite = block.imageContent;
                 SetLayoutHeight(go, block.sizeValue);
                 break;
-
             case ManualBlockType.Video:
                 go = Instantiate(videoBlockPrefab, contentContainer);
                 VideoPlayer vp = go.GetComponentInChildren<VideoPlayer>();
                 if (vp) vp.clip = block.videoContent;
                 SetLayoutHeight(go, block.sizeValue);
                 break;
-
             case ManualBlockType.Spacer:
                 go = Instantiate(spacerBlockPrefab, contentContainer);
                 SetLayoutHeight(go, block.sizeValue);
                 break;
         }
-
         if (go != null) go.transform.localScale = Vector3.one;
     }
 
@@ -298,9 +392,61 @@ public class ManualMenuUI : MonoBehaviour
     {
         foreach (Transform child in contentContainer) Destroy(child.gameObject);
     }
-
+    
     public void OnBackButtonClicked()
     {
         if (uiManager != null) uiManager.ShowMainMenu();
+    }
+
+    private string GetLocalizedText(string key)
+    {
+        if (LocalizationManager.Instance != null) return LocalizationManager.Instance.GetText(key);
+        return key; 
+    }
+
+    // 헬퍼 함수들 (TMP_Text로 타입 통일)
+    private void ApplyFontOnly(TMP_Text tmp)
+    {
+        if (tmp == null) return;
+        if (LocalizationManager.Instance != null)
+        {
+            var data = LocalizationManager.Instance.GetCurrentLanguageData();
+            if (data.fontAsset != null) tmp.font = data.fontAsset;
+        }
+    }
+
+    private void ApplyFontWithRatio(TMP_Text tmp)
+    {
+        if (tmp == null) return;
+        if (LocalizationManager.Instance != null)
+        {
+            var data = LocalizationManager.Instance.GetCurrentLanguageData();
+            if (data.fontAsset != null) tmp.font = data.fontAsset;
+
+            float ratio = (data.fontRatio <= 0) ? 1.0f : data.fontRatio;
+            tmp.fontSize = Mathf.Round(tmp.fontSize * ratio);
+        }
+    }
+
+    private void ApplyFontWithSpecificSize(TMP_Text tmp, float baseSize)
+    {
+        if (tmp == null) return;
+        if (LocalizationManager.Instance != null)
+        {
+            var data = LocalizationManager.Instance.GetCurrentLanguageData();
+            if (data.fontAsset != null) tmp.font = data.fontAsset;
+
+            float ratio = (data.fontRatio <= 0) ? 1.0f : data.fontRatio;
+            tmp.fontSize = Mathf.Round(baseSize * ratio);
+        }
+    }
+
+    private void LoadEntriesFromResources()
+    {
+        ManualEntrySO[] loadedData = Resources.LoadAll<ManualEntrySO>(resourcePath);
+        allEntries = loadedData
+            .Where(entry => string.IsNullOrEmpty(nameFilter) || entry.name.Contains(nameFilter))
+            .OrderBy(entry => entry.name)
+            .ToList();
     }
 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using UnityEngine.SceneManagement; // 씬 이동을 위해 필요
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class SaveMenuUI : MonoBehaviour
@@ -9,7 +9,10 @@ public class SaveMenuUI : MonoBehaviour
     [Header("UI References")]
     public GameObject savePageRoot;
     public GameObject confirmPopup;
-    public TextMeshProUGUI popupMessageText;
+
+    // 🔥 [수정] 단순 텍스트 대신 번역 컴포넌트 사용
+    // 인스펙터에서 팝업창의 텍스트 오브젝트에 LocalizedText 컴포넌트를 붙이고 여기에 연결하세요.
+    public LocalizedText popupMessageText; 
 
     [Header("Slots")]
     public Transform slotContainer;
@@ -18,31 +21,35 @@ public class SaveMenuUI : MonoBehaviour
 
     private List<SaveSlotUI> _uiSlots = new List<SaveSlotUI>();
     
-    // ✅ 모드 구분 변수
+    // 모드 구분 변수
     private bool _isLoadMode = false; 
     private int _targetSlotIndex = -1;
     private bool _isDeleteMode = false; 
 
     void Awake()
     {
-        // 슬롯 생성 (최초 1회)
+        // 슬롯 초기화 (중복 방지 로직 추가)
+        foreach (Transform child in slotContainer) Destroy(child.gameObject);
+        _uiSlots.Clear();
+
         for (int i = 0; i < slotCount; i++)
         {
             GameObject go = Instantiate(slotPrefab, slotContainer);
             SaveSlotUI ui = go.GetComponent<SaveSlotUI>();
-            ui.Init(this, i);
-            _uiSlots.Add(ui);
+            if (ui != null)
+            {
+                ui.Init(this, i);
+                _uiSlots.Add(ui);
+            }
         }
 
         savePageRoot.SetActive(false);
         confirmPopup.SetActive(false);
     }
 
-    // ✅ [중요] 외부에서 열 때 모드를 설정함 (true: 로드모드, false: 저장모드)
     public void Open(bool isLoadMode)
     {
-
-        Debug.Log("Open 함수 호출됨! 이제 패널을 켭니다."); // 이 로그가 뜨는지 확인
+        Debug.Log($"SaveMenu Open: LoadMode = {isLoadMode}");
         
         _isLoadMode = isLoadMode;
         savePageRoot.SetActive(true);
@@ -51,7 +58,6 @@ public class SaveMenuUI : MonoBehaviour
         RefreshAllSlots();
     }
 
-    // 기본 Open은 저장 모드로 동작 (기존 코드 호환용)
     public void Open() { Open(false); }
 
     public void Close()
@@ -62,25 +68,23 @@ public class SaveMenuUI : MonoBehaviour
 
     private void RefreshAllSlots()
     {
-        // 리스트 인덱스를 사용하기 위해 for문으로 변경
+        if (SaveSystem.Instance == null) return;
+
         for (int i = 0; i < _uiSlots.Count; i++)
         {
             SaveSlotUI slot = _uiSlots[i];
-            slot.Refresh(); // 슬롯 UI 갱신
-
-            // 해당 슬롯에 데이터가 있는지 확인
             bool hasData = SaveSystem.Instance.Load(i) != null;
+            
+            slot.Refresh(); 
 
             if (slot.deleteButton != null)
             {
-                // 조건: (로드 모드가 아님) AND (데이터가 있음)
                 bool showDeleteButton = (!_isLoadMode) && hasData;
                 slot.deleteButton.gameObject.SetActive(showDeleteButton);
             }
         }
     }
 
-    // 슬롯 클릭 시 동작 (핵심 로직)
     public void OnSlotClicked(int index, bool hasData)
     {
         _targetSlotIndex = index;
@@ -89,34 +93,40 @@ public class SaveMenuUI : MonoBehaviour
         if (_isLoadMode)
         {
             // === [로드 모드] ===
-            if (!hasData)
-            {
-                // 빈 슬롯 클릭 -> 아무 일도 안 함
-                return;
-            }
-            
-            // 데이터 있음 -> 즉시 로드 실행
+            if (!hasData) return;
             LoadGameAndStart(index);
         }
         else
         {
             // === [저장 모드] ===
-            if (hasData) ShowPopup("Save file already exists.\nWould you like to overwrite it?");
-            else ProcessAction(); // 빈 슬롯은 즉시 저장
+            if (hasData) 
+            {
+                // 🔥 [수정] 하드코딩 문자열 대신 CSV의 키(Key)를 전달
+                ShowPopup("MSG_OVERWRITE_CONFIRM"); 
+            }
+            else 
+            {
+                ProcessAction(); // 빈 슬롯은 즉시 저장
+            }
         }
     }
 
-    // 삭제 버튼 클릭 (로드 모드에선 버튼이 숨겨지므로 호출될 일 없음)
     public void OnDeleteClicked(int index)
     {
         _targetSlotIndex = index;
         _isDeleteMode = true;
-        ShowPopup("Are you sure you want to delete it?\nIt cannot be recovered.");
+        // 🔥 [수정] 하드코딩 문자열 대신 CSV의 키(Key)를 전달
+        ShowPopup("MSG_DELETE_CONFIRM");
     }
 
-    private void ShowPopup(string message)
+    // 🔥 [수정] 텍스트가 아닌 키를 받아서 처리하도록 변경
+    private void ShowPopup(string localizationKey)
     {
-        if (popupMessageText != null) popupMessageText.text = message;
+        if (popupMessageText != null) 
+        {
+            // LocalizedText의 SetKey 기능을 사용하여 언어/폰트 자동 적용
+            popupMessageText.SetKey(localizationKey);
+        }
         confirmPopup.SetActive(true);
     }
 
@@ -142,10 +152,8 @@ public class SaveMenuUI : MonoBehaviour
         RefreshAllSlots();
     }
 
-    // ✅ 데이터를 불러와서 게임 시작
     private void LoadGameAndStart(int slotIndex)
     {
-        // 1. 데이터 불러오기
         SaveData data = SaveSystem.Instance.Load(slotIndex);
         if (data == null) 
         {
@@ -153,16 +161,15 @@ public class SaveMenuUI : MonoBehaviour
             return;
         }
 
-        // 2. 다음 씬으로 데이터 넘겨주기 (StageManager가 있다고 가정)
         StageManager.PendingLoadData = data;
 
-        // 3. 씬 이름 조합하기 (sceneIndex가 k면 -> "GameScene_k")
-        // 예: data.sceneIndex가 1이면 -> "GameScene_1"
-        string sceneName = $"_Game/Scenes/GameScene_{data.sceneIndex}";
+        // 씬 이름 규칙에 맞게 로드 (예: GameScene_1)
+        string sceneName = $"GameScene_{data.sceneIndex}";
+        
+        // 만약 폴더 경로까지 포함해야 한다면 기존 코드 사용:
+        // string sceneName = $"_Game/Scenes/GameScene_{data.sceneIndex}";
 
-        Debug.Log($"씬 로드 시작: {sceneName}"); // 확인용 로그
-
-        // 4. 해당 이름의 씬 로드
+        Debug.Log($"씬 로드 시작: {sceneName}");
         SceneManager.LoadScene(sceneName);
     }
 }

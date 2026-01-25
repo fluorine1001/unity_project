@@ -1,0 +1,16 @@
+Key,EN,KR
+UI_BTN_SAVE,Save,저장하기
+UI_BTN_SETTING,Setting,설정
+UI_BTN_LANGUAGE,Language,언어
+UI_BTN_MANUAL,Manual,매뉴얼
+UI_BTN_RESET,Reset,다시 시작
+STAT_BULLET_CNT,Bullets: {0},총알 개수: {0}
+UI_BTN_BACK,Back,뒤로가기
+MSG_OVERWRITE_CONFIRM,Save file already exists.\nOverwrite it?,이미 데이터가 존재합니다.\n덮어쓰시겠습니까?
+MSG_DELETE_CONFIRM,Delete this save data?\nCannot be recovered.,정말 삭제하시겠습니까?\n복구할 수 없습니다.
+UI_BTN_YES,Yes,예
+UI_BTN_NO,No,아니오
+UI_SEARCH_PLACEHOLDER,Search…,검색…
+MANUAL_TITLE_CONTROL,Control,조작법
+MANUAL_TAG_CONTROL,Control,조작법
+MANUAL_BODY_CONTROL_BLOCK_1,Control,조작법
