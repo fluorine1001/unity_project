@@ -66,6 +66,8 @@ public class SaveMenuUI : MonoBehaviour
         confirmPopup.SetActive(false);
     }
 
+    // SaveMenuUI.cs
+
     private void RefreshAllSlots()
     {
         if (SaveSystem.Instance == null) return;
@@ -79,7 +81,12 @@ public class SaveMenuUI : MonoBehaviour
 
             if (slot.deleteButton != null)
             {
-                bool showDeleteButton = (!_isLoadMode) && hasData;
+                // 🔴 기존 코드 (문제 원인): 로드 모드가 아닐 때만 삭제 버튼 표시
+                // bool showDeleteButton = (!_isLoadMode) && hasData;
+
+                // 🟢 수정 코드: 모드와 상관없이 데이터가 있으면 무조건 표시
+                bool showDeleteButton = hasData;
+                
                 slot.deleteButton.gameObject.SetActive(showDeleteButton);
             }
         }
@@ -146,8 +153,23 @@ public class SaveMenuUI : MonoBehaviour
     {
         if (_targetSlotIndex == -1) return;
 
-        if (_isDeleteMode) SaveSystem.Instance.DeleteSave(_targetSlotIndex);
-        else SaveSystem.Instance.Save(_targetSlotIndex);
+        if (_isDeleteMode) 
+        {
+            SaveSystem.Instance.DeleteSave(_targetSlotIndex);
+            
+            // ✅ [추가] 현재 플레이 중인 슬롯을 삭제했다면, 연결 끊기
+            if (StageManager.Instance.CurrentSlotIndex == _targetSlotIndex)
+            {
+                StageManager.Instance.CurrentSlotIndex = -1;
+            }
+        }
+        else 
+        {
+            SaveSystem.Instance.Save(_targetSlotIndex);
+            
+            // ✅ [추가] 저장 성공 시, 현재 슬롯 인덱스 갱신
+            StageManager.Instance.CurrentSlotIndex = _targetSlotIndex;
+        }
         
         RefreshAllSlots();
     }
@@ -162,13 +184,11 @@ public class SaveMenuUI : MonoBehaviour
         }
 
         StageManager.PendingLoadData = data;
-
-        // 씬 이름 규칙에 맞게 로드 (예: GameScene_1)
-        string sceneName = $"GameScene_{data.sceneIndex}";
         
-        // 만약 폴더 경로까지 포함해야 한다면 기존 코드 사용:
-        // string sceneName = $"_Game/Scenes/GameScene_{data.sceneIndex}";
+        // ✅ [추가] 로드할 슬롯 번호 전달
+        StageManager.PendingSlotIndex = slotIndex;
 
+        string sceneName = $"GameScene_{data.sceneIndex}";
         Debug.Log($"씬 로드 시작: {sceneName}");
         SceneManager.LoadScene(sceneName);
     }

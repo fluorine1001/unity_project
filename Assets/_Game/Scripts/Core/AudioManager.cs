@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using FMODUnity;
 using FMOD.Studio;
+using UnityEngine.SceneManagement; // 👈 필수 추가!
 
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager instance { get; private set; }
 
     [Header("Volume Settings")]
-    [SerializeField] private string masterVcaPath = "vca:/Master"; // FMOD에서 만든 Master VCA 경로
+    [SerializeField] private string masterVcaPath = "vca:/Master";
     [SerializeField] private string masterSaveKey = "Vol_Master";
 
     private VCA masterVCA;
     private Dictionary<string, VCA> vcaDictionary = new Dictionary<string, VCA>();
 
-    // 기존 변수들
     private List<EventInstance> eventInstances;
     private EventInstance musicEventInstance;
 
@@ -23,40 +23,71 @@ public class AudioManager : MonoBehaviour
     {
         if (instance != null)
         {
-            Debug.LogError("Found more than one Audio Manager in the scene.");
+            // 씬 이동 시 중복 생성되는 매니저 삭제
             Destroy(gameObject);
             return;
         }
         instance = this;
-        DontDestroyOnLoad(gameObject); // 볼륨 설정 유지를 위해 파괴 방지 추천
+        DontDestroyOnLoad(gameObject);
 
         eventInstances = new List<EventInstance>();
     }
 
+    // ✅ 이벤트 등록 (씬이 로드될 때마다 알림을 받음)
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    // ✅ 이벤트 해제 (메모리 누수 방지)
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
     private void Start()
     {
-        // 1. VCA 초기화 및 저장된 볼륨 적용
         InitializeMasterVolume();
+        // Start에서는 음악 재생을 호출하지 않음 (OnSceneLoaded가 대신 함)
+    }
 
-        // 2. 배경음악 재생 (기존 로직)
-        // StageManager가 있는지 확인 (없을 경우 에러 방지)
-        if (StageManager.Instance != null)
+    // 🔥 [핵심] 씬 로드가 완료될 때마다 자동으로 실행되는 함수
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 1. 기존 음악 정지 (메인 메뉴 -> 게임, 혹은 게임 -> 게임 이동 시 겹침 방지)
+        StopMusic();
+
+        // 2. 씬 이름에 따라 음악 재생
+        // (StageManager가 아직 초기화 전일 수도 있으므로 씬 이름으로 체크하는 게 안전합니다)
+        if (scene.name == "GameScene_1")
         {
-            if (StageManager.Instance.sceneIndex == 1) InitializeMusic(FMODEvents.instance.Scene1Music);
-            else if (StageManager.Instance.sceneIndex == 2) InitializeMusic(FMODEvents.instance.Scene2Music);
+            InitializeMusic(FMODEvents.instance.Scene1Music);
+        }
+        else if (scene.name == "GameScene_2")
+        {
+            InitializeMusic(FMODEvents.instance.Scene2Music);
+        }
+        // 메인 메뉴(MainMenuScene)인 경우 위 조건에 안 걸리므로 음악이 안 나옴 (의도한 대로)
+    }
+
+    public void StopMusic()
+    {
+        if (musicEventInstance.isValid())
+        {
+            musicEventInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+            musicEventInstance.release();
         }
     }
 
-    // --- Volume Control Logic ---
+    // ... (이 아래는 기존 코드와 동일) ...
 
     private void InitializeMasterVolume()
     {
         masterVCA = RuntimeManager.GetVCA(masterVcaPath);
-        float savedVol = PlayerPrefs.GetFloat(masterSaveKey, 1.0f); // 기본값 1.0 (100%)
+        float savedVol = PlayerPrefs.GetFloat(masterSaveKey, 1.0f);
         SetMasterVolume(savedVol);
     }
 
-    // UI가 생성될 때 호출하여 해당 카테고리 VCA를 로드하고 초기화
     public void InitializeCategoryVolume(VolumeCategorySO category)
     {
         if (!vcaDictionary.ContainsKey(category.saveKey))
@@ -71,21 +102,16 @@ public class AudioManager : MonoBehaviour
 
     public void SetMasterVolume(float sliderValue)
     {
-        // 값 저장
         PlayerPrefs.SetFloat(masterSaveKey, sliderValue);
         PlayerPrefs.Save();
-
-        // 실제 볼륨 적용
         ApplyVolumeToVCA(masterVCA, sliderValue);
     }
 
     public void SetCategoryVolume(VolumeCategorySO category, float sliderValue)
     {
-        // 값 저장
         PlayerPrefs.SetFloat(category.saveKey, sliderValue);
         PlayerPrefs.Save();
 
-        // 캐싱된 VCA 찾아서 적용
         if (vcaDictionary.TryGetValue(category.saveKey, out VCA vca))
         {
             ApplyVolumeToVCA(vca, sliderValue);
@@ -95,16 +121,10 @@ public class AudioManager : MonoBehaviour
     public float GetMasterVolume() => PlayerPrefs.GetFloat(masterSaveKey, 1.0f);
     public float GetCategoryVolume(VolumeCategorySO category) => PlayerPrefs.GetFloat(category.saveKey, 1.0f);
 
-    // [핵심] 슬라이더(0~1) -> dB 기반 Logarithmic Volume 변환
     private void ApplyVolumeToVCA(VCA vca, float sliderValue)
     {
-        // dB 변환 공식을 제거하고 값을 그대로 넣습니다.
-        // 슬라이더 0.5(50%) -> FMOD 볼륨 0.5 (절반 크기)
         vca.setVolume(sliderValue);
     }
-
-
-    // --- Existing FMOD Logic (유지) ---
 
     public void PlayOneShot(EventReference sound, Vector3 worldPos)
     {
@@ -120,6 +140,7 @@ public class AudioManager : MonoBehaviour
 
     private void InitializeMusic(EventReference musicEventReference)
     {
+        StopMusic(); // 안전장치
         musicEventInstance = CreateInstance(musicEventReference);
         musicEventInstance.start();
     }

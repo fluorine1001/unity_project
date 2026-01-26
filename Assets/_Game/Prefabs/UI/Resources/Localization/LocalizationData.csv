@@ -24,3 +24,4 @@ MAINMENU_BTN_LANGUAGE,Language,언어
 MAINMENU_BTN_LOAD,Load,불러오기
 MAINMENU_BTN_QUIT,Quit,나가기
 UI_BTN_TOMENU,Back to menu,메뉴로 가기
+MSG_UNSAVED_EXIT,You have unsaved progress. Return to Main Menu?,저장되지 않은 진행 상황이 있습니다. 메인 메뉴로 돌아가시겠습니까?

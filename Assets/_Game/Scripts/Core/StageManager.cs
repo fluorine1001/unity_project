@@ -27,7 +27,7 @@ public class StageManager : MonoBehaviour
     public float cameraMoveSpeed = 5f; 
 
     // =================================================================
-    // 🛠️ [FIX] 누락된 카메라 변수 추가 (여기부터 복사하세요)
+    // 🛠️ [FIX] 누락된 카메라 변수 추가
     // =================================================================
     [Header("Camera Settings")]
     [Tooltip("기본 카메라 줌 사이즈 (앵커가 없을 때 사용)")]
@@ -83,6 +83,12 @@ public class StageManager : MonoBehaviour
 
     // ✅ [NEW] 카메라 앵커 관리용 딕셔너리 (Key: StageIndex, Value: Anchors List)
     private Dictionary<int, List<CameraAnchor>> stageAnchors = new Dictionary<int, List<CameraAnchor>>();
+
+    // ✅ [추가] 로드할 때 슬롯 번호도 같이 넘겨받기 위함
+    public static int PendingSlotIndex = -1; 
+
+    // ✅ [추가] 현재 플레이 중인 세이브 슬롯 번호 (-1이면 저장된 적 없는 새 게임)
+    public int CurrentSlotIndex = -1;
 
     private Dictionary<(int, int), int> stageAmmoSettings = new Dictionary<(int, int), int>()
     {
@@ -176,10 +182,21 @@ public class StageManager : MonoBehaviour
         SortTilesAndRefresh();
         ResetGamePartial();
 
+        // ✅ [수정] 로드 데이터 적용 부분
         if (PendingLoadData != null)
         {
             ApplyLoadedData(PendingLoadData);
-            PendingLoadData = null; // 사용 후 비우기
+            
+            // 로드한 슬롯 번호 적용
+            CurrentSlotIndex = PendingSlotIndex;
+            
+            PendingLoadData = null; 
+            PendingSlotIndex = -1; // 초기화
+        }
+        else
+        {
+            // 새 게임인 경우 슬롯 인덱스 초기화
+            CurrentSlotIndex = -1;
         }
     }
 
@@ -224,6 +241,27 @@ public class StageManager : MonoBehaviour
             _mainCamera.transform.position = targetPos;
             _mainCamera.orthographicSize = targetSize;
         }
+    }
+
+    // ✅ [추가] 저장되지 않은 변경 사항이 있는지 확인하는 함수
+    public bool HasUnsavedChanges()
+    {
+        // 1. 한 번도 저장한 적 없는 새 게임인 경우 -> 무조건 변경 사항 있음
+        if (CurrentSlotIndex == -1) return true;
+
+        // 2. 현재 슬롯의 저장된 파일 불러오기
+        SaveData savedData = SaveSystem.Instance.Load(CurrentSlotIndex);
+
+        // 3. 파일이 삭제되었거나 없으면 -> 변경 사항 있음
+        if (savedData == null) return true;
+
+        // 4. 현재 데이터와 저장된 데이터 비교
+        // (SceneIndex, CurrentStage, HighestReachedStage 비교)
+        bool isDifferent = (this.sceneIndex != savedData.sceneIndex) ||
+                           (this.currentStage != savedData.currentStage) ||
+                           (this.highestReachedStage != savedData.highestReachedStage);
+
+        return isDifferent;
     }
 
     private (Vector3 position, float size) CalculateCameraTarget()
@@ -490,62 +528,62 @@ public class StageManager : MonoBehaviour
     }
 
     public void CheckDoorState(int stageID)
-{
-    // 데이터가 없는 경우 방지
-    if (!stagePuzzleBlocks.ContainsKey(stageID) || !stageDoors.ContainsKey(stageID)) return;
-
-    List<LaserTargetBlock> blocks = stagePuzzleBlocks[stageID];
-    List<DoorController> doors = stageDoors[stageID];
-
-    // 1. 퍼즐 조건 계산
-    bool allTargetsOn = true;
-    bool allNonTargetsOff = true;
-
-    foreach (var block in blocks)
     {
-        if (block.isTarget)
+        // 데이터가 없는 경우 방지
+        if (!stagePuzzleBlocks.ContainsKey(stageID) || !stageDoors.ContainsKey(stageID)) return;
+
+        List<LaserTargetBlock> blocks = stagePuzzleBlocks[stageID];
+        List<DoorController> doors = stageDoors[stageID];
+
+        // 1. 퍼즐 조건 계산
+        bool allTargetsOn = true;
+        bool allNonTargetsOff = true;
+
+        foreach (var block in blocks)
         {
-            if (!block.IsActive) allTargetsOn = false;
+            if (block.isTarget)
+            {
+                if (!block.IsActive) allTargetsOn = false;
+            }
+            else
+            {
+                if (block.IsActive) allNonTargetsOff = false;
+            }
         }
-        else
+
+        // 최종적으로 문이 열려야 하는 상태
+        bool shouldBeOpen = allTargetsOn && allNonTargetsOff;
+        bool f1 = false, f2 = false;
+        // 2. 상태 변화 감지 및 적용
+        foreach (var door in doors)
         {
-            if (block.IsActive) allNonTargetsOff = false;
+            if (door == null) continue;
+
+            // 문 컨트롤러에서 현재 열림 여부를 가져옴 (DoorController에 isOpen public getter 필요)
+            bool currentlyOpen = door.IsDoorOpen; 
+
+            // [상태 전환 시점 포착]
+            if (!currentlyOpen && shouldBeOpen)
+            {
+                // 🔓 닫혀있다가 열리는 순간
+                Debug.Log($"<color=lime>🔓 [Door Event]</color> Stage {stageID}: 모든 조건 충족! 문이 열립니다.");
+                door.SetDoorState(true);
+                f1 = true;
+                // 여기에 문 열리는 사운드 재생 등을 추가할 수 있습니다.
+            }
+            else if (currentlyOpen && !shouldBeOpen)
+            {
+                // 🔒 열려있다가 다시 닫히는 순간
+                Debug.Log($"<color=orange>🔒 [Door Event]</color> Stage {stageID}: 조건 불충분! 문이 다시 닫힙니다.");
+                door.SetDoorState(false);
+                f2 = true;
+                AudioManager.instance.PlayOneShot(FMODEvents.instance.DoorClosed, transform.position);
+                // 여기에 문 닫히는 사운드 재생 등을 추가할 수 있습니다.
+            }
         }
+        if(f1) AudioManager.instance.PlayOneShot(FMODEvents.instance.DoorOpened, transform.position);
+        if(f2) AudioManager.instance.PlayOneShot(FMODEvents.instance.DoorClosed, transform.position);
     }
-
-    // 최종적으로 문이 열려야 하는 상태
-    bool shouldBeOpen = allTargetsOn && allNonTargetsOff;
-    bool f1 = false, f2 = false;
-    // 2. 상태 변화 감지 및 적용
-    foreach (var door in doors)
-    {
-        if (door == null) continue;
-
-        // 문 컨트롤러에서 현재 열림 여부를 가져옴 (DoorController에 isOpen public getter 필요)
-        bool currentlyOpen = door.IsDoorOpen; 
-
-        // [상태 전환 시점 포착]
-        if (!currentlyOpen && shouldBeOpen)
-        {
-            // 🔓 닫혀있다가 열리는 순간
-            Debug.Log($"<color=lime>🔓 [Door Event]</color> Stage {stageID}: 모든 조건 충족! 문이 열립니다.");
-            door.SetDoorState(true);
-            f1 = true;
-            // 여기에 문 열리는 사운드 재생 등을 추가할 수 있습니다.
-        }
-        else if (currentlyOpen && !shouldBeOpen)
-        {
-            // 🔒 열려있다가 다시 닫히는 순간
-            Debug.Log($"<color=orange>🔒 [Door Event]</color> Stage {stageID}: 조건 불충분! 문이 다시 닫힙니다.");
-            door.SetDoorState(false);
-            f2 = true;
-            AudioManager.instance.PlayOneShot(FMODEvents.instance.DoorClosed, transform.position);
-            // 여기에 문 닫히는 사운드 재생 등을 추가할 수 있습니다.
-        }
-    }
-    if(f1) AudioManager.instance.PlayOneShot(FMODEvents.instance.DoorOpened, transform.position);
-    if(f2) AudioManager.instance.PlayOneShot(FMODEvents.instance.DoorClosed, transform.position);
-}
 
     // =========================================================
     // 타일 관리
@@ -688,17 +726,19 @@ public class StageManager : MonoBehaviour
     public void OnPlayerStepOnClearTile() { }
 
     // =========================================================
-    // ✅ 리셋 기능 (맵 복구 기능 + [NEW] 퍼즐 리셋 추가)
-    // =========================================================
-    // =========================================================
-    // ✅ 리셋 기능 (앵커 재수집 포함)
+    // ✅ 리셋 기능 (앵커 재수집 포함 + UIManager 싱글톤 적용)
     // =========================================================
     public void ResetGamePartial()
     {
-        // UI 포커스 및 패널 닫기 (이전 요청사항 유지)
+        // UI 포커스 및 패널 닫기
         if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
-        UIManager ui = FindObjectOfType<UIManager>(); 
-        if (ui != null) ui.bookPanel(false); 
+        
+        // ✅ [수정] FindObjectOfType -> UIManager.Instance 사용
+        // (패널 닫기, 소리 재생 안 함)
+        if (UIManager.Instance != null) 
+        {
+            UIManager.Instance.bookPanel(false, false); 
+        }
 
         if (objectRoot != null) foreach (Transform child in objectRoot) Destroy(child.gameObject);
         

@@ -3793,7 +3793,7 @@ MonoBehaviour:
     displayName: "\uD55C\uAD6D\uC5B4"
     fontAsset: {fileID: 11400000, guid: 4b73471829243094cb8f1833d1be9a19, type: 2}
     fontRatio: 0.8
-  currentLanguage: EN
+  currentLanguage: KR
 --- !u!4 &1499051237
 Transform:
   m_ObjectHideFlags: 0
