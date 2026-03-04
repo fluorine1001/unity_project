@@ -213,7 +213,7 @@ MonoBehaviour:
   gridOrigin: {x: 0, y: 0}
   blockingMask:
     serializedVersion: 2
-    m_Bits: 1408
+    m_Bits: 5504
   speedScale: 30
   decayPerHit: 0
   consumeBullet: 1

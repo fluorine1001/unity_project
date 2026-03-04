@@ -3,6 +3,9 @@ using System.IO;
 
 public class SaveSystem : MonoBehaviour
 {
+
+    // ✅ [추가] 슬롯 개수 상수 정의 (여기서만 바꾸면 게임 전체 적용)
+    public const int SlotCount = 3;
     public static SaveSystem Instance { get; private set; }
 
     private void Awake()
@@ -26,28 +29,35 @@ public class SaveSystem : MonoBehaviour
     }
 
     // 저장 기능
+    // SaveSystem.cs
+
     public void Save(int slotIndex)
     {
-        // StageManager가 없으면 저장 불가
-        if (StageManager.Instance == null)
-        {
-            Debug.LogError("StageManager가 없습니다!");
-            return;
-        }
+        if (StageManager.Instance == null) return;
 
-        // 1. StageManager에서 데이터 추출
         int sIdx = StageManager.Instance.sceneIndex;
         int cStage = StageManager.Instance.currentStage;
         int hStage = StageManager.Instance.highestReachedStage;
 
-        // 2. 데이터 객체 생성
-        SaveData data = new SaveData(sIdx, cStage, hStage);
+        // 기존 데이터 로드하여 진행도 보정 (기존 로직 유지)
+        SaveData existingData = Load(slotIndex);
+        int realHighest = hStage;
+        if (existingData != null && existingData.highestReachedStage > hStage) 
+            realHighest = existingData.highestReachedStage;
 
-        // 3. JSON 변환 및 파일 쓰기
+        int cStageToSave = (cStage == -1) ? realHighest : cStage;
+        int hStageToSave = (cStage == -1) ? realHighest : (realHighest > cStage ? realHighest : cStage);
+
+        // ✅ [수정] 현재 플레이 타임 저장
+        float pTime = StageManager.Instance.currentPlayTime;
+
+        SaveData data = new SaveData(sIdx, cStageToSave, hStageToSave, pTime);
+
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(GetPath(slotIndex), json);
-
-        Debug.Log($"[SaveSystem] Slot {slotIndex} 저장 완료: {json}");
+        
+        // 세션 등록
+        StageManager.Instance.RegisterSaveToSession(slotIndex);
     }
 
     public void DeleteSave(int slotIndex)
@@ -58,6 +68,13 @@ public class SaveSystem : MonoBehaviour
         {
             File.Delete(path); // 파일 삭제
             Debug.Log($"[SaveSystem] Slot {slotIndex} 데이터 삭제됨");
+
+            // ✅ [추가] StageManager가 존재한다면 관리 목록에서 이 슬롯 제거
+            // (메인 메뉴에서도 삭제는 가능하므로 null 체크 필요)
+            if (StageManager.Instance != null)
+            {
+                StageManager.Instance.UnregisterSaveFromSession(slotIndex);
+            }
         }
     }
 

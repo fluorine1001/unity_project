@@ -6,8 +6,8 @@ public class SaveSlotUI : MonoBehaviour
 {
     [Header("UI Components")]
     public TextMeshProUGUI slotInfoText;
-    public Button slotButton;    // 슬롯 전체 클릭 (저장/덮어쓰기)
-    public Button deleteButton;  // 🗑️ 삭제 버튼 (새로 추가!)
+    public Button slotButton;    
+    public Button deleteButton;  
 
     private int _slotIndex;
     private SaveMenuUI _menuUI;
@@ -20,7 +20,6 @@ public class SaveSlotUI : MonoBehaviour
         
         slotButton.onClick.AddListener(OnSlotClicked);
 
-        // 삭제 버튼 이벤트 연결
         if (deleteButton != null)
         {
             deleteButton.onClick.AddListener(OnDeleteClicked);
@@ -34,9 +33,19 @@ public class SaveSlotUI : MonoBehaviour
         if (data != null)
         {
             _hasData = true;
-            slotInfoText.text = $"Slot {_slotIndex + 1}\nStage {data.sceneIndex}-{data.currentStage + 1}\n{data.saveTime}";
             
-            // 데이터가 있으면 삭제 버튼 보이기
+            // ⏰ [수정] StageManager 의존성을 없애고, 언제나 동일하게 "00:00:00"으로 표시
+            float t = data.playTime;
+            int hours = (int)(t / 3600);
+            int minutes = (int)((t % 3600) / 60);
+            int seconds = (int)(t % 60);
+
+            string timeStr = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
+
+            // 텍스트에 시간 추가 (줄바꿈이 제대로 들어가 있는지 확인하세요)
+            // SaveData에 sceneIndex가 저장되어 있다고 가정합니다.
+            slotInfoText.text = $"Slot {_slotIndex + 1}\nStage {data.sceneIndex}-{data.highestReachedStage + 1}\n{timeStr}";
+            
             if(deleteButton != null) deleteButton.gameObject.SetActive(true);
         }
         else
@@ -44,7 +53,6 @@ public class SaveSlotUI : MonoBehaviour
             _hasData = false;
             slotInfoText.text = $"Slot {_slotIndex + 1}\n[Empty]";
             
-            // 빈 슬롯이면 삭제 버튼 숨기기
             if(deleteButton != null) deleteButton.gameObject.SetActive(false);
         }
     }
@@ -54,7 +62,6 @@ public class SaveSlotUI : MonoBehaviour
         _menuUI.OnSlotClicked(_slotIndex, _hasData);
     }
 
-    // 삭제 버튼 클릭 시
     private void OnDeleteClicked()
     {
         _menuUI.OnDeleteClicked(_slotIndex);

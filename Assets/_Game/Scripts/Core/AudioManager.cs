@@ -145,6 +145,14 @@ public class AudioManager : MonoBehaviour
         musicEventInstance.start();
     }
 
+    public void PauseMusic(bool isPaused)
+    {
+        if (musicEventInstance.isValid())
+        {
+            musicEventInstance.setPaused(isPaused);
+        }
+    }
+
     private void CleanUp()
     {
         if (eventInstances != null)

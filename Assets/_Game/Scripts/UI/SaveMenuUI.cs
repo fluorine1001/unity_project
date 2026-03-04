@@ -17,7 +17,6 @@ public class SaveMenuUI : MonoBehaviour
     [Header("Slots")]
     public Transform slotContainer;
     public GameObject slotPrefab;
-    public int slotCount = 3;
 
     private List<SaveSlotUI> _uiSlots = new List<SaveSlotUI>();
     
@@ -26,13 +25,15 @@ public class SaveMenuUI : MonoBehaviour
     private int _targetSlotIndex = -1;
     private bool _isDeleteMode = false; 
 
+    public bool isOpened = false;
+
     void Awake()
     {
         // 슬롯 초기화 (중복 방지 로직 추가)
         foreach (Transform child in slotContainer) Destroy(child.gameObject);
         _uiSlots.Clear();
 
-        for (int i = 0; i < slotCount; i++)
+        for (int i = 0; i < SaveSystem.SlotCount; i++)
         {
             GameObject go = Instantiate(slotPrefab, slotContainer);
             SaveSlotUI ui = go.GetComponent<SaveSlotUI>();
@@ -47,10 +48,16 @@ public class SaveMenuUI : MonoBehaviour
         confirmPopup.SetActive(false);
     }
 
+    private void Update()
+    {
+        if(isOpened) RefreshAllSlots();
+    }
+
     public void Open(bool isLoadMode)
     {
         Debug.Log($"SaveMenu Open: LoadMode = {isLoadMode}");
         
+        isOpened = true;
         _isLoadMode = isLoadMode;
         savePageRoot.SetActive(true);
         confirmPopup.SetActive(false);
@@ -62,6 +69,7 @@ public class SaveMenuUI : MonoBehaviour
 
     public void Close()
     {
+        isOpened = false;
         savePageRoot.SetActive(false);
         confirmPopup.SetActive(false);
     }
@@ -155,20 +163,37 @@ public class SaveMenuUI : MonoBehaviour
 
         if (_isDeleteMode) 
         {
+            // 1. 실제 파일 삭제 (SaveSystem은 DontDestroyOnLoad라 메인 메뉴에도 존재함)
             SaveSystem.Instance.DeleteSave(_targetSlotIndex);
             
-            // ✅ [추가] 현재 플레이 중인 슬롯을 삭제했다면, 연결 끊기
-            if (StageManager.Instance.CurrentSlotIndex == _targetSlotIndex)
+            // 2. [수정] StageManager가 존재하는 경우에만 현재 슬롯 정보 갱신
+            // (메인 메뉴에서는 StageManager가 없을 수 있으므로 null 체크 필수)
+            if (StageManager.Instance != null)
             {
-                StageManager.Instance.CurrentSlotIndex = -1;
+                if (StageManager.Instance.CurrentSlotIndex == _targetSlotIndex)
+                {
+                    StageManager.Instance.CurrentSlotIndex = -1;
+                }
             }
         }
         else 
         {
-            SaveSystem.Instance.Save(_targetSlotIndex);
+            // 저장 로직 (메인 메뉴에서는 저장할 일이 없으므로 보통 이쪽으로는 안 옴)
+            // 하지만 안전을 위해 여기도 null 체크를 해두는 것이 좋습니다.
             
-            // ✅ [추가] 저장 성공 시, 현재 슬롯 인덱스 갱신
-            StageManager.Instance.CurrentSlotIndex = _targetSlotIndex;
+            // 주의: SaveSystem.Save() 내부에서도 StageManager를 쓰기 때문에
+            // 메인 메뉴에서 저장을 시도하면 SaveSystem 안에서 에러가 날 수 있음.
+            // (현재 로직상 메인 메뉴는 Load Mode로 열리므로 괜찮음)
+            
+            if (StageManager.Instance != null)
+            {
+                SaveSystem.Instance.Save(_targetSlotIndex);
+                StageManager.Instance.CurrentSlotIndex = _targetSlotIndex;
+            }
+            else
+            {
+                Debug.LogWarning("메인 메뉴(StageManager 없음)에서는 게임을 저장할 수 없습니다.");
+            }
         }
         
         RefreshAllSlots();

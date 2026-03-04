@@ -1,0 +1,261 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f882fb507c6785743b09d43776817124, type: 3}
+  m_Name: Tutorial_OpticalTiles
+  m_EditorClassIdentifier: Assembly-CSharp::ManualEntrySO
+  entryID: 3
+  titleKey: MANUAL_TITLE_OPTICAL
+  tagKeys:
+  - MANUAL_TAG_OPTICAL
+  - MANUAL_TAG_TILE
+  defaultSpacing: 20
+  blocks:
+  - type: 0
+    textKey: MANUAL_BODY_OPTICAL_1
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 1
+    lineSpacing: 0
+    paragraphSpacing: 0
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 2
+    textKey: MANUAL_BODY_OPTICAL_2
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 1
+    textKey: MANUAL_BODY_OPTICAL_3
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 1
+    lineSpacing: 0
+    paragraphSpacing: 0
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 3
+    textKey: 
+    imageContent: {fileID: -4254931453285254893, guid: 4642820ea5887be48bf8cd545c5fbe21, type: 3}
+    videoContent: {fileID: 0}
+    alignment: 1
+    lineSpacing: 0
+    paragraphSpacing: 0
+    sizeValue: 0.2
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: 10
+  - type: 2
+    textKey: MANUAL_BODY_OPTICAL_4
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 3
+    textKey: 
+    imageContent: {fileID: 3903270916822696662, guid: b6792ec09bf87ea4ead1c0c0f808827b, type: 3}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0.2
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: 0
+  - type: 3
+    textKey: 
+    imageContent: {fileID: 6832969521616369221, guid: 51ed5cc88155cf04ba1174ecc8bbb854, type: 3}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0.2
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: 10
+  - type: 2
+    textKey: MANUAL_BODY_OPTICAL_5
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 3
+    textKey: 
+    imageContent: {fileID: -3838113514846946, guid: 6f53fbc65c231554db5c6748190ad6b8, type: 3}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0.2
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: 10
+  - type: 2
+    textKey: MANUAL_BODY_OPTICAL_6
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 3
+    textKey: 
+    imageContent: {fileID: -6319354312039250791, guid: faae23279a38b8946ba50f910e9e44c6, type: 3}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0.2
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: 10
+  - type: 2
+    textKey: MANUAL_BODY_OPTICAL_7
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 1
+    textKey: MANUAL_BODY_OPTICAL_8
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 1
+    lineSpacing: 0
+    paragraphSpacing: 0
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 2
+    textKey: MANUAL_BODY_OPTICAL_9
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 3
+    textKey: 
+    imageContent: {fileID: 6643361344309109725, guid: 774e8556886ecab4d9a260aa74598e66, type: 3}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0.2
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: 10
+  - type: 2
+    textKey: MANUAL_BODY_OPTICAL_10
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 3
+    textKey: 
+    imageContent: {fileID: 5574273982585983708, guid: 7c218e999676166418a31f5eea2c6c3e, type: 3}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0.2
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: 10
+  - type: 2
+    textKey: MANUAL_BODY_OPTICAL_11
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 3
+    textKey: 
+    imageContent: {fileID: 4455322281995055512, guid: 55fad86260f6a054ea729a25c56d51f2, type: 3}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0.2
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: 10
+  - type: 2
+    textKey: MANUAL_BODY_OPTICAL_12
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1

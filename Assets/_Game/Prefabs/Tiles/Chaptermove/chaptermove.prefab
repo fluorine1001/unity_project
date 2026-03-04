@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: -8676957472188021264}
   - component: {fileID: -5321688108796139523}
   - component: {fileID: -4850248469393002669}
-  - component: {fileID: -3284435908172872577}
   m_Layer: 6
   m_Name: chaptermove
   m_TagString: Untagged
@@ -82,7 +81,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -2
   m_Sprite: {fileID: 1037268868389064885, guid: d251598ea842524459c4a3c605058063, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -180,17 +179,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageExit
   nextSceneName: MainMenu
---- !u!114 &-3284435908172872577
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7825602511852947053}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c8507ad4c41885f4691d8473850f269f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DynamicYDepthSort
-  baseSortingOrder: 29999
-  sortOffset: 0

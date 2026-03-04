@@ -90,6 +90,9 @@ public class StageManager : MonoBehaviour
     // ✅ [추가] 현재 플레이 중인 세이브 슬롯 번호 (-1이면 저장된 적 없는 새 게임)
     public int CurrentSlotIndex = -1;
 
+    // ✅ [추가] 이번 세션에서 로드했거나 저장해서 '비교 대상'이 된 슬롯 번호들을 저장
+    private HashSet<int> _sessionRelevantSlots = new HashSet<int>();
+
     private Dictionary<(int, int), int> stageAmmoSettings = new Dictionary<(int, int), int>()
     {
         // --- Scene 0 설정 ---
@@ -116,6 +119,17 @@ public class StageManager : MonoBehaviour
     public int CurrentAmmo { get; private set; }
     private HashSet<int> visitedStages = new HashSet<int>();
 
+    // [추가] ==========================================================
+    [Header("Time System")]
+    [Tooltip("현재 플레이 타임 (초 단위)")]
+    public float currentPlayTime = 0f;
+    public bool isTimerRunning = false;
+    private const string BEST_TIME_KEY = "GlobalBestClearTime";
+
+    // ✅ [추가] 씬이 넘어가도 사라지지 않는 "공유 시간 변수"
+    public static float SharedPlayTime = 0f;
+    // =================================================================
+
     private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -127,6 +141,8 @@ public class StageManager : MonoBehaviour
         // ✅ [NEW] 씬에 있는 모든 앵커 수집
         CollectCameraAnchors();
 
+        currentPlayTime = SharedPlayTime;
+
         if (objectRoot == null)
         {
             GameObject obj = GameObject.Find("ObjectRoot");
@@ -137,6 +153,16 @@ public class StageManager : MonoBehaviour
         InitializeStageLoadouts();
         
         ReloadAmmo(currentStage);
+    }
+
+    private void Start()
+    {
+        // 3. [핵심] 모든 설정이 끝난 뒤, 마지막에 타이머 강제 가동
+        if (sceneIndex != 0)
+        {
+            isTimerRunning = true;
+            Debug.Log($"[Time] 타이머 시작됨. 현재 시간: {currentPlayTime}");
+        }
     }
 
     public void CollectCameraAnchors()
@@ -182,31 +208,69 @@ public class StageManager : MonoBehaviour
         SortTilesAndRefresh();
         ResetGamePartial();
 
-        // ✅ [수정] 로드 데이터 적용 부분
+        // ✅ [수정] 로드 데이터 적용 및 세션 기록 초기화
         if (PendingLoadData != null)
         {
             ApplyLoadedData(PendingLoadData);
             
-            // 로드한 슬롯 번호 적용
+            // ✅ [수정] 로드한 슬롯 번호를 '유효한 슬롯 목록'에 등록 (기존 목록 초기화)
+            _sessionRelevantSlots.Clear();
+            if (PendingSlotIndex != -1)
+            {
+                _sessionRelevantSlots.Add(PendingSlotIndex);
+            }
+
             CurrentSlotIndex = PendingSlotIndex;
-            
             PendingLoadData = null; 
-            PendingSlotIndex = -1; // 초기화
+            PendingSlotIndex = -1;
         }
         else
         {
-            // 새 게임인 경우 슬롯 인덱스 초기화
+            // 새 게임: 관련된 슬롯 없음
+            _sessionRelevantSlots.Clear();
             CurrentSlotIndex = -1;
         }
+
+        // [추가] 메인 메뉴(0번)가 아니라면 타이머 시작!
+        if (sceneIndex != 0)
+        {
+            isTimerRunning = true;
+        }
+    }
+
+    // ✅ [추가] 세이브 성공 시 호출 (슬롯 등록)
+    public void RegisterSaveToSession(int slotIndex)
+    {
+        if (!_sessionRelevantSlots.Contains(slotIndex))
+        {
+            _sessionRelevantSlots.Add(slotIndex);
+        }
+        Debug.Log($"[StageManager] 세션 비교군에 슬롯 {slotIndex} 추가됨.");
+    }
+
+    // ✅ [추가] 세이브 삭제 시 호출 (슬롯 제외)
+    public void UnregisterSaveFromSession(int slotIndex)
+    {
+        if (_sessionRelevantSlots.Contains(slotIndex))
+        {
+            _sessionRelevantSlots.Remove(slotIndex);
+        }
+        Debug.Log($"[StageManager] 세션 비교군에서 슬롯 {slotIndex} 제외됨.");
     }
 
     // ✅ [추가] 저장된 데이터를 게임에 적용하는 함수
     private void ApplyLoadedData(SaveData data)
     {
-        Debug.Log($"<color=green>[Load] 저장된 데이터 적용 중... (Stage {data.currentStage})</color>");
+        Debug.Log($"<color=green>[Load] 저장된 데이터 적용 중... (Stage {data.highestReachedStage})</color>");
+
+        // [추가] 저장된 플레이 타임 불러오기
+        this.currentPlayTime = data.playTime;
+
+        // ✅ [추가] 로드한 시간을 공유 변수에도 반영
+        SharedPlayTime = this.currentPlayTime;
 
         // 1. 데이터 덮어쓰기
-        this.currentStage = data.currentStage;
+        this.currentStage = data.highestReachedStage;
         this.highestReachedStage = data.highestReachedStage;
         // (sceneIndex는 이미 SceneManager를 통해 맞춰져 있음)
 
@@ -243,25 +307,92 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    // ✅ [추가] 저장되지 않은 변경 사항이 있는지 확인하는 함수
+    // StageManager.cs
+
+    // StageManager.cs 내부의 HasUnsavedChanges 함수
+
+    // ✅ [수정] 요청하신 로직대로 변경 사항 판단
+    // ✅ [수정] 요청하신 1, 2번 조건을 완벽히 반영한 로직
     public bool HasUnsavedChanges()
     {
-        // 1. 한 번도 저장한 적 없는 새 게임인 경우 -> 무조건 변경 사항 있음
-        if (CurrentSlotIndex == -1) return true;
+        Debug.Log($"<color=cyan>[SaveCheck] 검사 시작</color> ----------------------------");
+        Debug.Log($"[SaveCheck] 현재 나의 상태: Scene {this.sceneIndex} / MaxStage {this.highestReachedStage}");
+        Debug.Log($"[SaveCheck] 관리 중인 슬롯 개수: {_sessionRelevantSlots.Count}");
 
-        // 2. 현재 슬롯의 저장된 파일 불러오기
-        SaveData savedData = SaveSystem.Instance.Load(CurrentSlotIndex);
+        // 비교를 위한 변수 초기화
+        int maxSavedSceneIndex = -1;       // 불러온/저장한 파일들 중 가장 높은 Scene
+        int maxStageInCurrentScene = -1;   // "현재 Scene과 같은" 파일들 중 가장 높은 Stage
 
-        // 3. 파일이 삭제되었거나 없으면 -> 변경 사항 있음
-        if (savedData == null) return true;
+        bool hasAnyData = false;
 
-        // 4. 현재 데이터와 저장된 데이터 비교
-        // (SceneIndex, CurrentStage, HighestReachedStage 비교)
-        bool isDifferent = (this.sceneIndex != savedData.sceneIndex) ||
-                           (this.currentStage != savedData.currentStage) ||
-                           (this.highestReachedStage != savedData.highestReachedStage);
+        // ✅ 관리 중인 '유효 슬롯'들만 순회
+        foreach (int slotIndex in _sessionRelevantSlots)
+        {
+            // 실제 파일 데이터 로드
+            SaveData data = SaveSystem.Instance.Load(slotIndex);
+            
+            if (data != null)
+            {
+                hasAnyData = true;
+                Debug.Log($"[SaveCheck] >> 슬롯 {slotIndex} 데이터 발견: Scene {data.sceneIndex} / Stage {data.highestReachedStage} / PlayTime {data.playTime:F1}");
 
-        return isDifferent;
+                // 1. 전체 중 Max Scene Index 찾기
+                if (data.sceneIndex > maxSavedSceneIndex)
+                {
+                    maxSavedSceneIndex = data.sceneIndex;
+                }
+
+                // 2. "현재 Scene과 같은" 데이터에 대해서만 Stage 비교
+                if (data.sceneIndex == this.sceneIndex)
+                {
+                    if (data.highestReachedStage > maxStageInCurrentScene)
+                    {
+                        maxStageInCurrentScene = data.highestReachedStage;
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[SaveCheck] >> 슬롯 {slotIndex}은 리스트에 있지만 파일을 로드할 수 없습니다. (삭제됨?)");
+            }
+        }
+
+        Debug.Log($"[SaveCheck] 📊 데이터 집계 결과 -> MaxSavedScene: {maxSavedSceneIndex} / MaxStageInCurrent: {maxStageInCurrentScene}");
+
+        // 유효한 데이터가 하나도 없다면(다 지웠거나 새 게임) -> 무조건 저장 필요
+        if (!hasAnyData) 
+        {
+            Debug.Log($"<color=yellow>[SaveCheck] 결과: TRUE (데이터가 하나도 없음. 새 게임이거나 슬롯이 비었음)</color>");
+            return true;
+        }
+
+        // --- 판단 로직 ---
+
+        // 조건 1: 저장된 Scene들의 최댓값이 현재 Scene보다 작다.
+        // (즉, 내가 더 먼 챕터로 넘어왔다)
+        if (maxSavedSceneIndex < this.sceneIndex)
+        {
+            Debug.Log($"<color=yellow>[SaveCheck] 결과: TRUE (새로운 챕터 진입)</color>");
+            Debug.Log($" -> 이유: 저장된 최고 Scene({maxSavedSceneIndex}) < 현재 Scene({this.sceneIndex})");
+            return true; 
+        }
+
+        // 조건 2: (조건 1이 만족 안 됨 = 이미 더 가거나 같은 챕터가 있음)
+        //        AND "현재 Scene과 같은" 파일들 중 Max Stage가 현재 Stage보다 작다.
+        if (maxSavedSceneIndex <= this.sceneIndex)
+        {
+            if (maxStageInCurrentScene < this.highestReachedStage)
+            {
+                Debug.Log($"<color=yellow>[SaveCheck] 결과: TRUE (현재 챕터에서 더 진행함)</color>");
+                Debug.Log($" -> 이유: 같은 Scene({this.sceneIndex}) 내 저장된 최고 Stage({maxStageInCurrentScene}) < 현재 Stage({this.highestReachedStage})");
+                return true;
+            }
+        }
+
+        // 위 조건들에 걸리지 않음 -> 저장된 데이터가 현재 진행도와 같거나 더 많이 진행되어 있음
+        Debug.Log($"<color=green>[SaveCheck] 결과: FALSE (변경사항 없음)</color>");
+        Debug.Log($" -> 이유: 이미 현재 상태({this.sceneIndex}-{this.highestReachedStage}) 이상을 포함하는 저장 데이터가 존재함.");
+        return false;
     }
 
     private (Vector3 position, float size) CalculateCameraTarget()
@@ -323,6 +454,23 @@ public class StageManager : MonoBehaviour
 
     private void Update()
     {
+
+        // [추가] 타이머 로직 (메뉴가 열려도 시간 기록을 위해 unscaledDeltaTime 사용)
+        if (sceneIndex != 0 && isTimerRunning)
+        {
+            // 1. 메인 시간은 기존대로 계속 흐름 (여기서 시간을 잼)
+            currentPlayTime += Time.unscaledDeltaTime;
+            SharedPlayTime = currentPlayTime;
+
+            // 2. [자동 갱신 로직] 현재 연결된 세이브 슬롯이 있다면 1초마다 파일 업데이트
+            if (_sessionRelevantSlots.Count > 0)
+            {
+                foreach(int slotIndex in _sessionRelevantSlots)
+                {
+                    SaveSystem.Instance.Save(slotIndex);
+                }
+            }
+        }
         // ✅ [복구 완료] 카메라 이동 로직
         MoveCameraToTarget();
 
@@ -793,5 +941,37 @@ public class StageManager : MonoBehaviour
             }
         }
     }
-    
+    // [추가] 시간 포맷팅 (00:00:00.00)
+    // [수정] 소수점 제거 버전 (00:00:00)
+    public string GetFormattedTime(float totalSeconds)
+    {
+        int hours = (int)(totalSeconds / 3600);
+        int minutes = (int)((totalSeconds % 3600) / 60);
+        int seconds = (int)(totalSeconds % 60); // float -> int로 변경
+        
+        // {2:05.2f} -> {2:00} 으로 변경
+        return string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
+    }
+
+    // [추가] 엔딩 시 최고 기록 갱신 및 저장
+    public void CheckAndSaveBestTime()
+    {
+        isTimerRunning = false; // 타이머 정지
+
+        float savedBest = PlayerPrefs.GetFloat(BEST_TIME_KEY, float.MaxValue);
+
+        // 현재 기록이 더 빠르면 갱신
+        if (currentPlayTime < savedBest)
+        {
+            PlayerPrefs.SetFloat(BEST_TIME_KEY, currentPlayTime);
+            PlayerPrefs.Save();
+            Debug.Log($"New Best Record! {GetFormattedTime(currentPlayTime)}");
+        }
+    }
+
+    // [추가] 최고 기록 가져오기 (메인 메뉴 표시용)
+    public float GetBestClearTime()
+    {
+        return PlayerPrefs.GetFloat(BEST_TIME_KEY, -1f);
+    }
 }

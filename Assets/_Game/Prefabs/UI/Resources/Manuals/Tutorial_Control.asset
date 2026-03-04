@@ -12,13 +12,142 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f882fb507c6785743b09d43776817124, type: 3}
   m_Name: Tutorial_Control
   m_EditorClassIdentifier: Assembly-CSharp::ManualEntrySO
+  entryID: 0
   titleKey: MANUAL_TITLE_CONTROL
   tagKeys:
   - MANUAL_TAG_CONTROL
+  - MANUAL_TAG_BASIC
+  defaultSpacing: 20
   blocks:
   - type: 0
     textKey: MANUAL_BODY_CONTROL_BLOCK_1
     imageContent: {fileID: 0}
     videoContent: {fileID: 0}
-    alignment: 0
+    alignment: 1
+    lineSpacing: 0
+    paragraphSpacing: 30
     sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 2
+    textKey: MANUAL_BODY_CONTROL_BLOCK_2
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 1
+    textKey: MANUAL_BODY_CONTROL_BLOCK_3
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 1
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 2
+    textKey: MANUAL_BODY_CONTROL_BLOCK_4
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 2
+    textKey: MANUAL_BODY_CONTROL_BLOCK_5
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 1
+    textKey: MANUAL_BODY_CONTROL_BLOCK_6
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 1
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 2
+    textKey: MANUAL_BODY_CONTROL_BLOCK_7
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 2
+    textKey: MANUAL_BODY_CONTROL_BLOCK_8
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 2
+    textKey: MANUAL_BODY_CONTROL_BLOCK_9
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 1
+    textKey: MANUAL_BODY_CONTROL_BLOCK_10
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 1
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1
+  - type: 2
+    textKey: MANUAL_BODY_CONTROL_BLOCK_11
+    imageContent: {fileID: 0}
+    videoContent: {fileID: 0}
+    alignment: 0
+    lineSpacing: 0
+    paragraphSpacing: 30
+    sizeValue: 0
+    autoPlay: 1
+    enableAudio: 0
+    initialVolume: 1
+    spacingAfter: -1

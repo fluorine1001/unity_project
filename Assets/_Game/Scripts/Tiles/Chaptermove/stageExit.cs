@@ -3,9 +3,13 @@ using UnityEngine.SceneManagement;
 
 public class StageExit : MonoBehaviour
 {
-    [SerializeField] private string nextSceneName; // 기본값은 인스펙터에서 설정 가능
+    [Header("Settings")]
+    [Tooltip("마지막 스테이지의 번호를 입력하세요. (예: 2 스테이지가 끝이면 2)")]
+    [SerializeField] private int lastStageIndex = 2; 
 
-    // ✅ 수정된 부분: 로직을 Start() 함수 내부로 이동
+    private string nextSceneName; 
+    private bool doRecordUpdate = false;
+
     private void Start()
     {
         // StageManager가 존재하는지 확인 후 로직 실행
@@ -13,13 +17,25 @@ public class StageExit : MonoBehaviour
         {
             int currentStage = StageManager.Instance.sceneIndex;
 
-            if (currentStage == 1) 
-                nextSceneName = "GameScene_2";
-            else if (currentStage == 2) 
+            // ✅ 현재 스테이지가 설정한 '마지막 스테이지' 번호와 같다면 -> 메인 메뉴로
+            if (currentStage >= lastStageIndex)
+            {
+                doRecordUpdate = true;
                 nextSceneName = "MainMenu";
+            }
+            // ✅ 아니라면 -> 다음 번호의 스테이지로 자동 설정 (예: GameScene_1 -> GameScene_2)
+            else
+            {
+                doRecordUpdate = false;
+                nextSceneName = "GameScene_" + (currentStage + 1);
+            }
             
-            // 만약 3, 4 스테이지 등이 있다면 여기에 추가하거나,
-            // "GameScene_" + (currentStage + 1) 처럼 자동화할 수도 있습니다.
+            Debug.Log($"[StageExit] 현재: {currentStage} / 목표: {lastStageIndex} / 다음 씬: {nextSceneName}");
+        }
+        else
+        {
+            // 테스트용: 매니저가 없을 땐 그냥 인스펙터 값을 따르거나 경고
+            Debug.LogWarning("StageManager가 없습니다. nextSceneName이 설정되지 않을 수 있습니다.");
         }
     }
 
@@ -29,6 +45,11 @@ public class StageExit : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             Debug.Log($"플레이어 도착! {nextSceneName} 씬으로 이동합니다.");
+
+            if (doRecordUpdate)
+            {
+                StageManager.Instance.CheckAndSaveBestTime();
+            }
             
             // 씬 이름이 비어있지 않을 때만 이동
             if (!string.IsNullOrEmpty(nextSceneName))
@@ -41,4 +62,4 @@ public class StageExit : MonoBehaviour
             }
         }
     }
-}
+}   

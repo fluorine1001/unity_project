@@ -8,12 +8,16 @@ public class SaveData
     public int highestReachedStage;
     public string saveTime; // 사용자에게 언제 저장했는지 보여주기 위함
 
-    // 생성자
-    public SaveData(int _sceneIndex, int _currStage, int _highStage)
+    // [추가] 플레이 타임 (초 단위)
+    public float playTime; 
+
+    // 생성자 수정
+    public SaveData(int sceneIdx, int curStage, int highStage, float time)
     {
-        sceneIndex = _sceneIndex;
-        currentStage = _currStage;
-        highestReachedStage = _highStage;
-        saveTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm"); // 예: 2024-01-22 14:30
+        sceneIndex = sceneIdx;
+        currentStage = curStage;
+        highestReachedStage = highStage;
+        saveTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        playTime = time; // 시간 저장
     }
 }
